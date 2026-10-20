@@ -334,7 +334,11 @@ export function MidiaClient({
                     <td className={`${tdClass} font-semibold`}>{c.sponsor}</td>
                     <td className={tdClass}>
                       {c.slotName}
-                      {c.club && <span className="block text-xs text-adm-muted">{c.club}</span>}
+                      {c.club && (
+                        <span className="block text-xs text-adm-muted">
+                          {c.club} · {c.fanClub ?? "ambiente"}
+                        </span>
+                      )}
                     </td>
                     <td className={`${tdClass} text-adm-muted`}>{c.title}</td>
                     <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.period}</td>

@@ -14,14 +14,15 @@ export type Session = {
   sub: string;
   role: Role;
   name: string;
-  artists: string[]; // slugs que administra
+  artists: string[]; // cantores cujo ambiente administra (equipe do fã clube master)
+  clubs: string[]; // fã clubes da equipe, como "cantor/clube"
   exp: number;
 };
 
 export const roleLabel: Record<Role, string> = {
   fan: "Fã",
   sponsor: "Patrocinador",
-  artist_admin: "Admin do fã clube",
+  artist_admin: "Equipe de fã clube",
   master: "Admin master",
 };
 
@@ -58,19 +59,25 @@ export async function verifySession(token: string | undefined): Promise<Session 
     if (!ok) return null;
     const payload = JSON.parse(new TextDecoder().decode(b64urlToBytes(parts[1]))) as Session;
     if (!payload.exp || payload.exp * 1000 < Date.now()) return null;
-    return { ...payload, artists: payload.artists ?? [] };
+    return { ...payload, artists: payload.artists ?? [], clubs: payload.clubs ?? [] };
   } catch {
     return null;
   }
 }
 
 /** Para onde cada tipo de conta vai depois do login. */
-export function homeFor(s: Pick<Session, "role" | "artists">): string {
+export function homeFor(s: Pick<Session, "role" | "artists"> & { clubs?: string[] }): string {
+  const clubs = s.clubs ?? [];
   switch (s.role) {
     case "master":
       return "/admin/fas-clubes";
     case "artist_admin":
-      return s.artists[0] ? `/${s.artists[0]}/admin` : "/";
+      // Só uma posição na equipe: vai direto. Mais de uma: escolhe no /painel.
+      if (clubs.length === 1) {
+        const [artist, club] = clubs[0].split("/");
+        return s.artists.includes(artist) ? `/${artist}/admin` : `/${artist}/clubes/${club}/admin`;
+      }
+      return clubs.length > 1 ? "/painel" : "/";
     case "sponsor":
       return "/patrocinador";
     default:
@@ -92,10 +99,17 @@ export function guard(pathname: string, s: Session): string | null {
   if (parts[0] === "admin") return s.role === "master" ? null : home;
   // /patrocinador → patrocinador (o master pode espiar)
   if (parts[0] === "patrocinador") return s.role === "sponsor" || s.role === "master" ? null : home;
-  // /{artista}/admin/** → admin daquele fã clube ou master
+  // /painel → quem está em alguma equipe
+  if (parts[0] === "painel") return s.role === "artist_admin" || s.role === "master" ? null : home;
+  // /{artista}/admin/** → administração do ambiente (equipe do fã clube master) ou master
   if (parts[1] === "admin") {
     if (s.role === "master") return null;
     return s.role === "artist_admin" && s.artists.includes(parts[0]) ? null : home;
+  }
+  // /{artista}/clubes/{clube}/admin/** → equipe daquele fã clube, administração do ambiente ou master
+  if (parts[1] === "clubes" && parts[3] === "admin") {
+    if (s.role === "master" || s.artists.includes(parts[0])) return null;
+    return s.clubs.includes(`${parts[0]}/${parts[2]}`) ? null : home;
   }
   // Área do fã e entrada da plataforma: qualquer conta logada.
   return null;

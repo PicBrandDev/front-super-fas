@@ -33,14 +33,22 @@ function buildSegments(prizes: Prize[]) {
   return { segs, size, background };
 }
 
+type ClubRef = { slug: string; name: string };
+
 export function PicKapWheel({
   prizes,
   initialSpins,
   nextEventId,
+  club,
+  clubs,
+  notJoined,
 }: {
   prizes: Prize[];
   initialSpins: number;
   nextEventId: string | null;
+  club: ClubRef | null; // roleta de qual fã clube
+  clubs: ClubRef[]; // fã clubes em que o fã entrou
+  notJoined: string | null; // pediu a roleta de um clube em que não entrou
 }) {
   const { base, initial, slug } = useArtist();
   const [spinError, setSpinError] = useState("");
@@ -62,13 +70,14 @@ export function PicKapWheel({
     };
   }, []);
 
-  const cantSpin = spinning || asking || spins <= 0 || prizes.length === 0;
+  const cantSpin = spinning || asking || spins <= 0 || prizes.length === 0 || !club;
 
   /** O servidor sorteia o prêmio e desconta o giro; sem API (modo exemplo) sorteia aqui. */
   async function spin() {
     if (cantSpin) return;
     setAsking(true);
-    const res = await spinPickap(slug);
+    if (!club) return;
+    const res = await spinPickap(slug, club.slug);
     setAsking(false);
     let idx: number;
     let left: number | null = null;
@@ -132,7 +141,7 @@ export function PicKapWheel({
         <header className="flex items-end justify-between gap-3 px-4 pb-1.5 pt-[18px] lg:px-8 lg:pt-8">
           <div className="flex flex-col gap-0.5">
             <span className="font-label text-[11px] font-bold uppercase tracking-[0.12em] text-accent-2">
-              Roleta geral do fã clube
+              {club ? `Roleta · ${club.name}` : "Roleta dos fã clubes"}
             </span>
             <h1 className="m-0 font-display text-[34px] font-normal leading-none text-cream lg:text-5xl">PicKap da sorte</h1>
           </div>
@@ -140,6 +149,35 @@ export function PicKapWheel({
             {spins} {spins === 1 ? "giro" : "giros"}
           </span>
         </header>
+
+        {clubs.length > 1 && (
+          <nav aria-label="Roleta de qual fã clube" className="flex gap-1.5 overflow-x-auto px-4 pt-3 lg:px-8">
+            {clubs.map((c) => {
+              const on = c.slug === club?.slug;
+              return (
+                <Link
+                  key={c.slug}
+                  href={`${base}/pickap?clube=${c.slug}`}
+                  aria-current={on ? "page" : undefined}
+                  className={`flex min-h-11 flex-none items-center whitespace-nowrap rounded-full border-2 px-3.5 font-label text-xs font-bold no-underline ${
+                    on ? "border-accent-2 bg-accent-2 text-ink" : "border-paper-2 text-paper"
+                  }`}
+                >
+                  {c.name}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+
+        {(notJoined || !club) && (
+          <p className="mx-4 mt-3 rounded-[14px] border-2 border-dashed border-paper-2 px-3.5 py-3 font-label text-[13px] text-paper lg:mx-8">
+            {notJoined ? `Entre no ${notJoined} para girar a roleta dele. ` : "Entre num fã clube para girar a roleta dele. "}
+            <Link href={`${base}/clubes`} className="font-bold text-accent-2">
+              Ver fã clubes →
+            </Link>
+          </p>
+        )}
 
         <section className="flex flex-col items-center gap-[22px] px-4 pb-2.5 pt-[22px]">
           <div className="relative aspect-square w-[316px] max-w-full">

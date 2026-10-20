@@ -45,9 +45,13 @@ const formatDate = (iso: string) => {
 export function PatrocinadorClient({
   clubs,
   slotsByClub,
+  placesByClub,
 }: {
   clubs: SponsorClub[];
+  /** Vitrines por lugar: chave "cantor" (ambiente) ou "cantor/fã-clube". */
   slotsByClub: Record<string, AdSlot[]>;
+  /** Fã clubes de cada cantor onde dá para anunciar (além do ambiente). */
+  placesByClub: Record<string, { slug: string; name: string }[]>;
 }) {
   const [step, setStep] = useState<Step>(1);
   const [sent, setSent] = useState(false);
@@ -70,7 +74,10 @@ export function PatrocinadorClient({
   }, [step, sent]);
 
   const club = clubs.find((c) => c.slug === clubSlug) ?? null;
-  const slots = club ? (slotsByClub[club.slug] ?? []).filter((s) => s.active) : [];
+  const [place, setPlace] = useState(""); // "" = ambiente do cantor; senão, slug do fã clube
+  const placeKey = club ? (place ? `${club.slug}/${place}` : club.slug) : "";
+  const slots = club ? (slotsByClub[placeKey] ?? []).filter((s) => s.active) : [];
+  const placeName = place ? (placesByClub[club?.slug ?? ""]?.find((p) => p.slug === place)?.name ?? place) : "Todo o ambiente";
   const slot = slots.find((s) => s.id === slotId) ?? null;
   const slotName = slot?.name ?? "[vitrine]";
   const clubName = club?.name ?? "[fã clube]";
@@ -120,6 +127,7 @@ export function PatrocinadorClient({
     setStep(1);
     setSent(false);
     setSlotId(null);
+    setPlace("");
     setAgree(false);
     setArt(null);
     setArtError("");
@@ -127,7 +135,10 @@ export function PatrocinadorClient({
   };
 
   const pickClub = (slug: string) => {
-    if (slug !== clubSlug) setSlotId(null);
+    if (slug !== clubSlug) {
+      setSlotId(null);
+      setPlace("");
+    }
     setClubSlug(slug);
   };
 
@@ -153,7 +164,8 @@ export function PatrocinadorClient({
 
   const period = `${form.start ? formatDate(form.start) : "[início]"} a ${form.end ? formatDate(form.end) : "[fim]"}`;
   const review = [
-    { k: "Fã clube", v: clubName },
+    { k: "Cantor", v: clubName },
+    { k: "Onde", v: placeName },
     { k: "Vitrine", v: slotName },
     { k: "Período", v: period },
     { k: "Valor", v: slot?.priceLabel ?? "R$ [PREÇO]" },
@@ -284,7 +296,35 @@ export function PatrocinadorClient({
 
       {!sent && step === 2 && (
         <section className="flex flex-col gap-3.5">
-          <StepHeading ref={headingRef}>Escolha a vitrine no fã clube {clubName}</StepHeading>
+          <StepHeading ref={headingRef}>Onde anunciar em {clubName}</StepHeading>
+          {(placesByClub[club?.slug ?? ""] ?? []).length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ad-place" className="text-[13px] font-semibold">
+                Ambiente ou fã clube
+              </label>
+              <select
+                id="ad-place"
+                value={place}
+                onChange={(e) => {
+                  setPlace(e.target.value);
+                  setSlotId(null);
+                }}
+                aria-describedby="ad-place-hint"
+                className={`${inputClass} max-w-[420px]`}
+              >
+                <option value="">Todo o ambiente de {clubName} (todos os fãs)</option>
+                {(placesByClub[club?.slug ?? ""] ?? []).map((p) => (
+                  <option key={p.slug} value={p.slug}>
+                    Só no {p.name}
+                  </option>
+                ))}
+              </select>
+              <span id="ad-place-hint" className="text-xs text-adm-muted">
+                Anúncio no ambiente aparece para todos os fãs; num fã clube, só para os membros dele. Quem aprova é quem administra o lugar.
+              </span>
+            </div>
+          )}
+          {slots.length === 0 && <p className="m-0 text-sm text-adm-muted">Nenhuma vitrine disponível aqui no momento.</p>}
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
             {slots.map((v) => {
               const on = v.id === slotId;

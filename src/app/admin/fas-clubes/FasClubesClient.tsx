@@ -163,7 +163,7 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
     <>
       <AdminPageHeader
         title="Fã clubes"
-        description="Cada artista ganha um ambiente próprio, com design próprio e até 10 administradores."
+        description="Cada cantor ganha um ambiente próprio, com design próprio e até 10 fã clubes: o master (do admin master do cantor) e mais 9, cada um com seu dono."
         actions={
           <button ref={openBtnRef} type="button" onClick={() => setCreateOpen(true)} className={btnPrimary}>
             <Icon name="plus" size={18} strokeWidth={2.4} />
@@ -201,7 +201,7 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
             <tr className="bg-adm-bg">
               <th scope="col" className={thClass}>Artista</th>
               <th scope="col" className={thClass}>Status</th>
-              <th scope="col" className={thClass}>Administradores</th>
+              <th scope="col" className={thClass}>Fã clubes</th>
               <th scope="col" className={thClass}>Membros</th>
               <th scope="col" className={thClass}>Vitrines de mídia</th>
               <th scope="col" className={thClass}>
@@ -305,9 +305,9 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
         <section aria-label={`Gerenciar ${selClub.name}`} className="flex flex-wrap items-start gap-5">
           <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-3.5 rounded-xl border border-adm-line bg-white p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="m-0 text-lg font-bold">Administradores · {selClub.name}</h2>
+              <h2 className="m-0 text-lg font-bold">Fã clubes · {selClub.name}</h2>
               <span className="font-adm-mono text-[13px] font-semibold text-adm-muted">
-                {usedOf(selClub)} de {MAX_ADMINS} vagas
+                {usedOf(selClub)} de {MAX_ADMINS}
               </span>
             </div>
             <ul className="m-0 grid list-none gap-2 p-0 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
@@ -342,7 +342,7 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
                     key={i}
                     initials="+"
                     name="Vaga livre"
-                    role={`Administrador ${i + 1}`}
+                    role={`Fã clube ${i + 1}`}
                     avatar="bg-adm-bg text-adm-muted"
                     box="border-dashed bg-white"
                     action={
@@ -355,8 +355,8 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
                           Convidar<span className="sr-only"> para a vaga {i + 1}</span>
                         </button>
                       ) : (
-                        <Link href={`/${selClub.slug}/admin/equipe`} className={`${btnOutlineBlue} no-underline`}>
-                          Convidar<span className="sr-only"> para a vaga {i + 1}</span>
+                        <Link href={`/${selClub.slug}/admin/clubes`} className={`${btnOutlineBlue} no-underline`}>
+                          Criar<span className="sr-only"> fã clube na vaga {i + 1}</span>
                         </Link>
                       )
                     }
@@ -619,11 +619,14 @@ function CreateDialog({
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="cr-email" className="text-[13px] font-semibold">
-                Convidar administradores{" "}
+                Equipe do fã clube master{" "}
                 <span className="font-normal text-adm-muted">
                   ({invites.length}/{MAX_ADMINS})
                 </span>
               </label>
+              <span className="text-xs text-adm-muted">
+                O primeiro e-mail é o dono do fã clube master (o admin master do cantor); os outros entram como ajudantes.
+              </span>
               <div className="flex gap-2">
                 <input
                   id="cr-email"

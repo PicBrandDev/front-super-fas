@@ -12,7 +12,17 @@ const avatarTones = [
 ];
 
 /** Post do mural com curtir / comentar / repostar. */
-export function PostCard({ post, index = 0, showKindTag = false }: { post: Post; index?: number; showKindTag?: boolean }) {
+export function PostCard({
+  post,
+  index = 0,
+  showKindTag = false,
+  showClub = true,
+}: {
+  post: Post;
+  index?: number;
+  showKindTag?: boolean;
+  showClub?: boolean; // mostra de qual fã clube é o post
+}) {
   const { name: artistName } = useArtist();
   const [liked, setLiked] = useState(false);
   const [reposted, setReposted] = useState(false);
@@ -32,6 +42,7 @@ export function PostCard({ post, index = 0, showKindTag = false }: { post: Post;
           <strong className="font-body text-[15px] font-extrabold">{post.author.name}</strong>
           <span className="font-label text-[11px] text-ink-soft">
             {post.author.handle} · {post.timeLabel}
+            {post.club && showClub && <> · {post.club.name}</>}
           </span>
         </div>
         {(official || showKindTag) && (

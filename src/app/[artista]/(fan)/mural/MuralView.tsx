@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { fanPost } from "@/app/actions/fan";
@@ -21,8 +22,12 @@ const fieldBase = "rounded-[10px] border-[1.5px] border-ink-soft bg-paper text-i
 const primaryPill =
   "flex min-h-11 cursor-pointer items-center rounded-full border-2 border-ink bg-accent font-label font-bold text-accent-fg";
 
-export function MuralView({ artistName, posts }: { artistName: string; posts: Post[] }) {
-  const { viewer, slug } = useArtist();
+type ClubRef = { slug: string; name: string };
+
+export function MuralView({ artistName, posts, clubs }: { artistName: string; posts: Post[]; clubs: ClubRef[] }) {
+  const { viewer, slug, base } = useArtist();
+  const [club, setClub] = useState(clubs[0]?.slug ?? "");
+  const clubName = clubs.find((c) => c.slug === club)?.name ?? "";
   const router = useRouter();
   const [postError, setPostError] = useState("");
   const [posting, start] = useTransition();
@@ -41,6 +46,7 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
       author: { name: "Você", handle: viewer.handle, initial: viewer.initial },
       timeLabel: "agora",
       text,
+      club: club ? { slug: club, name: clubName } : null,
       likes: 0,
       comments: 0,
       reposts: 0,
@@ -49,9 +55,9 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
 
   /** Publica na API; sem API (modo exemplo, status 0) mostra só na tela. */
   function send(kind: "galera" | "instagram", text: string, url = "", clear: () => void) {
-    if (posting) return;
+    if (posting || !club) return;
     start(async () => {
-      const res = await fanPost(slug, kind, text, url);
+      const res = await fanPost(slug, club, kind, text, url);
       if (!res.ok && res.status !== 0) {
         setPostError(res.error);
         return;
@@ -144,7 +150,36 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
           </p>
         )}
 
-        {tab === "galera" && (
+        {tab !== "drop" && clubs.length === 0 && (
+          <p className="m-0 rounded-[14px] border-2 border-dashed border-ink bg-cream px-3.5 py-3 font-label text-[13px] text-ink">
+            Para postar, entre num fã clube.{" "}
+            <Link href={`${base}/clubes`} className="font-bold text-ink">
+              Ver fã clubes →
+            </Link>
+          </p>
+        )}
+
+        {tab !== "drop" && clubs.length > 1 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="mural-club" className={composerLabel}>
+              Postar no clube
+            </label>
+            <select
+              id="mural-club"
+              value={club}
+              onChange={(e) => setClub(e.target.value)}
+              className={`min-h-11 px-2.5 font-body text-sm font-semibold ${fieldBase}`}
+            >
+              {clubs.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {tab === "galera" && clubs.length > 0 && (
           <form
             className={composerBox}
             onSubmit={(e) => {
@@ -153,7 +188,7 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
             }}
           >
             <label htmlFor="mural-draft" className={composerLabel}>
-              Postar no feed da galera
+              Postar no feed da galera{clubs.length === 1 ? ` · ${clubName}` : ""}
             </label>
             <textarea
               id="mural-draft"
@@ -178,7 +213,7 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
           </form>
         )}
 
-        {tab === "instagram" && (
+        {tab === "instagram" && clubs.length > 0 && (
           <form
             className={composerBox}
             onSubmit={(e) => {

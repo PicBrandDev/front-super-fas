@@ -3,7 +3,7 @@ import { AdminShell, clubNav } from "@/components/admin/AdminShell";
 import type { Artist } from "@/lib/types";
 import { shellUser } from "@/lib/shell";
 
-/** Casca do painel do admin de um fã clube (marca do artista + menu do clube). */
+/** Casca da administração do ambiente do cantor (marca do artista + menu do ambiente). */
 export async function ClubAdminShell({ artist, active, children }: { artist: Artist; active: string; children: ReactNode }) {
   return (
     <AdminShell
@@ -18,12 +18,12 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
         ),
         markClass: "bg-transparent",
         title: artist.name,
-        subtitle: artist.status === "active" ? "Admin do fã clube" : "Admin do fã clube · em configuração",
+        subtitle: artist.status === "active" ? "Administração do ambiente" : "Ambiente em configuração",
       }}
       nav={clubNav(artist.slug)}
       active={active}
       extraLink={{ label: "Ver área do fã", href: `/${artist.slug}` }}
-      user={await shellUser({ initials: "RL", name: "Rafa Lima", role: "Dono do fã clube" })}
+      user={await shellUser({ initials: "RL", name: "Rafa Lima", role: "Admin master do cantor" })}
     >
       {children}
     </AdminShell>

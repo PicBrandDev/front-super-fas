@@ -31,6 +31,8 @@ type Props = {
   singular: string; // "show", "produto"…
   feminine?: boolean; // "faixa" → "Nova faixa", "criada"…
   allowAdd?: boolean;
+  /** Fã clube (CRUD em /clubs/{club}/manage); vazio = conteúdo do ambiente. */
+  club?: string;
   fields: FieldDef[];
   items: Item[];
   /** Valores fixos enviados ao criar (ex.: eventId). */
@@ -107,6 +109,7 @@ export function ResourceManager({
   emptyText,
   feminine = false,
   allowAdd = true,
+  club,
 }: Props) {
   const o = feminine ? "a" : "o";
   const router = useRouter();
@@ -120,7 +123,7 @@ export function ResourceManager({
 
   const remove = (item: Item) =>
     start(async () => {
-      const res = await deleteContent(slug, resource, item.id);
+      const res = await deleteContent(slug, resource, item.id, club);
       if (!res.ok) {
         setError(res.error);
         return;
@@ -177,6 +180,7 @@ export function ResourceManager({
               resource,
               editing === "new" ? null : editing.id,
               editing === "new" ? { ...fixed, ...data } : data,
+              club,
             );
             if (!res.ok) return res.error;
             setAnnounce(editing === "new" ? `${capitalize(singular)} criad${o}.` : "Alterações salvas.");

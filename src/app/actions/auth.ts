@@ -10,7 +10,7 @@ export type FormState = { error?: string; values?: Record<string, string> } | un
 
 type TokenOut = {
   token: string;
-  user: { role: Role; artists: string[]; mustChangePassword: boolean };
+  user: { role: Role; artists: string[]; clubs: string[]; mustChangePassword: boolean };
 };
 
 async function startSession(out: TokenOut) {

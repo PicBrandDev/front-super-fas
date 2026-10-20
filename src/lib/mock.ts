@@ -5,6 +5,7 @@
  */
 import { vintageTheme } from "./themes";
 import type {
+  FanClub,
   AdSlot,
   Artist,
   Campaign,
@@ -40,6 +41,12 @@ export const artists: Artist[] = [
   },
 ];
 
+export const fanClubs: FanClub[] = [
+  { id: "fc1", slug: "oficial", name: "Fã clube oficial Vintage Culture", description: "O fã clube master do Vintage Culture.", city: "", isMaster: true, status: "active", members: 1240, owner: { name: "Rafa Lima" }, joined: true, myRole: null },
+  { id: "fc2", slug: "fa-clube-sp", name: "Fã Clube Vintage SP", description: "Caravanas e encontros antes dos shows.", city: "São Paulo", isMaster: false, status: "active", members: 312, owner: { name: "Bia Santos" }, joined: true, myRole: null },
+  { id: "fc3", slug: "vintage-rio", name: "Vintage Rio", description: "Fã clube carioca.", city: "Rio de Janeiro", isMaster: false, status: "active", members: 188, owner: { name: "Caio Duarte" }, joined: false, myRole: null },
+];
+
 export const viewer: Viewer = {
   name: "Marina Costa",
   handle: "@marina.c",
@@ -48,6 +55,7 @@ export const viewer: Viewer = {
   spins: 3,
   pendingGifts: 2,
   isMember: false,
+  clubs: ["oficial", "fa-clube-sp"],
 };
 
 export const otherFandoms = ["[Outro artista]", "[Outro artista]"];

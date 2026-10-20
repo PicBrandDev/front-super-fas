@@ -10,10 +10,13 @@ import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import type {
+  ClubMemberRow,
+  FanClub,
+  StaffMember,
+  StaffPosition,
   AdSlot,
   Artist,
   Campaign,
-  ClubAdmin,
   Gift,
   HomeAd,
   Member,
@@ -169,9 +172,6 @@ export const getMemberPerks = (slug: string) =>
 /** GET /artists/{slug}/members (admin do fã clube) */
 export const getMembers = (slug: string) => get<Member[]>(`/artists/${slug}/members`, () => mock.members);
 
-/** GET /artists/{slug}/admins */
-export const getClubAdmins = (slug: string) => get<ClubAdmin[]>(`/artists/${slug}/admins`, () => mock.clubAdmins);
-
 /** GET /artists/{slug}/ad-slots */
 export const getAdSlots = (slug: string) => get<AdSlot[]>(`/artists/${slug}/ad-slots`, () => mock.adSlots);
 
@@ -187,6 +187,55 @@ export const getMyCampaigns = () => get<Campaign[]>("/sponsor/campaigns", () => 
 /** GET /sponsor/me */
 export const getMySponsor = () =>
   get<Sponsor | null>("/sponsor/me", () => mock.sponsors[0] ?? null, { notFound: null });
+
+// ---------- Fã clubes do cantor ----------
+
+/** GET /artists/{slug}/clubs */
+export const getClubs = (slug: string) => get<FanClub[]>(`/artists/${slug}/clubs`, () => mock.fanClubs);
+
+/** GET /artists/{slug}/clubs/{club} */
+export const getClub = (slug: string, club: string) =>
+  get<FanClub | null>(`/artists/${slug}/clubs/${club}`, () => mock.fanClubs.find((c) => c.slug === club) ?? null, {
+    notFound: null,
+  });
+
+/** GET /artists/{slug}/clubs/{club}/posts */
+export const getClubPosts = (slug: string, club: string) =>
+  get<Post[]>(`/artists/${slug}/clubs/${club}/posts`, () => mock.posts.filter((p) => p.kind !== "drop"));
+
+/** GET /artists/{slug}/clubs/{club}/pickap/prizes */
+export const getClubPrizes = (slug: string, club: string) =>
+  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickap/prizes`, () => mock.prizes);
+
+/** GET /artists/{slug}/clubs/{club}/ad-slots */
+export const getClubAdSlots = (slug: string, club: string) =>
+  get<AdSlot[]>(`/artists/${slug}/clubs/${club}/ad-slots`, () => []);
+
+/** GET /artists/{slug}/clubs/{club}/ads/home */
+export const getClubHomeAd = (slug: string, club: string) =>
+  get<HomeAd | null>(`/artists/${slug}/clubs/${club}/ads/home`, () => null);
+
+/** GET /artists/{slug}/clubs/{club}/members (equipe do clube) */
+export const getClubMembers = (slug: string, club: string) =>
+  get<ClubMemberRow[]>(`/artists/${slug}/clubs/${club}/members`, () => []);
+
+/** GET /artists/{slug}/clubs/{club}/staff (equipe do clube) */
+export const getClubStaff = (slug: string, club: string) =>
+  get<StaffMember[]>(`/artists/${slug}/clubs/${club}/staff`, () => []);
+
+/** GET /artists/{slug}/clubs/{club}/campaigns (equipe do clube) */
+export const getClubCampaigns = (slug: string, club: string) =>
+  get<Campaign[]>(`/artists/${slug}/clubs/${club}/campaigns`, () => []);
+
+/** GET /artists/{slug}/campaigns (administração do ambiente) */
+export const getEnvCampaigns = (slug: string) => get<Campaign[]>(`/artists/${slug}/campaigns`, () => mock.campaigns);
+
+/** GET /me/staff — onde a pessoa está na equipe */
+export const getMyStaff = () => get<StaffPosition[]>("/me/staff", () => []);
+
+/** GET /artists/{slug}/clubs/{club}/manage/{recurso} (prizes, posts) */
+export const getClubManaged = <T>(slug: string, club: string, resource: string) =>
+  get<T[]>(`/artists/${slug}/clubs/${club}/manage/${resource}`, () => [] as T[]);
 
 // ---------- Conteúdo para o admin do fã clube (campos editáveis) ----------
 

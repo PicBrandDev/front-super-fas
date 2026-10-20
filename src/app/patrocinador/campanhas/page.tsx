@@ -34,7 +34,7 @@ export default async function MinhasCampanhasPage() {
           <thead>
             <tr className="bg-adm-bg">
               <th scope="col" className={thClass}>Anúncio</th>
-              <th scope="col" className={thClass}>Fã clube</th>
+              <th scope="col" className={thClass}>Onde</th>
               <th scope="col" className={thClass}>Vitrine</th>
               <th scope="col" className={thClass}>Período</th>
               <th scope="col" className={thClass}>Status</th>
@@ -44,7 +44,10 @@ export default async function MinhasCampanhasPage() {
             {campaigns.map((c) => (
               <tr key={c.id}>
                 <td className={`${tdClass} font-semibold`}>{c.title}</td>
-                <td className={tdClass}>{c.club ?? "—"}</td>
+                <td className={tdClass}>
+                  {c.club ?? "—"}
+                  <span className="block text-xs text-adm-muted">{c.fanClub ?? "Todo o ambiente"}</span>
+                </td>
                 <td className={tdClass}>{c.slotName}</td>
                 <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.period}</td>
                 <td className={tdClass}>

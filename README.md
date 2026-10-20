@@ -1,6 +1,20 @@
 # Super Fãs — Front (Next.js)
 
-Web app de fã clubes multifandom. Cada artista tem seu ambiente (com visual próprio) e até 10 administradores. O primeiro ambiente é o **Vintage Culture**.
+Web app de fã clubes multifandom. Cada cantor tem um **ambiente** (com visual próprio) com até **10 fã clubes**: o **master** e mais 9. O primeiro ambiente é o **Vintage Culture**.
+
+## Como se organiza
+
+```
+Plataforma (admin master da PicBrand) — cria os cantores
+└─ Ambiente do cantor (ex.: Vintage Culture)
+   ├─ Conteúdo oficial: agenda, loja, Drop News, Drops Hits, benefícios, anúncios do ambiente
+   │    → administrado pela equipe do fã clube master (o dono do master é o "admin master do cantor")
+   ├─ Fã clube master  ─┐
+   ├─ Fã clube 2 … 10  ─┴─ cada um: 1 dono + ajudantes; membros, mural da galera, PicKap e anúncios próprios
+   └─ Assinatura de membro → paga ao ambiente do cantor
+```
+
+O fã entra em quantos fã clubes quiser (grátis). Ao se cadastrar, já entra no master do cantor escolhido.
 
 Stack: **Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4**.
 
@@ -27,13 +41,16 @@ Com a API ligada, **todo o site exige login** e cada tipo de conta só entra na 
 
 | Conta | Depois do login vai para | Pode entrar em |
 | --- | --- | --- |
-| Fã | `/` (lista de fã clubes) | área do fã de qualquer fã clube no ar |
-| Admin do fã clube | `/[artista]/admin` | admin dos fã clubes que administra + área do fã |
+| Fã | `/` (lista de cantores) | área do fã de qualquer cantor no ar |
+| Equipe do fã clube master (admin master do cantor) | `/[artista]/admin` | administração do ambiente + painel de todos os fã clubes daquele cantor |
+| Dono / ajudante de um fã clube | `/[artista]/clubes/[clube]/admin` | painel do seu fã clube |
+| Quem está em mais de uma equipe | `/painel` (escolhe) | os painéis das suas equipes |
 | Patrocinador | `/patrocinador` | portal do patrocinador + área do fã |
-| Admin master | `/admin/fas-clubes` | tudo |
+| Admin da plataforma | `/admin/fas-clubes` | tudo |
 
 - Fãs se cadastram sozinhos em `/cadastro`.
-- Admins de fã clube e patrocinadores são **convidados** (admin master ou equipe do fã clube). O convite cria a conta e mostra uma **senha provisória** uma única vez; no primeiro login a pessoa escolhe a própria senha.
+- A equipe é **convidada**: o admin da plataforma convida o dono do fã clube master; o dono do master cria os outros fã clubes e escolhe o dono de cada um; cada dono convida seus ajudantes. Patrocinadores são convidados pelo admin da plataforma. O convite cria a conta e mostra uma **senha provisória** uma única vez; no primeiro login a pessoa escolhe a própria senha.
+- Quem entra numa equipe nova precisa sair e entrar de novo para o login reconhecer o acesso novo.
 - O porteiro das rotas é `src/proxy.ts` (confere o token do cookie `sf_session`). Quem garante as permissões de verdade é a API.
 
 ## Rotas
@@ -41,24 +58,33 @@ Com a API ligada, **todo o site exige login** e cada tipo de conta só entra na 
 | Rota | Tela |
 | --- | --- |
 | `/` | Entrada da plataforma (lista de fã clubes e painéis) |
-| `/[artista]` | Início do fã clube (anúncio, Drop News, próximo show, atalhos) |
+| `/[artista]` | Início do ambiente (anúncio, Drop News, próximo show, seus fã clubes, atalhos) |
+| `/[artista]/clubes` | Fã clubes do cantor (entrar/sair) |
+| `/[artista]/clubes/[clube]` | Página do fã clube: mural da galera, anúncio do clube, PicKap do clube |
 | `/[artista]/mural` | Mural: Drop News, feed da galera, posts do Instagram |
 | `/[artista]/agenda` | Agenda de shows |
 | `/[artista]/eventos/[id]` | Evento: sorte do evento, brindes, onde comprar |
-| `/[artista]/pickap` | PicKap da sorte (roleta) |
+| `/[artista]/pickap?clube=` | PicKap da sorte (roleta de cada fã clube) |
 | `/[artista]/loja` | Loja virtual |
 | `/[artista]/drops` | Drops Hits (prévias) |
 | `/[artista]/photo-finder` | Photo Finder |
 | `/[artista]/membro` | Plano "Tornar membro" (R$ 16,90/mês) |
-| `/[artista]/admin/membros` | Admin do fã clube: membros |
-| `/[artista]/admin/mural` | Admin do fã clube: Drop News e moderação do mural |
-| `/[artista]/admin/agenda` | Admin do fã clube: shows (e, em cada show, onde comprar e brindes) |
-| `/[artista]/admin/pickap` | Admin do fã clube: fatias da roleta |
-| `/[artista]/admin/loja` | Admin do fã clube: produtos |
-| `/[artista]/admin/drops` | Admin do fã clube: prévias do Drops Hits |
-| `/[artista]/admin/beneficios` | Admin do fã clube: benefícios de membro |
-| `/[artista]/admin/equipe` | Admin do fã clube: convidar e remover administradores |
-| `/admin/fas-clubes` | Admin master: fã clubes, criar artista, administradores, módulos |
+| `/[artista]/admin/membros` | Ambiente: assinantes |
+| `/[artista]/admin/clubes` | Ambiente: os até 10 fã clubes (criar, dono, no ar, apagar) |
+| `/[artista]/admin/mural` | Ambiente: Drop News e moderação |
+| `/[artista]/admin/agenda` | Ambiente: shows (e, em cada show, onde comprar e brindes) |
+| `/[artista]/admin/loja` | Ambiente: produtos |
+| `/[artista]/admin/drops` | Ambiente: prévias do Drops Hits |
+| `/[artista]/admin/beneficios` | Ambiente: benefícios de membro |
+| `/[artista]/admin/anuncios` | Ambiente: vitrines e campanhas do ambiente |
+| `/[artista]/clubes/[clube]/admin/membros` | Fã clube: membros |
+| `/[artista]/clubes/[clube]/admin/mural` | Fã clube: moderação do mural da galera |
+| `/[artista]/clubes/[clube]/admin/pickap` | Fã clube: fatias da roleta |
+| `/[artista]/clubes/[clube]/admin/anuncios` | Fã clube: vitrines e campanhas do clube |
+| `/[artista]/clubes/[clube]/admin/equipe` | Fã clube: dono e ajudantes |
+| `/[artista]/clubes/[clube]/admin/dados` | Fã clube: nome, cidade, descrição |
+| `/painel` | Escolher painel (quem está em mais de uma equipe) |
+| `/admin/fas-clubes` | Admin da plataforma: cantores, criar cantor (com a equipe do fã clube master), módulos |
 | `/admin/midia` | Admin master: plataforma de mídia (vitrines, campanhas, patrocinadores) |
 | `/patrocinador` | Portal do patrocinador (nova campanha) |
 | `/patrocinador/campanhas` | Portal do patrocinador: minhas campanhas |

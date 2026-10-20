@@ -117,17 +117,32 @@ export const masterNav: AdminNavItem[] = [
   { key: "config", label: "Configurações", href: "#", icon: "settings" },
 ];
 
+/** Menu da administração do ambiente do cantor (equipe do fã clube master). */
 export function clubNav(slug: string): AdminNavItem[] {
   const base = `/${slug}/admin`;
   return [
-    { key: "membros", label: "Membros", href: `${base}/membros`, icon: "users" },
+    { key: "membros", label: "Assinantes", href: `${base}/membros`, icon: "users" },
+    { key: "clubes", label: "Fã clubes", href: `${base}/clubes`, icon: "star" },
     { key: "mural", label: "Drop News e mural", href: `${base}/mural`, icon: "news" },
     { key: "agenda", label: "Agenda e eventos", href: `${base}/agenda`, icon: "calendar" },
-    { key: "pickap", label: "PicKap e sorteios", href: `${base}/pickap`, icon: "wheel" },
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
     { key: "drops", label: "Drops Hits", href: `${base}/drops`, icon: "music" },
-    { key: "beneficios", label: "Benefícios de membro", href: `${base}/beneficios`, icon: "star" },
+    { key: "beneficios", label: "Benefícios de membro", href: `${base}/beneficios`, icon: "gift" },
+    { key: "anuncios", label: "Anúncios do ambiente", href: `${base}/anuncios`, icon: "megaphone" },
+    { key: "master", label: "Fã clube master", href: `/${slug}/clubes/oficial/admin`, icon: "settings" },
+  ];
+}
+
+/** Menu do painel de um fã clube (dono e ajudantes). */
+export function fanClubNav(slug: string, club: string): AdminNavItem[] {
+  const base = `/${slug}/clubes/${club}/admin`;
+  return [
+    { key: "membros", label: "Membros", href: `${base}/membros`, icon: "users" },
+    { key: "mural", label: "Mural da galera", href: `${base}/mural`, icon: "news" },
+    { key: "pickap", label: "PicKap", href: `${base}/pickap`, icon: "wheel" },
+    { key: "anuncios", label: "Anúncios", href: `${base}/anuncios`, icon: "megaphone" },
     { key: "equipe", label: "Equipe", href: `${base}/equipe`, icon: "user" },
+    { key: "dados", label: "Dados do clube", href: `${base}/dados`, icon: "settings" },
   ];
 }
 

@@ -20,6 +20,52 @@ export type Artist = {
   adSlotsSummary: string;
   brandColor: string; // cor do avatar no admin
   modules?: Record<string, boolean>; // módulos ligados/desligados pelo admin master
+  clubs?: number; // quantos fã clubes o ambiente tem
+};
+
+/** Fã clube dentro do ambiente de um cantor (até 10: 1 master + 9). */
+export type FanClub = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  city: string;
+  isMaster: boolean;
+  status: FanClubStatus;
+  members: number;
+  owner: { name: string; handle?: string } | null;
+  joined: boolean; // quem está vendo entrou neste fã clube
+  myRole: "owner" | "helper" | null; // quem está vendo é da equipe
+};
+
+export type StaffMember = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  role: "owner" | "helper";
+  roleLabel: string;
+  pending: boolean;
+};
+
+export type ClubMemberRow = {
+  id: string;
+  name: string;
+  handle: string;
+  city: string;
+  since: string;
+  isSubscriber: boolean;
+};
+
+/** Onde a pessoa está na equipe (para escolher o painel). */
+export type StaffPosition = {
+  artist: string;
+  artistName: string;
+  club: string;
+  clubName: string;
+  isMaster: boolean;
+  role: "owner" | "helper";
+  brandColor: string;
 };
 
 export type Viewer = {
@@ -30,6 +76,7 @@ export type Viewer = {
   spins: number;
   pendingGifts: number;
   isMember: boolean;
+  clubs?: string[]; // fã clubes (slugs) em que entrou neste cantor
 };
 
 export type PostKind = "drop" | "galera" | "instagram";
@@ -42,6 +89,8 @@ export type Post = {
   text: string;
   hasImage?: boolean;
   quote?: string; // repost de um Drop News
+  club?: { slug: string; name: string } | null; // fã clube do post (vazio = oficial)
+  url?: string | null; // link do post do Instagram
   likes: number;
   comments: number;
   reposts: number;
@@ -134,8 +183,10 @@ export type Campaign = {
   title: string;
   period: string;
   status: CampaignStatus;
-  club?: string;
-  clubSlug?: string;
+  club?: string; // nome do cantor
+  clubSlug?: string; // slug do cantor
+  fanClub?: string | null; // fã clube da vitrine (vazio = ambiente do cantor)
+  fanClubSlug?: string | null;
   text?: string;
   cta?: string;
   url?: string;

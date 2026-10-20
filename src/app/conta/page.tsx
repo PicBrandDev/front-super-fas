@@ -32,6 +32,11 @@ export default async function ContaPage() {
             Ir para o meu painel
           </Link>
         )}
+        {session.role === "artist_admin" && panel !== "/painel" && session.clubs.length > 1 && (
+          <Link href="/painel" className={`${btnSecondary} justify-start no-underline`}>
+            Todos os meus painéis
+          </Link>
+        )}
         {artists.map((a) => (
           <Link key={a.slug} href={`/${a.slug}`} className={`${btnSecondary} justify-start no-underline`}>
             Fã clube {a.name}

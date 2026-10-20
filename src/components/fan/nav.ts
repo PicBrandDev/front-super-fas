@@ -5,15 +5,16 @@ export type NavItem = { href: string; label: string; icon: IconName; match?: str
 /** Itens do menu de baixo (celular). `href` é relativo ao ambiente do artista. */
 export const bottomNav: NavItem[] = [
   { href: "", label: "Início", icon: "home" },
+  { href: "/clubes", label: "Clubes", icon: "users" },
   { href: "/mural", label: "Mural", icon: "news" },
   { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos"] },
   { href: "/pickap", label: "Sorte", icon: "wheel" },
-  { href: "/loja", label: "Loja", icon: "bag" },
 ];
 
 /** Itens do menu lateral (desktop). */
 export const sideNav: NavItem[] = [
   { href: "", label: "Início", icon: "home" },
+  { href: "/clubes", label: "Fã clubes", icon: "users" },
   { href: "/mural", label: "Mural", icon: "news" },
   { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos"] },
   { href: "/pickap", label: "PicKap da sorte", icon: "wheel" },

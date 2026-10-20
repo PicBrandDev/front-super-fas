@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getArtist, getPosts } from "@/lib/api";
+import { getArtist, getClubs, getPosts } from "@/lib/api";
 import { MuralView } from "./MuralView";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
@@ -11,7 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ artista: 
 
 export default async function MuralPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
-  const [artist, posts] = await Promise.all([getArtist(artista), getPosts(artista)]);
+  const [artist, posts, clubs] = await Promise.all([getArtist(artista), getPosts(artista), getClubs(artista)]);
   if (!artist) notFound();
-  return <MuralView artistName={artist.name} posts={posts} />;
+  const myClubs = clubs.filter((c) => c.joined).map((c) => ({ slug: c.slug, name: c.name }));
+  return <MuralView artistName={artist.name} posts={posts} clubs={myClubs} />;
 }

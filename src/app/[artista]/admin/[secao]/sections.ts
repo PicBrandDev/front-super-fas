@@ -71,7 +71,7 @@ export const sections: Record<string, Section> = {
   mural: {
     resource: "posts",
     title: "Drop News e mural",
-    description: "Publique Drop News oficiais e modere o que a galera posta. Posts do tipo Drop News saem com o nome do artista.",
+    description: "Drop News oficiais do cantor (saem com o nome do artista). Aqui também dá para moderar posts da galera de todos os fã clubes.",
     singular: "post",
     fields: [
       { name: "text", label: "Texto", type: "textarea", required: true, column: true },
@@ -99,18 +99,6 @@ export const sections: Record<string, Section> = {
     description: "Shows do artista. Em cada show, cadastre onde comprar e os brindes da sorte.",
     singular: "show",
     fields: eventFields,
-  },
-  pickap: {
-    resource: "prizes",
-    title: "PicKap e sorteios",
-    description: "Fatias da roleta. O sorteio acontece no servidor; fatias com pontos somam nos pontos da sorte do fã.",
-    singular: "prêmio",
-    fields: [
-      { name: "label", label: "Texto da fatia", type: "text", required: true, column: true, placeholder: "Camiseta" },
-      { name: "points", label: "Pontos da sorte", type: "number", column: true, hint: "Ex.: 50 para “+50 pts”." },
-      { name: "isRetry", label: "É “Tente de novo” (devolve o giro)", type: "checkbox", column: true },
-      { name: "position", label: "Ordem na roleta", type: "number", column: true },
-    ],
   },
   loja: {
     resource: "products",

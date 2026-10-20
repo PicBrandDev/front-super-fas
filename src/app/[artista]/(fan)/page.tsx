@@ -6,20 +6,24 @@ import { FandomSwitcher } from "@/components/fan/FandomSwitcher";
 import { PostCard } from "@/components/fan/PostCard";
 import { ShowStub } from "@/components/fan/ShowStub";
 import { Icon, type IconName } from "@/components/icons";
-import { getArtist, getEvents, getHomeAd, getPosts, getViewer } from "@/lib/api";
+import { ClubCard } from "@/components/fan/ClubCard";
+import { getArtist, getClubs, getEvents, getHomeAd, getPosts, getViewer } from "@/lib/api";
 
 const linkMono = "flex min-h-11 items-center font-label text-xs font-bold text-ink";
 
 export default async function HomePage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
-  const [artist, viewer, events, ad, drops, feed] = await Promise.all([
+  const [artist, viewer, events, ad, drops, feed, clubs] = await Promise.all([
     getArtist(artista),
     getViewer(artista),
     getEvents(artista),
     getHomeAd(artista),
     getPosts(artista, "drop"),
     getPosts(artista),
+    getClubs(artista),
   ]);
+  const myClubs = clubs.filter((c) => c.joined);
+  const highlight = (myClubs.length ? myClubs : clubs).slice(0, 2);
   if (!artist) notFound();
   const base = `/${artist.slug}`;
   const next = events[0];
@@ -135,6 +139,22 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
             <section className="flex flex-col gap-3">
               <SectionTitle action={<Link href={`${base}/agenda`} className={linkMono}>Agenda →</Link>}>Próximo show</SectionTitle>
               <ShowStub event={next} href={`${base}/eventos/${next.id}`} />
+            </section>
+          )}
+
+          {clubs.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <SectionTitle action={<Link href={`${base}/clubes`} className={linkMono}>Ver todos →</Link>}>
+                {myClubs.length ? "Seus fã clubes" : "Fã clubes"}
+              </SectionTitle>
+              {highlight.map((c) => (
+                <ClubCard key={c.id} club={c} />
+              ))}
+              {clubs.length > highlight.length && (
+                <Link href={`${base}/clubes`} className="font-label text-xs font-bold text-ink">
+                  + {clubs.length - highlight.length} {clubs.length - highlight.length === 1 ? "fã clube" : "fã clubes"} de {artist.name}
+                </Link>
+              )}
             </section>
           )}
 
