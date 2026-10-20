@@ -1,0 +1,6 @@
+# Caddy gera e renova o certificado HTTPS sozinho (Let's Encrypt).
+# A câmera do Photo Finder só funciona em HTTPS.
+fa-clube.picbrand.com.br {
+	encode gzip
+	reverse_proxy web:3000
+}

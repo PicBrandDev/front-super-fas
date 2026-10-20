@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Rings } from "@/components/fan/decor";
+import { FaceCamera } from "@/components/fan/FaceCamera";
 import { Icon } from "@/components/icons";
 
 export type ShowOption = { id: string; city: string; label: string };
@@ -38,11 +39,14 @@ export function PhotoFinderFlow({ shows }: { shows: ShowOption[] }) {
     };
   }, []);
 
-  const onFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // permite escolher o mesmo arquivo de novo
-    if (!file) return;
+  const onSelfie = (file: File) => {
     setSelfie({ file, url: URL.createObjectURL(file) });
+    setDone(false);
+  };
+
+  // Volta para a câmera para tirar outra selfie.
+  const retake = () => {
+    setSelfie(null);
     setDone(false);
   };
 
@@ -113,14 +117,10 @@ export function PhotoFinderFlow({ shows }: { shows: ShowOption[] }) {
         <div className={`${card} gap-2.5`}>
           <div className="flex items-center gap-2.5">
             <span aria-hidden="true" className={stepBadge}>2</span>
-            <strong className="font-body text-base font-extrabold">Envie uma selfie</strong>
+            <strong className="font-body text-base font-extrabold">Tire uma selfie</strong>
           </div>
           {!selfie ? (
-            <label className="flex min-h-[120px] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ink bg-paper font-label text-[13px] font-bold text-ink has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-adm-blue has-[:focus-visible]:outline-solid">
-              <input type="file" accept="image/*" capture="user" onChange={onFile} className="sr-only" />
-              <Icon name="camera" size={30} />
-              Tirar ou escolher selfie
-            </label>
+            <FaceCamera onCapture={onSelfie} />
           ) : (
             <div className="flex items-center gap-3">
               <Image
@@ -135,17 +135,14 @@ export function PhotoFinderFlow({ shows }: { shows: ShowOption[] }) {
                 <strong className="font-body text-[15px] font-extrabold">Selfie pronta</strong>
                 <span className="font-label text-xs text-ink-soft">Usada só para esta busca</span>
               </div>
-              <label className="flex min-h-11 cursor-pointer items-center rounded-full border-2 border-ink bg-transparent px-3 font-label text-xs font-bold text-ink has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-adm-blue has-[:focus-visible]:outline-solid">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="user"
-                  onChange={onFile}
-                  className="sr-only"
-                  aria-label="Trocar selfie"
-                />
+              <button
+                type="button"
+                onClick={retake}
+                aria-label="Trocar selfie"
+                className="flex min-h-11 cursor-pointer items-center rounded-full border-2 border-ink bg-transparent px-3 font-label text-xs font-bold text-ink"
+              >
                 Trocar
-              </label>
+              </button>
             </div>
           )}
         </div>
