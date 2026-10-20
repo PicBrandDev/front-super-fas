@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/*
+ * Tokens do fã clube (por artista).
+ * Os valores reais vêm de src/lib/themes.ts e são aplicados como variáveis
+ * CSS (--fc-*) no wrapper de cada ambiente. Assim cada artista tem seu visual
+ * sem mudar os componentes.
+ */
+@theme inline {
+  --color-paper: var(--fc-paper);
+  --color-paper-2: var(--fc-paper-2);
+  --color-cream: var(--fc-cream);
+  --color-ink: var(--fc-ink);
+  --color-ink-soft: var(--fc-ink-soft);
+  --color-accent: var(--fc-accent);
+  --color-accent-fg: var(--fc-accent-fg);
+  --color-accent-2: var(--fc-accent-2);
+  --color-accent-3: var(--fc-accent-3);
+  --color-deep: var(--fc-deep);
+
+  --font-display: var(--fc-font-display);
+  --font-body: var(--fc-font-body);
+  --font-label: var(--fc-font-label);
+
+  --font-adm: var(--font-plex-sans), system-ui, sans-serif;
+  --font-adm-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+/* Tokens do admin (neutros, iguais para toda a plataforma). */
+@theme {
+  --color-adm-bg: #f6f7f9;
+  --color-adm-surface: #ffffff;
+  --color-adm-line: #d9dde3;
+  --color-adm-line-soft: #e6e9ee;
+  --color-adm-input: #c4cad3;
+  --color-adm-ink: #14171c;
+  --color-adm-muted: #5b6370;
+  --color-adm-disabled: #9aa3af;
+  --color-adm-blue: #2f5bd3;
+  --color-adm-blue-dark: #1e3f9e;
+  --color-adm-blue-soft: #e8eefc;
+  --color-adm-blue-tint: #f3f6fe;
+  --color-adm-side: #14171c;
+  --color-adm-side-line: #3a414c;
+  --color-adm-side-muted: #9aa3af;
+  --color-adm-side-text: #e8eaee;
+  --color-adm-ok-bg: #e3f3ea;
+  --color-adm-ok: #1f7a4d;
+  --color-adm-warn-bg: #fff1d6;
+  --color-adm-warn: #8a5a00;
+  --color-adm-off-bg: #e6e9ee;
+  --color-adm-off: #3a414c;
+  --color-adm-danger: #a23a2a;
+}
+
+/* Faixa listrada retrô (4 bandas). */
+@utility stripes {
+  background: linear-gradient(
+    to bottom,
+    var(--fc-accent-2) 0 25%,
+    var(--fc-accent-3) 25% 50%,
+    var(--fc-accent) 50% 75%,
+    var(--fc-deep) 75% 100%
+  );
+}
+
+/* Retícula clara (sobre fundos escuros). */
+@utility halftone-light {
+  background-image: radial-gradient(circle, rgb(242 232 213 / 0.22) 1.2px, transparent 1.6px);
+  background-size: 8px 8px;
+}
+
+/* Retícula escura (sobre fundos claros). */
+@utility halftone-dark {
+  background-image: radial-gradient(circle, rgb(33 27 22 / 0.16) 1.2px, transparent 1.6px);
+  background-size: 8px 8px;
+}
+
+/* Sombra "carimbada" sem desfoque. */
+@utility shadow-hard {
+  box-shadow: 4px 4px 0 var(--fc-ink);
+}
+
+@utility sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid #2f5bd3;
+  outline-offset: 2px;
+}
