@@ -1,10 +1,46 @@
+# Sobe tudo no servidor: banco, API (pasta ../back-super-fas), site e o Caddy (HTTPS).
+# Antes da primeira vez: cp .env.example .env e preencha os segredos.
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: superfas
+      POSTGRES_DB: superfas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superfas -d superfas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ../back-super-fas
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://superfas:${POSTGRES_PASSWORD}@db:5432/superfas
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      SEED_PASSWORD: ${SEED_PASSWORD:-}
+      ROOT_PATH: /api
+    volumes:
+      - uploads:/data/uploads
+    expose:
+      - "8000"
+
   web:
     build:
       context: .
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_URL: http://api:8000
+      JWT_SECRET: ${JWT_SECRET}
     expose:
       - "3000"
 
@@ -13,6 +49,7 @@ services:
     restart: unless-stopped
     depends_on:
       - web
+      - api
     ports:
       - "80:80"
       - "443:443"
@@ -23,5 +60,7 @@ services:
       - caddy_config:/config
 
 volumes:
+  pgdata:
+  uploads:
   caddy_data:
   caddy_config:

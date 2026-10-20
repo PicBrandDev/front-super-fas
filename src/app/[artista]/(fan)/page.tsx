@@ -14,7 +14,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
   const { artista } = await params;
   const [artist, viewer, events, ad, drops, feed] = await Promise.all([
     getArtist(artista),
-    getViewer(),
+    getViewer(artista),
     getEvents(artista),
     getHomeAd(artista),
     getPosts(artista, "drop"),
@@ -49,8 +49,8 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
             <span className="absolute right-[7px] top-1.5 size-[9px] rounded-full border-2 border-cream bg-accent" />
           </button>
           <Link
-            href="#"
-            aria-label="Meu perfil"
+            href="/conta"
+            aria-label="Minha conta"
             className="flex size-11 items-center justify-center rounded-full border-2 border-ink bg-accent-2 font-display text-[17px] text-ink no-underline"
           >
             {viewer.initial}

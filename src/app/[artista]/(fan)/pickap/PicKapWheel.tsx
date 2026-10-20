@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { spinPickap } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { StripeBand } from "@/components/fan/decor";
 import { Icon } from "@/components/icons";
@@ -41,7 +42,9 @@ export function PicKapWheel({
   initialSpins: number;
   nextEventId: string | null;
 }) {
-  const { base, initial } = useArtist();
+  const { base, initial, slug } = useArtist();
+  const [spinError, setSpinError] = useState("");
+  const [asking, setAsking] = useState(false);
   const { segs, size, background } = buildSegments(prizes);
 
   const [rot, setRot] = useState(0);
@@ -59,13 +62,30 @@ export function PicKapWheel({
     };
   }, []);
 
-  const cantSpin = spinning || spins <= 0 || prizes.length === 0;
+  const cantSpin = spinning || asking || spins <= 0 || prizes.length === 0;
 
-  function spin() {
+  /** O servidor sorteia o prêmio e desconta o giro; sem API (modo exemplo) sorteia aqui. */
+  async function spin() {
     if (cantSpin) return;
-    // TODO: POST /artists/{slug}/pickap/spin — o servidor decide o prêmio (e desconta o giro);
-    // aqui o índice é sorteado só para simular até a API existir.
-    const idx = Math.floor(Math.random() * prizes.length);
+    setAsking(true);
+    const res = await spinPickap(slug);
+    setAsking(false);
+    let idx: number;
+    let left: number | null = null;
+    if (res.ok) {
+      idx = prizes.findIndex((p) => p.id === res.data.prize.id);
+      left = res.data.spinsLeft;
+      if (idx < 0) {
+        setSpinError("A roleta mudou. Recarregue a página.");
+        return;
+      }
+    } else if (res.status === 0) {
+      idx = Math.floor(Math.random() * prizes.length);
+    } else {
+      setSpinError(res.error);
+      return;
+    }
+    setSpinError("");
     const desired = (360 - segs[idx].center) % 360;
     const delta = (((desired - (rot % 360)) % 360) + 360) % 360;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -73,7 +93,7 @@ export function PicKapWheel({
     setDurationMs(reduced ? 0 : SPIN_MS);
     setRot(rot + 360 * 5 + delta);
     setSpinning(true);
-    setSpins((s) => s - 1);
+    setSpins((s) => (left ?? s - 1));
     setResult(null);
 
     if (timer.current) clearTimeout(timer.current);
@@ -92,7 +112,7 @@ export function PicKapWheel({
     );
   }
 
-  const btnLabel = spinning ? "Girando…" : spins > 0 ? "Girar" : "Sem giros";
+  const btnLabel = spinning || asking ? "Girando…" : spins > 0 ? "Girar" : "Sem giros";
   const showResult = !!result && !spinning;
 
   const ways = [
@@ -177,6 +197,11 @@ export function PicKapWheel({
           >
             {btnLabel}
           </button>
+          {spinError && (
+            <p role="alert" className="m-0 text-center font-label text-xs font-bold text-accent-2">
+              {spinError}
+            </p>
+          )}
 
           <div aria-live="polite" className="w-full max-w-[326px] empty:hidden">
             {showResult && (

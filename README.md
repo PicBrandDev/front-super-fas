@@ -13,7 +13,28 @@ npm run build && npm start
 npm run lint
 ```
 
-Sem `NEXT_PUBLIC_API_URL`, o app usa os dados de exemplo de `src/lib/mock.ts`. Para ligar no back (FastAPI), copie `.env.example` para `.env.local` e defina a URL.
+Sem `API_URL`, o app roda em **modo exemplo**: usa os dados de `src/lib/mock.ts` e não pede login.
+Para ligar no back ([back-super-fas](../back-super-fas)), crie um `.env.local` com:
+
+```bash
+API_URL=http://localhost:8000
+JWT_SECRET=o-mesmo-valor-do-back
+```
+
+Com a API ligada, **todo o site exige login** e cada tipo de conta só entra na sua área (ver abaixo).
+
+## Login e tipos de conta
+
+| Conta | Depois do login vai para | Pode entrar em |
+| --- | --- | --- |
+| Fã | `/` (lista de fã clubes) | área do fã de qualquer fã clube no ar |
+| Admin do fã clube | `/[artista]/admin` | admin dos fã clubes que administra + área do fã |
+| Patrocinador | `/patrocinador` | portal do patrocinador + área do fã |
+| Admin master | `/admin/fas-clubes` | tudo |
+
+- Fãs se cadastram sozinhos em `/cadastro`.
+- Admins de fã clube e patrocinadores são **convidados** (admin master ou equipe do fã clube). O convite cria a conta e mostra uma **senha provisória** uma única vez; no primeiro login a pessoa escolhe a própria senha.
+- O porteiro das rotas é `src/proxy.ts` (confere o token do cookie `sf_session`). Quem garante as permissões de verdade é a API.
 
 ## Rotas
 
@@ -30,9 +51,19 @@ Sem `NEXT_PUBLIC_API_URL`, o app usa os dados de exemplo de `src/lib/mock.ts`. P
 | `/[artista]/photo-finder` | Photo Finder |
 | `/[artista]/membro` | Plano "Tornar membro" (R$ 16,90/mês) |
 | `/[artista]/admin/membros` | Admin do fã clube: membros |
+| `/[artista]/admin/mural` | Admin do fã clube: Drop News e moderação do mural |
+| `/[artista]/admin/agenda` | Admin do fã clube: shows (e, em cada show, onde comprar e brindes) |
+| `/[artista]/admin/pickap` | Admin do fã clube: fatias da roleta |
+| `/[artista]/admin/loja` | Admin do fã clube: produtos |
+| `/[artista]/admin/drops` | Admin do fã clube: prévias do Drops Hits |
+| `/[artista]/admin/beneficios` | Admin do fã clube: benefícios de membro |
+| `/[artista]/admin/equipe` | Admin do fã clube: convidar e remover administradores |
 | `/admin/fas-clubes` | Admin master: fã clubes, criar artista, administradores, módulos |
 | `/admin/midia` | Admin master: plataforma de mídia (vitrines, campanhas, patrocinadores) |
 | `/patrocinador` | Portal do patrocinador (nova campanha) |
+| `/patrocinador/campanhas` | Portal do patrocinador: minhas campanhas |
+| `/login`, `/cadastro` | Entrar e criar conta de fã |
+| `/conta`, `/conta/senha` | Minha conta e trocar senha |
 
 ## Estrutura
 
@@ -43,13 +74,16 @@ src/
     [artista]/admin/      admin do fã clube
     admin/                admin master
     patrocinador/         portal do patrocinador
+    actions/              server actions (login, admin, fã) que chamam a API
+  proxy.ts                porteiro das rotas (login obrigatório e acesso por tipo de conta)
   components/
     fan/                  componentes da área do fã (tema por artista)
     admin/                componentes dos painéis (visual neutro)
     icons.tsx             ícones SVG
   lib/
     types.ts              tipos do domínio (espelham a API)
-    api.ts                camada de dados (mock hoje, FastAPI depois)
+    api.ts                camada de dados (FastAPI com API_URL; mock sem)
+    auth.ts               sessão/JWT e regras de acesso por rota
     mock.ts               dados de exemplo
     themes.ts             temas por artista (variáveis --fc-*)
     format.ts             formatação (R$, números)
@@ -62,7 +96,25 @@ Os componentes da área do fã usam só tokens (`bg-paper`, `text-ink`, `bg-acce
 
 ### Integração com o back
 
-Cada função de `src/lib/api.ts` já indica o endpoint que vai chamar (ex.: `GET /artists/{slug}/posts?kind=drop`). Os pontos de escrita (postar, girar a roleta, assinar, validar ingresso, criar artista, enviar campanha...) estão marcados com `// TODO:` nos componentes.
+Leituras: cada função de `src/lib/api.ts` indica o endpoint que chama (ex.: `GET /artists/{slug}/posts?kind=drop`), sempre com o token do login.
+Escritas: as telas chamam server actions em `src/app/actions/` (o token nunca vai para o navegador). Sem API, as ações devolvem `status: 0` e as telas só simulam.
+
+Ainda sem back: busca de fotos do Photo Finder, validação de ingresso, checkout da loja e áudio do Drops Hits (marcados com `// TODO:`).
+
+## Deploy (servidor)
+
+O `docker-compose.yml` sobe banco (Postgres), API, site e Caddy (HTTPS automático). O back precisa estar clonado **ao lado** do front:
+
+```bash
+git clone https://github.com/PicBrandDev/front-super-fas.git
+git clone https://github.com/PicBrandDev/back-super-fas.git
+cd front-super-fas
+cp .env.example .env    # preencha POSTGRES_PASSWORD, JWT_SECRET e SEED_PASSWORD
+sudo docker compose up -d --build
+sudo docker compose logs api   # mostra as contas de teste criadas na primeira subida
+```
+
+A documentação da API fica em `https://fa-clube.picbrand.com.br/api/docs`.
 
 ## Conteúdo de exemplo
 

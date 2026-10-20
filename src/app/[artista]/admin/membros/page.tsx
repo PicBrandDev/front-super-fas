@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AdminShell, clubNav } from "@/components/admin/AdminShell";
+import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { formatBRL, getArtist, getMembers } from "@/lib/api";
 import { MembrosClient } from "./MembrosClient";
 
@@ -17,25 +17,7 @@ export default async function MembrosPage({ params }: { params: Promise<{ artist
   const members = await getMembers(artist.slug);
 
   return (
-    <AdminShell
-      brand={{
-        mark: (
-          <span
-            className="flex size-full items-center justify-center rounded-lg text-lg font-normal"
-            style={{ background: artist.brandColor, color: artist.theme.cream, fontFamily: artist.theme.fontDisplay }}
-          >
-            {artist.initial}
-          </span>
-        ),
-        markClass: "bg-transparent",
-        title: artist.name,
-        subtitle: "Admin do fã clube",
-      }}
-      nav={clubNav(artist.slug)}
-      active="membros"
-      extraLink={{ label: "Ver área do fã", href: `/${artist.slug}` }}
-      user={{ initials: "RL", name: "Rafa Lima", role: "Dono do fã clube" }}
-    >
+    <ClubAdminShell artist={artist} active="membros">
       <MembrosClient
         slug={artist.slug}
         artistName={artist.name}
@@ -49,6 +31,6 @@ export default async function MembrosPage({ params }: { params: Promise<{ artist
         ]}
         members={members}
       />
-    </AdminShell>
+    </ClubAdminShell>
   );
 }

@@ -17,7 +17,7 @@ export default async function FanLayout({
   params: Promise<{ artista: string }>;
 }) {
   const { artista } = await params;
-  const [artist, viewer, otherFandoms] = await Promise.all([getArtist(artista), getViewer(), getOtherFandoms()]);
+  const [artist, viewer, otherFandoms] = await Promise.all([getArtist(artista), getViewer(artista), getOtherFandoms(artista)]);
   if (!artist) notFound();
   return (
     <FanShell artist={artist} viewer={viewer} otherFandoms={otherFandoms}>

@@ -1,14 +1,26 @@
 import Link from "next/link";
-import { listArtists } from "@/lib/api";
+import { logout } from "@/app/actions/auth";
+import { getSession, listArtists } from "@/lib/api";
 
 /** Entrada da plataforma: lista os fã clubes e os painéis. */
 export default async function PlatformHome() {
-  const artists = await listArtists();
+  const [artists, session] = await Promise.all([listArtists(), getSession()]);
+  // Sem login (modo exemplo) mostra todos os painéis; logado, só os da pessoa.
+  const role = session?.role;
+  const panels: { href: string; label: string }[] = [];
+  if (!session || role === "master") panels.push({ href: "/admin/fas-clubes", label: "Admin master" });
+  for (const a of artists) {
+    if (!session ? a === artists[0] : role === "master" || session.artists.includes(a.slug))
+      panels.push({ href: `/${a.slug}/admin`, label: `Admin do fã clube ${a.name}` });
+  }
+  if (!session || role === "master" || role === "sponsor") panels.push({ href: "/patrocinador", label: "Portal do patrocinador" });
   return (
     <main className="min-h-dvh bg-adm-bg font-adm text-adm-ink">
       <div className="mx-auto flex max-w-[960px] flex-col gap-8 px-4 py-12 sm:px-8">
         <header className="flex flex-col gap-2">
-          <span className="font-adm-mono text-xs font-semibold uppercase tracking-widest text-adm-muted">[Sua plataforma]</span>
+          <span className="font-adm-mono text-xs font-semibold uppercase tracking-widest text-adm-muted">
+            {session ? `Olá, ${session.name}` : "Super Fãs"}
+          </span>
           <h1 className="m-0 text-4xl font-bold">Fã clubes</h1>
           <p className="m-0 text-[15px] text-adm-muted">Escolha um fã clube para entrar.</p>
         </header>
@@ -35,22 +47,36 @@ export default async function PlatformHome() {
           ))}
         </ul>
 
-        <nav aria-label="Painéis" className="flex flex-wrap gap-3">
-          <Link href="/admin/fas-clubes" className="rounded-lg border border-adm-line bg-white px-4 py-3 text-sm font-semibold text-adm-ink no-underline">
-            Admin master
-          </Link>
-          {artists[0] && (
-            <Link
-              href={`/${artists[0].slug}/admin/membros`}
-              className="rounded-lg border border-adm-line bg-white px-4 py-3 text-sm font-semibold text-adm-ink no-underline"
-            >
-              Admin do fã clube {artists[0].name}
-            </Link>
-          )}
-          <Link href="/patrocinador" className="rounded-lg border border-adm-line bg-white px-4 py-3 text-sm font-semibold text-adm-ink no-underline">
-            Portal do patrocinador
-          </Link>
-        </nav>
+        {artists.length === 0 && <p className="m-0 text-sm text-adm-muted">Nenhum fã clube no ar ainda.</p>}
+
+        {(panels.length > 0 || session) && (
+          <nav aria-label="Painéis e conta" className="flex flex-wrap gap-3">
+            {panels.map((p) => (
+              <Link
+                key={p.href}
+                href={p.href}
+                className="rounded-lg border border-adm-line bg-white px-4 py-3 text-sm font-semibold text-adm-ink no-underline"
+              >
+                {p.label}
+              </Link>
+            ))}
+            {session && (
+              <>
+                <Link href="/conta" className="rounded-lg border border-adm-line bg-white px-4 py-3 text-sm font-semibold text-adm-ink no-underline">
+                  Minha conta
+                </Link>
+                <form action={logout}>
+                  <button
+                    type="submit"
+                    className="cursor-pointer rounded-lg border border-adm-line bg-white px-4 py-3 font-adm text-sm font-semibold text-adm-danger"
+                  >
+                    Sair
+                  </button>
+                </form>
+              </>
+            )}
+          </nav>
+        )}
       </div>
     </main>
   );

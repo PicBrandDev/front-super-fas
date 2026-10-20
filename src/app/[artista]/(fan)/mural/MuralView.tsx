@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition, type KeyboardEvent } from "react";
+import { fanPost } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { PageHeader } from "@/components/fan/PageHeader";
 import { PostCard } from "@/components/fan/PostCard";
@@ -20,7 +22,10 @@ const primaryPill =
   "flex min-h-11 cursor-pointer items-center rounded-full border-2 border-ink bg-accent font-label font-bold text-accent-fg";
 
 export function MuralView({ artistName, posts }: { artistName: string; posts: Post[] }) {
-  const { viewer } = useArtist();
+  const { viewer, slug } = useArtist();
+  const router = useRouter();
+  const [postError, setPostError] = useState("");
+  const [posting, start] = useTransition();
   const [tab, setTab] = useState<PostKind>("drop");
   const [draft, setDraft] = useState("");
   const [igLink, setIgLink] = useState("");
@@ -42,19 +47,32 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
     };
   }
 
+  /** Publica na API; sem API (modo exemplo, status 0) mostra só na tela. */
+  function send(kind: "galera" | "instagram", text: string, url = "", clear: () => void) {
+    if (posting) return;
+    start(async () => {
+      const res = await fanPost(slug, kind, text, url);
+      if (!res.ok && res.status !== 0) {
+        setPostError(res.error);
+        return;
+      }
+      setPostError("");
+      clear();
+      if (res.ok) router.refresh();
+      else setExtra((cur) => [newPost(kind, text), ...cur]);
+    });
+  }
+
   function publish() {
     const text = draft.trim();
     if (!text) return;
-    // TODO: POST /artists/{slug}/posts (kind=galera)
-    setExtra((cur) => [newPost("galera", text), ...cur]);
-    setDraft("");
+    send("galera", text, "", () => setDraft(""));
   }
 
   function bringInstagram() {
-    if (!igLink.trim()) return;
-    // TODO: POST /artists/{slug}/posts (kind=instagram, url)
-    setExtra((cur) => [newPost("instagram", "Olha esse post novo dele!"), ...cur]);
-    setIgLink("");
+    const url = igLink.trim();
+    if (!url) return;
+    send("instagram", "Olha esse post novo dele!", url, () => setIgLink(""));
   }
 
   function onTabKey(e: KeyboardEvent<HTMLButtonElement>, i: number) {
@@ -153,8 +171,8 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
               >
                 <Icon name="image" size={22} />
               </button>
-              <button type="submit" className={`${primaryPill} px-5 text-[13px]`}>
-                Postar
+              <button type="submit" disabled={posting} aria-busy={posting} className={`${primaryPill} px-5 text-[13px]`}>
+                {posting ? "Postando…" : "Postar"}
               </button>
             </div>
           </form>
@@ -180,14 +198,23 @@ export function MuralView({ artistName, posts }: { artistName: string; posts: Po
                 placeholder="Cole o link do post"
                 className={`min-h-11 min-w-0 flex-1 px-2.5 font-body text-sm ${fieldBase}`}
               />
-              <button type="submit" className={`${primaryPill} px-3.5 text-xs`}>
+              <button type="submit" disabled={posting} aria-busy={posting} className={`${primaryPill} px-3.5 text-xs`}>
                 Trazer
               </button>
             </div>
           </form>
         )}
 
+        {postError && (
+          <p role="alert" className="m-0 rounded-[10px] border-2 border-ink bg-cream px-3 py-2 font-label text-xs font-bold text-accent">
+            {postError}
+          </p>
+        )}
+
         <div className="flex flex-col gap-3.5">
+          {list.length === 0 && (
+            <p className="m-0 font-label text-[13px] text-ink-soft">Nada por aqui ainda.</p>
+          )}
           {list.map((p, i) => (
             <PostCard key={p.id} post={p} index={i} />
           ))}

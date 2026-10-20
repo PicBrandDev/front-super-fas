@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { shellUser } from "@/lib/shell";
 import { AdminShell, masterNav } from "@/components/admin/AdminShell";
 import { getClubAdmins, listArtists } from "@/lib/api";
 import { FasClubesClient, type ClubRow } from "./FasClubesClient";
@@ -18,6 +19,7 @@ export default async function FasClubesPage() {
       members: a.members,
       ads: a.adSlotsSummary,
       team: await getClubAdmins(a.slug),
+      modules: a.modules ?? {},
     })),
   );
 
@@ -27,7 +29,7 @@ export default async function FasClubesPage() {
       nav={masterNav}
       active="fas-clubes"
       extraLink={{ label: "Ver portal do patrocinador", href: "/patrocinador" }}
-      user={{ initials: "VC", name: "Você", role: "Admin master" }}
+      user={await shellUser({ initials: "VC", name: "Você", role: "Admin master" })}
     >
       <FasClubesClient initialClubs={clubs} />
     </AdminShell>

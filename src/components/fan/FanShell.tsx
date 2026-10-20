@@ -1,6 +1,7 @@
 import { themeStyle } from "@/lib/themes";
 import type { Artist, Viewer } from "@/lib/types";
 import { formatBRL } from "@/lib/api";
+import { authEnabled } from "@/lib/auth";
 import { ArtistProvider } from "./ArtistContext";
 import { BottomNav } from "./BottomNav";
 import { FanSidebar } from "./FanSidebar";
@@ -31,6 +32,7 @@ export function FanShell({
         priceLabel: formatBRL(artist.memberPriceCents),
         viewer,
         otherFandoms,
+        loggedIn: authEnabled(),
       }}
     >
       <div style={themeStyle(artist.theme)} className="min-h-dvh bg-paper font-body text-ink lg:flex">

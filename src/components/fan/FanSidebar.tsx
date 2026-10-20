@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "@/app/actions/auth";
 import { Icon } from "@/components/icons";
 import { useArtist } from "./ArtistContext";
 import { FandomSwitcher } from "./FandomSwitcher";
@@ -9,7 +10,7 @@ import { isActive, sideNav } from "./nav";
 
 /** Menu lateral do fã clube (só aparece no desktop). */
 export function FanSidebar() {
-  const { base, priceLabel, viewer } = useArtist();
+  const { base, priceLabel, viewer, loggedIn } = useArtist();
   const pathname = usePathname();
   return (
     <aside className="sticky top-0 hidden h-dvh w-[268px] flex-none flex-col gap-5 overflow-y-auto border-r-2 border-ink bg-cream px-[18px] py-6 lg:flex">
@@ -58,6 +59,24 @@ export function FanSidebar() {
           <span className="font-label text-[11px] font-bold">{viewer.luckPoints.toLocaleString("pt-BR")} pts da sorte</span>
         </div>
       </div>
+      {loggedIn && (
+        <div className="-mt-2.5 flex gap-1.5">
+          <Link
+            href="/conta"
+            className="flex min-h-11 flex-1 items-center justify-center rounded-full border-2 border-ink bg-cream font-label text-xs font-bold text-ink no-underline"
+          >
+            Minha conta
+          </Link>
+          <form action={logout} className="flex flex-1">
+            <button
+              type="submit"
+              className="flex min-h-11 flex-1 cursor-pointer items-center justify-center rounded-full border-2 border-ink bg-transparent font-label text-xs font-bold text-ink"
+            >
+              Sair
+            </button>
+          </form>
+        </div>
+      )}
     </aside>
   );
 }

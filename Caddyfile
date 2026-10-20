@@ -2,5 +2,14 @@
 # A câmera do Photo Finder só funciona em HTTPS.
 fa-clube.picbrand.com.br {
 	encode gzip
-	reverse_proxy web:3000
+
+	# API (documentação em /api/docs)
+	handle_path /api/* {
+		reverse_proxy api:8000
+	}
+
+	# Site
+	handle {
+		reverse_proxy web:3000
+	}
 }

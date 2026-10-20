@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { logout } from "@/app/actions/auth";
 import { Icon, type IconName } from "@/components/icons";
+import { authEnabled } from "@/lib/auth";
 
 export type AdminNavItem = { key: string; label: string; href: string; icon: IconName };
 
@@ -64,14 +66,17 @@ export function AdminShell({
             {extraLink.label}
           </Link>
         )}
-        <div className="mt-auto flex items-center gap-2.5 border-t border-adm-side-line px-1.5 py-2.5">
-          <span className="flex size-8 items-center justify-center rounded-full bg-adm-side-line text-[13px] font-semibold">
-            {user.initials}
-          </span>
-          <span className="flex flex-col">
-            <strong className="text-[13px]">{user.name}</strong>
-            <span className="font-adm-mono text-[11px] text-adm-side-muted">{user.role}</span>
-          </span>
+        <div className="mt-auto flex flex-col gap-1 border-t border-adm-side-line pt-2.5">
+          <div className="flex items-center gap-2.5 px-1.5 py-1">
+            <span className="flex size-8 flex-none items-center justify-center rounded-full bg-adm-side-line text-[13px] font-semibold">
+              {user.initials}
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <strong className="truncate text-[13px]">{user.name}</strong>
+              <span className="font-adm-mono text-[11px] text-adm-side-muted">{user.role}</span>
+            </span>
+          </div>
+          {authEnabled() && <AccountLinks />}
         </div>
       </aside>
       <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-4 pb-10 pt-7 sm:px-8">{children}</main>
@@ -80,11 +85,23 @@ export function AdminShell({
 }
 
 /** Cabeçalho de página do admin. */
-export function AdminPageHeader({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
+export function AdminPageHeader({
+  title,
+  description,
+  actions,
+  headingId,
+}: {
+  title: string;
+  description: string;
+  actions?: ReactNode;
+  headingId?: string;
+}) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="flex flex-col gap-1">
-        <h1 className="m-0 text-[28px] font-bold">{title}</h1>
+        <h1 id={headingId} className="m-0 text-[28px] font-bold">
+          {title}
+        </h1>
         <p className="m-0 max-w-[640px] text-[15px] text-adm-muted">{description}</p>
       </div>
       {actions}
@@ -101,12 +118,32 @@ export const masterNav: AdminNavItem[] = [
 ];
 
 export function clubNav(slug: string): AdminNavItem[] {
+  const base = `/${slug}/admin`;
   return [
-    { key: "geral", label: "Visão geral", href: "#", icon: "home" },
-    { key: "membros", label: "Membros", href: `/${slug}/admin/membros`, icon: "users" },
-    { key: "mural", label: "Drop News e mural", href: "#", icon: "news" },
-    { key: "agenda", label: "Agenda e eventos", href: "#", icon: "calendar" },
-    { key: "pickap", label: "PicKap e sorteios", href: "#", icon: "wheel" },
-    { key: "loja", label: "Loja", href: "#", icon: "bag" },
+    { key: "membros", label: "Membros", href: `${base}/membros`, icon: "users" },
+    { key: "mural", label: "Drop News e mural", href: `${base}/mural`, icon: "news" },
+    { key: "agenda", label: "Agenda e eventos", href: `${base}/agenda`, icon: "calendar" },
+    { key: "pickap", label: "PicKap e sorteios", href: `${base}/pickap`, icon: "wheel" },
+    { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
+    { key: "drops", label: "Drops Hits", href: `${base}/drops`, icon: "music" },
+    { key: "beneficios", label: "Benefícios de membro", href: `${base}/beneficios`, icon: "star" },
+    { key: "equipe", label: "Equipe", href: `${base}/equipe`, icon: "user" },
   ];
+}
+
+/** Trocar senha e sair (só quando o login está ligado). */
+function AccountLinks() {
+  const item = "flex min-h-10 flex-1 items-center justify-center rounded-lg px-2 text-[13px] text-adm-side-text no-underline hover:bg-white/5";
+  return (
+    <div className="flex gap-1">
+      <Link href="/conta/senha" className={item}>
+        Trocar senha
+      </Link>
+      <form action={logout} className="flex flex-1">
+        <button type="submit" className={`${item} cursor-pointer border-0 bg-transparent font-adm`}>
+          Sair
+        </button>
+      </form>
+    </div>
+  );
 }

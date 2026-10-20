@@ -11,6 +11,7 @@ export type ArtistCtx = {
   priceLabel: string; // ex.: "R$ 16,90"
   viewer: Viewer;
   otherFandoms: string[];
+  loggedIn: boolean; // login ligado (API) — mostra "Minha conta" e "Sair"
 };
 
 const Ctx = createContext<ArtistCtx | null>(null);

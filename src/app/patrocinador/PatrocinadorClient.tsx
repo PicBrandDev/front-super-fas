@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type ChangeEvent, type ReactNode, type Ref } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState, useTransition, type ChangeEvent, type ReactNode, type Ref } from "react";
+import { createCampaign } from "@/app/actions/admin";
 import { SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { AdCard } from "@/components/fan/AdCard";
 import { Icon } from "@/components/icons";
@@ -55,6 +57,8 @@ export function PatrocinadorClient({
   const [art, setArt] = useState<File | null>(null);
   const [artError, setArtError] = useState("");
   const [agree, setAgree] = useState(false);
+  const [sendError, setSendError] = useState("");
+  const [sending, start] = useTransition();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const moveFocus = useRef(false);
 
@@ -85,9 +89,23 @@ export function PatrocinadorClient({
   const next = () => {
     if (!canNext) return;
     if (step === 4) {
-      // TODO: POST /sponsor/campaigns  { club: clubSlug, slot: slotId, ...form, art (multipart) }
-      moveFocus.current = true;
-      setSent(true);
+      if (sending || !clubSlug || !slotId) return;
+      const fd = new FormData();
+      fd.set("club", clubSlug);
+      fd.set("slot", slotId);
+      for (const [k, v] of Object.entries(form)) fd.set(k, v.trim());
+      if (art) fd.set("art", art);
+      start(async () => {
+        const res = await createCampaign(fd);
+        // status 0 = sem API (modo exemplo): segue como se tivesse enviado.
+        if (!res.ok && res.status !== 0) {
+          setSendError(res.error);
+          return;
+        }
+        setSendError("");
+        moveFocus.current = true;
+        setSent(true);
+      });
       return;
     }
     goTo((step + 1) as Step);
@@ -190,8 +208,11 @@ export function PatrocinadorClient({
               Campanha enviada para aprovação
             </h2>
             <p className="m-0 max-w-[480px] text-[15px] text-adm-muted">
-              Seu anúncio em “{slotName}” no fã clube {clubName} está na fila de aprovação. Você recebe a resposta por
-              e-mail e acompanha tudo em Minhas campanhas.
+              Seu anúncio em “{slotName}” no fã clube {clubName} está na fila de aprovação. Acompanhe o status em{" "}
+              <Link href="/patrocinador/campanhas" className="font-semibold text-adm-blue">
+                Minhas campanhas
+              </Link>
+              .
             </p>
             <button
               type="button"
@@ -428,6 +449,12 @@ export function PatrocinadorClient({
         </section>
       )}
 
+      {!sent && sendError && (
+        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
+          {sendError}
+        </p>
+      )}
+
       {!sent && (
         <div className="flex justify-between gap-3 border-t border-adm-line pt-2">
           <button
@@ -438,8 +465,8 @@ export function PatrocinadorClient({
           >
             Voltar
           </button>
-          <button type="button" onClick={next} disabled={!canNext} className={btnPrimary}>
-            {step === 4 ? "Enviar para aprovação" : "Continuar"}
+          <button type="button" onClick={next} disabled={!canNext || sending} aria-busy={sending} className={btnPrimary}>
+            {step === 4 ? (sending ? "Enviando…" : "Enviar para aprovação") : "Continuar"}
           </button>
         </div>
       )}

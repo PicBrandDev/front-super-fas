@@ -1,6 +1,9 @@
 "use client";
 
-import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
+import { decideCampaign, inviteSponsor as inviteSponsorAction, updateAdSlot, type SponsorInvited } from "@/app/actions/admin";
+import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { Switch } from "@/components/admin/controls";
 import { Badge, SlotDiagram, btnPrimary, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
@@ -36,6 +39,29 @@ export function MidiaClient({
   const [spEmail, setSpEmail] = useState("");
   const [spError, setSpError] = useState("");
   const [announce, setAnnounce] = useState("");
+  const [error, setError] = useState("");
+  const [newSponsor, setNewSponsor] = useState<SponsorInvited | null>(null);
+  const [priceEdit, setPriceEdit] = useState<{ key: string; value: string } | null>(null);
+  const [, start] = useTransition();
+  const router = useRouter();
+
+  /** Roda a ação na API. Sem API (status 0) só aplica na tela. */
+  const run = (
+    call: () => Promise<{ ok: boolean; status?: number; error?: string }>,
+    apply: (saved: boolean) => void,
+    done: string,
+  ) =>
+    start(async () => {
+      const res = await call();
+      if (!res.ok && res.status !== 0) {
+        setError(res.error ?? "Não deu certo.");
+        return;
+      }
+      setError("");
+      apply(res.ok);
+      setAnnounce(done);
+      if (res.ok) router.refresh();
+    });
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ slots: null, camps: null, sponsors: null });
 
   const slots = (slotsByClub[club] ?? []).map((s) => {
@@ -52,11 +78,15 @@ export function MidiaClient({
     { id: "sponsors", label: "Patrocinadores", count: String(sponsorRows.length) },
   ];
 
-  const decide = (c: Campaign, status: CampaignStatus) => {
-    // TODO: POST /admin/campaigns/{id}/approve | /reject
-    setDecisions((cur) => ({ ...cur, [c.id]: status }));
-    setAnnounce(`Campanha de ${c.sponsor} ${status === "approved" ? "aprovada" : "recusada"}.`);
-  };
+  const decide = (c: Campaign, status: CampaignStatus) =>
+    run(
+      () => decideCampaign(c.id, status === "approved" ? "approve" : "reject"),
+      // Salvo na API: o status certo (ex.: "No ar") vem no refresh. Sem API: só marca na tela.
+      (saved) => {
+        if (!saved) setDecisions((cur) => ({ ...cur, [c.id]: status }));
+      },
+      `Campanha de ${c.sponsor} ${status === "approved" ? "aprovada" : "recusada"}.`,
+    );
 
   const inviteSponsor = (e: FormEvent) => {
     e.preventDefault();
@@ -66,12 +96,23 @@ export function MidiaClient({
       setSpError("Digite um e-mail válido.");
       return;
     }
-    // TODO: POST /admin/sponsors/invite { email }
-    const id = `inv-${Date.now()}`;
-    setInvited((cur) => [{ id, brand: "—", email, campaigns: 0, status: "invited", local: true }, ...cur]);
-    setSpEmail("");
-    setSpError("");
-    setAnnounce(`Convite enviado para ${email}.`);
+    start(async () => {
+      const res = await inviteSponsorAction({ email });
+      if (!res.ok && res.status !== 0) {
+        setSpError(res.error);
+        return;
+      }
+      if (res.ok) {
+        setNewSponsor(res.data);
+        router.refresh();
+      } else {
+        const id = `inv-${Date.now()}`;
+        setInvited((cur) => [{ id, brand: "—", email, campaigns: 0, status: "invited", local: true }, ...cur]);
+      }
+      setSpEmail("");
+      setSpError("");
+      setAnnounce(`Conta criada para ${email}.`);
+    });
   };
 
   const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
@@ -116,6 +157,18 @@ export function MidiaClient({
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
+      {error && (
+        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
+          {error}
+        </p>
+      )}
+      {newSponsor && (
+        <TempPasswordNotice
+          email={newSponsor.sponsor.email}
+          password={newSponsor.tempPassword}
+          onClose={() => setNewSponsor(null)}
+        />
+      )}
 
       <div role="tablist" aria-label="Seções da mídia" className="flex gap-1 overflow-x-auto border-b border-adm-line">
         {tabs.map((t, i) => {
@@ -163,7 +216,7 @@ export function MidiaClient({
             const occ = !v.on
               ? { label: "Pausada", tone: "off" as const }
               : v.occupied
-                ? { label: "Ocupada até [data]", tone: "info" as const }
+                ? { label: "Ocupada", tone: "info" as const }
                 : { label: "Livre para venda", tone: "ok" as const };
             return (
               <article
@@ -179,7 +232,13 @@ export function MidiaClient({
                   <Switch
                     checked={v.on}
                     label={`Vitrine ${v.name} ${v.on ? "ativa" : "pausada"}`}
-                    onChange={(val) => setActiveOverride((cur) => ({ ...cur, [v.key]: val }))}
+                    onChange={(val) =>
+                      run(
+                        () => updateAdSlot(club, v.id, { active: val }),
+                        () => setActiveOverride((cur) => ({ ...cur, [v.key]: val })),
+                        `Vitrine ${v.name} ${val ? "ativada" : "pausada"}.`,
+                      )
+                    }
                   />
                 </div>
                 <dl className="m-0 grid grid-cols-2 gap-2.5">
@@ -189,17 +248,57 @@ export function MidiaClient({
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <dt className="font-adm-mono text-[11px] font-semibold uppercase text-adm-muted">Preço</dt>
-                    <dd className="m-0 text-[13px] font-semibold">{v.priceLabel}</dd>
+                    <dd className="m-0 text-[13px] font-semibold">
+                      {priceEdit?.key === v.key ? (
+                        <form
+                          className="flex items-center gap-1.5"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const n = Number(priceEdit.value.replace(/[R$\s.]/g, "").replace(",", "."));
+                            if (!Number.isFinite(n) || n < 0) {
+                              setError("Digite o preço em reais, ex.: 500,00.");
+                              return;
+                            }
+                            run(() => updateAdSlot(club, v.id, { priceCents: Math.round(n * 100) }), () => setPriceEdit(null), "Preço salvo.");
+                          }}
+                        >
+                          <label htmlFor={`price-${v.key}`} className="sr-only">
+                            Preço por semana de {v.name}
+                          </label>
+                          <input
+                            id={`price-${v.key}`}
+                            inputMode="decimal"
+                            autoFocus
+                            value={priceEdit.value}
+                            onChange={(e) => setPriceEdit({ key: v.key, value: e.target.value })}
+                            className={`${inputClass} min-h-9 w-24 px-2 text-[13px]`}
+                          />
+                          <button type="submit" className="min-h-9 cursor-pointer rounded-lg bg-adm-blue px-2.5 text-[13px] font-semibold text-white">
+                            Salvar
+                          </button>
+                        </form>
+                      ) : (
+                        v.priceLabel
+                      )}
+                    </dd>
                   </div>
                 </dl>
                 <div className="flex items-center justify-between gap-2 border-t border-adm-line-soft pt-3">
                   <Badge tone={occ.tone}>{occ.label}</Badge>
-                  <a
-                    href="#"
-                    className="flex min-h-10 items-center text-[13px] font-semibold text-adm-blue hover:text-adm-blue-dark"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPriceEdit(
+                        priceEdit?.key === v.key
+                          ? null
+                          : { key: v.key, value: v.priceCents != null ? (v.priceCents / 100).toFixed(2).replace(".", ",") : "" },
+                      )
+                    }
+                    className="flex min-h-10 cursor-pointer items-center border-0 bg-transparent text-[13px] font-semibold text-adm-blue hover:text-adm-blue-dark"
                   >
-                    Editar vitrine<span className="sr-only"> {v.name}</span>
-                  </a>
+                    {priceEdit?.key === v.key ? "Cancelar" : "Editar preço"}
+                    <span className="sr-only"> de {v.name}</span>
+                  </button>
                 </div>
               </article>
             );
@@ -233,7 +332,10 @@ export function MidiaClient({
                 return (
                   <tr key={c.id}>
                     <td className={`${tdClass} font-semibold`}>{c.sponsor}</td>
-                    <td className={tdClass}>{c.slotName}</td>
+                    <td className={tdClass}>
+                      {c.slotName}
+                      {c.club && <span className="block text-xs text-adm-muted">{c.club}</span>}
+                    </td>
                     <td className={`${tdClass} text-adm-muted`}>{c.title}</td>
                     <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.period}</td>
                     <td className={tdClass}>

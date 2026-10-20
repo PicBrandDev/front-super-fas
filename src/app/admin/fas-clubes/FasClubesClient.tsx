@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { createFanClub, updateFanClub, type InviteResult } from "@/app/actions/admin";
+import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { FilterChips, SearchField, Switch } from "@/components/admin/controls";
 import { Badge, btnOutlineBlue, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
@@ -18,6 +21,7 @@ export type ClubRow = {
   members: string;
   ads: string;
   team: ClubAdmin[];
+  modules?: Record<string, boolean>;
   /** Criado nesta sessão (ainda não existe no back). */
   local?: boolean;
   instagram?: string;
@@ -76,6 +80,10 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
   const [mods, setMods] = useState<Record<string, Record<string, boolean>>>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [announce, setAnnounce] = useState("");
+  const [invites, setInvites] = useState<InviteResult[]>([]);
+  const [saveError, setSaveError] = useState("");
+  const [, start] = useTransition();
+  const router = useRouter();
   const openBtnRef = useRef<HTMLButtonElement>(null);
 
   const clubs = [...initialClubs, ...created];
@@ -92,8 +100,24 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
     openBtnRef.current?.focus();
   };
 
-  const handleCreate = (data: { name: string; instagram: string; template: Template; invites: string[] }) => {
-    // TODO: POST /admin/fan-clubs  { name, slug, instagram, template, invites }
+  const handleCreate = async (data: {
+    name: string;
+    instagram: string;
+    template: Template;
+    invites: string[];
+  }): Promise<string | null> => {
+    const res = await createFanClub(data);
+    if (res.ok) {
+      setInvites(res.data.invites);
+      setSelId(res.data.artist.id);
+      setFilter("todos");
+      setAnnounce(`Ambiente ${data.name} criado.`);
+      closeCreate();
+      router.refresh();
+      return null;
+    }
+    if (res.status !== 0) return res.error;
+    // Modo exemplo (sem API): cria só na tela.
     const taken = new Set(clubs.map((c) => c.slug));
     const base = slugify(data.name) || "artista";
     let slug = base;
@@ -118,7 +142,22 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
     setFilter("todos");
     setAnnounce(`Ambiente ${data.name} criado.`);
     closeCreate();
+    return null;
   };
+
+  /** Salva no back; sem API só muda na tela. */
+  const patchClub = (c: ClubRow, data: Record<string, unknown>, done: string) =>
+    start(async () => {
+      if (c.local) return;
+      const res = await updateFanClub(c.slug, data);
+      if (!res.ok && res.status !== 0) {
+        setSaveError(res.error);
+        return;
+      }
+      setSaveError("");
+      setAnnounce(done);
+      if (res.ok) router.refresh();
+    });
 
   return (
     <>
@@ -136,6 +175,20 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
+
+      {invites.map((inv) => (
+        <TempPasswordNotice
+          key={inv.email}
+          email={inv.email}
+          password={inv.tempPassword}
+          onClose={() => setInvites((cur) => cur.filter((x) => x.email !== inv.email))}
+        />
+      ))}
+      {saveError && (
+        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
+          {saveError}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2.5">
         <SearchField id="fc-search" label="Buscar fã clube" value={q} onChange={setQ} placeholder="Buscar artista ou endereço" />
@@ -263,7 +316,13 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
                 const inv = extraInv[selClub.id] ?? 0;
                 if (person) {
                   return (
-                    <AdminSlot key={i} initials={initialsOf(person.name)} name={person.name} role={person.role} avatar="bg-adm-ink text-white" />
+                    <AdminSlot
+                    key={i}
+                    initials={initialsOf(person.name)}
+                    name={person.name}
+                    role={person.pending ? `${person.role} · senha provisória` : person.role}
+                    avatar="bg-adm-ink text-white"
+                  />
                   );
                 }
                 if (i < selClub.team.length + inv) {
@@ -287,13 +346,19 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
                     avatar="bg-adm-bg text-adm-muted"
                     box="border-dashed bg-white"
                     action={
-                      <button
-                        type="button"
-                        onClick={() => setExtraInv((cur) => ({ ...cur, [selClub.id]: (cur[selClub.id] ?? 0) + 1 }))}
-                        className={btnOutlineBlue}
-                      >
-                        Convidar<span className="sr-only"> para a vaga {i + 1}</span>
-                      </button>
+                      selClub.local ? (
+                        <button
+                          type="button"
+                          onClick={() => setExtraInv((cur) => ({ ...cur, [selClub.id]: (cur[selClub.id] ?? 0) + 1 }))}
+                          className={btnOutlineBlue}
+                        >
+                          Convidar<span className="sr-only"> para a vaga {i + 1}</span>
+                        </button>
+                      ) : (
+                        <Link href={`/${selClub.slug}/admin/equipe`} className={`${btnOutlineBlue} no-underline`}>
+                          Convidar<span className="sr-only"> para a vaga {i + 1}</span>
+                        </Link>
+                      )
                     }
                   />
                 );
@@ -303,8 +368,27 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
 
           <div className="flex min-w-0 flex-[2_1_300px] flex-col gap-1.5 rounded-xl border border-adm-line bg-white p-5">
             <h2 className="m-0 mb-2 text-lg font-bold">Módulos do ambiente</h2>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-adm-bg px-3 py-2.5">
+              <span className="text-sm">
+                {selClub.status === "active" ? "No ar para os fãs." : "Em configuração: só a equipe vê."}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  patchClub(
+                    selClub,
+                    { status: selClub.status === "active" ? "setup" : "active" },
+                    selClub.status === "active" ? `${selClub.name} saiu do ar.` : `${selClub.name} está no ar.`,
+                  )
+                }
+                disabled={selClub.local}
+                className={btnOutlineBlue}
+              >
+                {selClub.status === "active" ? "Tirar do ar" : "Colocar no ar"}
+              </button>
+            </div>
             {moduleList.map((m) => {
-              const on = mods[selClub.id]?.[m.id] !== false;
+              const on = (mods[selClub.id]?.[m.id] ?? selClub.modules?.[m.id]) !== false;
               return (
                 <div key={m.id} className="flex min-h-12 items-center justify-between gap-3 border-b border-adm-line-soft">
                   <span className="flex flex-col">
@@ -314,9 +398,10 @@ export function FasClubesClient({ initialClubs }: { initialClubs: ClubRow[] }) {
                   <Switch
                     checked={on}
                     label={m.label}
-                    onChange={(v) =>
-                      setMods((all) => ({ ...all, [selClub.id]: { ...all[selClub.id], [m.id]: v } }))
-                    }
+                    onChange={(v) => {
+                      setMods((all) => ({ ...all, [selClub.id]: { ...all[selClub.id], [m.id]: v } }));
+                      patchClub(selClub, { modules: { [m.id]: v } }, `${m.label} ${v ? "ligado" : "desligado"}.`);
+                    }}
                   />
                 </div>
               );
@@ -367,7 +452,7 @@ function CreateDialog({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (data: { name: string; instagram: string; template: Template; invites: string[] }) => void;
+  onCreate: (data: { name: string; instagram: string; template: Template; invites: string[] }) => Promise<string | null>;
 }) {
   const [name, setName] = useState("");
   const [ig, setIg] = useState("");
@@ -375,6 +460,8 @@ function CreateDialog({
   const [email, setEmail] = useState("");
   const [invites, setInvites] = useState<string[]>([]);
   const [emailError, setEmailError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [creating, startCreate] = useTransition();
   const dialogRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -415,8 +502,11 @@ function CreateDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!canCreate) return;
-    onCreate({ name: name.trim(), instagram: ig.trim(), template: tpl, invites });
+    if (!canCreate || creating) return;
+    startCreate(async () => {
+      const err = await onCreate({ name: name.trim(), instagram: ig.trim(), template: tpl, invites });
+      if (err) setSubmitError(err);
+    });
   };
 
   /** Mantém o foco dentro do diálogo. */
@@ -474,6 +564,11 @@ function CreateDialog({
           </div>
 
           <div className="flex flex-col gap-4 px-6 py-5">
+            {submitError && (
+              <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
+                {submitError}
+              </p>
+            )}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="cr-name" className="text-[13px] font-semibold">
                 Nome artístico
@@ -586,8 +681,8 @@ function CreateDialog({
             <button type="button" onClick={onClose} className={btnSecondary}>
               Cancelar
             </button>
-            <button type="submit" disabled={!canCreate} className={btnPrimary}>
-              Criar ambiente
+            <button type="submit" disabled={!canCreate || creating} aria-busy={creating} className={btnPrimary}>
+              {creating ? "Criando…" : "Criar ambiente"}
             </button>
           </div>
         </form>

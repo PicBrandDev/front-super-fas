@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState, type KeyboardEvent } from "react";
+import { joinEventLuck } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Rings, StripeBand } from "@/components/fan/decor";
 import { Icon } from "@/components/icons";
@@ -28,7 +29,7 @@ export function EventoView({
   vendors: Vendor[];
   gifts: Gift[];
 }) {
-  const { base, viewer } = useArtist();
+  const { base, viewer, slug } = useArtist();
   const [step, setStep] = useState<Step>("before");
   const [joined, setJoined] = useState(false);
   const [code, setCode] = useState("");
@@ -59,9 +60,10 @@ export function EventoView({
     }
   }
 
-  function join() {
-    // TODO: POST /artists/{slug}/events/{id}/luck/join
-    setJoined(true);
+  async function join() {
+    // Sem API (modo exemplo, status 0) só marca na tela.
+    const res = await joinEventLuck(slug, event.id);
+    if (res.ok || res.status === 0) setJoined(true);
   }
 
   function validate() {

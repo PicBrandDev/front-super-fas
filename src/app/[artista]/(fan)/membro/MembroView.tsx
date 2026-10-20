@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { subscribeMembership } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Rings, StripeBand } from "@/components/fan/decor";
 import { Icon } from "@/components/icons";
@@ -27,7 +29,9 @@ export function MembroView({
   priceAmount: string;
   perks: MemberPerk[];
 }) {
-  const { base, viewer } = useArtist();
+  const { base, viewer, slug } = useArtist();
+  const router = useRouter();
+  const [subError, setSubError] = useState("");
   const [pay, setPay] = useState<Pay>("pix");
   const [processing, setProcessing] = useState(false);
   const [member, setMember] = useState(false);
@@ -46,16 +50,24 @@ export function MembroView({
     if (member) successRef.current?.focus();
   }, [member]);
 
-  function subscribe() {
+  async function subscribe() {
     if (processing) return;
     setProcessing(true);
-    // TODO: POST /artists/{slug}/membership/subscribe  { method: pay }
+    // Assinatura simulada no back (ainda sem cobrança real). Sem API, só simula aqui.
+    const res = await subscribeMembership(slug, pay === "pix" ? "pix" : "card");
+    if (!res.ok && res.status !== 0) {
+      setSubError(res.error);
+      setProcessing(false);
+      return;
+    }
+    setSubError("");
     timer.current = setTimeout(() => {
       // Data calculada só no navegador, depois da montagem (sem divergência de hidratação).
       setSince(new Date().toLocaleDateString("pt-BR"));
       setProcessing(false);
       setMember(true);
-    }, 1200);
+      if (res.ok) router.refresh();
+    }, 600);
   }
 
   return (
@@ -157,6 +169,11 @@ export function MembroView({
               >
                 {processing ? "Confirmando…" : `Assinar por ${priceLabel}/mês`}
               </button>
+              {subError && (
+                <p role="alert" className="m-0 font-label text-xs font-bold text-accent">
+                  {subError}
+                </p>
+              )}
               <p className="m-0 text-center font-label text-xs leading-snug text-ink-soft">
                 Cobrança mensal. Cancele quando quiser em Perfil › Assinatura.
               </p>

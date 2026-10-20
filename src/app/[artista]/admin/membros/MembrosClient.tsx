@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { memberAction } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { FilterChips, SearchField } from "@/components/admin/controls";
 import { Badge, btnPrimary, btnSecondary, tdClass, thClass, type Tone } from "@/components/admin/ui";
@@ -68,6 +70,9 @@ export function MembrosClient({
   const [selId, setSelId] = useState<string | null>(initialMembers[0]?.id ?? null);
   const [resent, setResent] = useState(false);
   const [announce, setAnnounce] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [busy, start] = useTransition();
+  const router = useRouter();
 
   const members = initialMembers.map((m, i) => ({
     ...m,
@@ -97,18 +102,33 @@ export function MembrosClient({
     setResent(false);
   };
 
-  const resend = () => {
-    // TODO: POST /artists/{slug}/members/{id}/charge
-    setResent(true);
-    if (sel) setAnnounce(`Cobrança reenviada para ${sel.name}.`);
+  /** Chama a API; sem API (modo exemplo, status 0) só simula na tela. */
+  const run = (action: "charge" | "cancel", done: () => void) => {
+    if (!sel) return;
+    start(async () => {
+      const res = await memberAction(slug, sel.id, action);
+      if (!res.ok && res.status !== 0) {
+        setActionError(res.error);
+        return;
+      }
+      setActionError("");
+      done();
+      if (res.ok) router.refresh();
+    });
   };
 
-  const cancelSel = () => {
-    if (!sel) return;
-    // TODO: POST /artists/{slug}/members/{id}/cancel
-    setOverrides((cur) => ({ ...cur, [sel.id]: "canceled" }));
-    setAnnounce(`Assinatura de ${sel.name} cancelada.`);
-  };
+  const resend = () =>
+    run("charge", () => {
+      setResent(true);
+      if (sel) setAnnounce(`Cobrança reenviada para ${sel.name}.`);
+    });
+
+  const cancelSel = () =>
+    run("cancel", () => {
+      if (!sel) return;
+      setOverrides((cur) => ({ ...cur, [sel.id]: "canceled" }));
+      setAnnounce(`Assinatura de ${sel.name} cancelada.`);
+    });
 
   const exportCsv = () => {
     const header = ["Nome", "Usuário", "Status", "Membro desde", "Pagamento", "Pontos", "Cidade"];
@@ -254,11 +274,16 @@ export function MembrosClient({
               <Detail label="Pontos da sorte" value={fmtPoints(sel.points)} />
             </dl>
             <div className="flex flex-col gap-2">
+              {actionError && (
+                <p role="alert" className="m-0 text-sm font-semibold text-adm-danger">
+                  {actionError}
+                </p>
+              )}
               <button type="button" className={btnPrimary}>
                 Enviar mensagem
               </button>
               {sel.status === "pending" && (
-                <button type="button" onClick={resend} disabled={resent} className={`${btnSecondary} disabled:cursor-default`}>
+                <button type="button" onClick={resend} disabled={resent || busy} className={`${btnSecondary} disabled:cursor-default`}>
                   {resent ? "Cobrança reenviada ✓" : "Reenviar cobrança"}
                 </button>
               )}
@@ -266,6 +291,7 @@ export function MembrosClient({
                 <button
                   type="button"
                   onClick={cancelSel}
+                  disabled={busy}
                   className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-adm-line bg-white px-4 text-sm font-semibold text-adm-danger"
                 >
                   Cancelar assinatura

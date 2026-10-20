@@ -19,6 +19,7 @@ export type Artist = {
   members: string; // número de membros (texto até a API existir)
   adSlotsSummary: string;
   brandColor: string; // cor do avatar no admin
+  modules?: Record<string, boolean>; // módulos ligados/desligados pelo admin master
 };
 
 export type Viewer = {
@@ -50,6 +51,7 @@ export type EventStatus = "on_sale" | "last_batches" | "soon";
 
 export type ShowEvent = {
   id: string;
+  date?: string; // "2026-11-07" (vem da API)
   weekday: string; // "SÁB"
   day: string; // "07"
   month: string; // "NOV"
@@ -117,6 +119,7 @@ export type AdSlot = {
   where: string;
   format: string;
   priceLabel: string;
+  priceCents?: number | null;
   occupied: boolean;
   active: boolean;
   diagram: { top: number; height: number }; // posição no mini desenho do celular (px)
@@ -131,6 +134,12 @@ export type Campaign = {
   title: string;
   period: string;
   status: CampaignStatus;
+  club?: string;
+  clubSlug?: string;
+  text?: string;
+  cta?: string;
+  url?: string;
+  artUrl?: string | null;
 };
 
 export type Sponsor = {
@@ -154,6 +163,6 @@ export type Member = {
   city: string;
 };
 
-export type ClubAdmin = { name: string; role: string };
+export type ClubAdmin = { id?: string; name: string; email?: string; role: string; pending?: boolean };
 
 export type MemberPerk = { title: string; sub: string };

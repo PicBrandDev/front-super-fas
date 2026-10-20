@@ -1,11 +1,13 @@
 /**
- * Camada de dados do front.
+ * Camada de dados do front (só roda no servidor).
  *
- * Hoje, sem NEXT_PUBLIC_API_URL definido, tudo vem de ./mock.
- * Quando o back FastAPI estiver no ar, defina NEXT_PUBLIC_API_URL no .env
- * e estas funções passam a buscar na API, nos caminhos indicados em cada uma.
- * As páginas não precisam mudar.
+ * Com API_URL definido, tudo vem do back FastAPI, com o token do cookie de login.
+ * Sem API_URL, o app usa os dados de exemplo de ./mock e não pede login.
+ * As páginas não precisam saber de onde vem.
  */
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import type {
   AdSlot,
@@ -27,13 +29,77 @@ import type {
   Viewer,
 } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+const API_URL = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL)?.replace(/\/$/, "");
 
-async function get<T>(path: string, fallback: () => T): Promise<T> {
-  if (!API_URL) return fallback();
-  const res = await fetch(`${API_URL}${path}`, { cache: "no-store" });
+export const apiEnabled = () => !!API_URL;
+
+async function token(): Promise<string | undefined> {
+  // Ler os cookies também deixa as páginas dinâmicas (dados sempre frescos).
+  return (await cookies()).get(SESSION_COOKIE)?.value;
+}
+
+/** Sessão do usuário logado (null sem login ou sem API). */
+export async function getSession(): Promise<Session | null> {
+  return verifySession(await token());
+}
+
+async function request(path: string, init: RequestInit = {}): Promise<Response> {
+  const t = await token();
+  const headers = new Headers(init.headers);
+  if (t) headers.set("Authorization", `Bearer ${t}`);
+  return fetch(`${API_URL}${path}`, { ...init, headers, cache: "no-store" });
+}
+
+async function get<T>(path: string, fallback: () => T, opts: { notFound?: T } = {}): Promise<T> {
+  if (!API_URL) {
+    await token();
+    return fallback();
+  }
+  const res = await request(path);
+  if (res.status === 401) redirect("/login");
+  if (res.status === 404 && "notFound" in opts) return opts.notFound as T;
   if (!res.ok) throw new Error(`GET ${path} falhou: ${res.status}`);
   return (await res.json()) as T;
+}
+
+export type ApiResult<T = unknown> = { ok: true; data: T } | { ok: false; error: string; status: number };
+
+/** Escrita na API (usado pelas server actions). Devolve a mensagem de erro da API, pronta para mostrar. */
+export async function send<T = unknown>(
+  method: "POST" | "PATCH" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<ApiResult<T>> {
+  if (!API_URL) return { ok: false, error: "O front não está ligado à API (API_URL).", status: 0 };
+  const init: RequestInit = { method };
+  if (body instanceof FormData) init.body = body;
+  else if (body !== undefined) {
+    init.body = JSON.stringify(body);
+    init.headers = { "Content-Type": "application/json" };
+  }
+  let res: Response;
+  try {
+    res = await request(path, init);
+  } catch {
+    return { ok: false, error: "Não foi possível falar com o servidor.", status: 0 };
+  }
+  if (res.status === 204) return { ok: true, data: undefined as T };
+  const data = await res.json().catch(() => null);
+  if (!res.ok) return { ok: false, error: errorMessage(data, res.status), status: res.status };
+  return { ok: true, data: data as T };
+}
+
+function errorMessage(data: unknown, status: number): string {
+  const detail = (data as { detail?: unknown } | null)?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail[0]?.msg) {
+    const d = detail[0] as { loc?: (string | number)[]; msg: string };
+    const field = d.loc?.[d.loc.length - 1];
+    return field ? `${field}: ${d.msg}` : d.msg;
+  }
+  if (status === 401) return "Sua sessão expirou. Entre de novo.";
+  if (status === 403) return "Você não tem permissão para isso.";
+  return `Erro ${status}.`;
 }
 
 // ---------- Ambientes de artista ----------
@@ -42,19 +108,16 @@ async function get<T>(path: string, fallback: () => T): Promise<T> {
 export const listArtists = () => get<Artist[]>("/artists", () => mock.artists);
 
 /** GET /artists/{slug} */
-export async function getArtist(slug: string): Promise<Artist | null> {
-  if (!API_URL) return mock.artists.find((a) => a.slug === slug) ?? null;
-  const res = await fetch(`${API_URL}/artists/${slug}`, { cache: "no-store" });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GET /artists/${slug} falhou: ${res.status}`);
-  return (await res.json()) as Artist;
-}
+export const getArtist = (slug: string) =>
+  get<Artist | null>(`/artists/${slug}`, () => mock.artists.find((a) => a.slug === slug) ?? null, { notFound: null });
 
-/** GET /me (usuário logado) */
-export const getViewer = () => get<Viewer>("/me", () => mock.viewer);
+/** GET /me?artist={slug} (usuário logado, com pontos e giros naquele fã clube) */
+export const getViewer = (slug?: string) =>
+  get<Viewer>(`/me${slug ? `?artist=${slug}` : ""}`, () => mock.viewer);
 
 /** GET /me/fandoms */
-export const getOtherFandoms = () => get<string[]>("/me/fandoms", () => mock.otherFandoms);
+export const getOtherFandoms = (slug?: string) =>
+  get<string[]>(`/me/fandoms${slug ? `?artist=${slug}` : ""}`, () => mock.otherFandoms);
 
 // ---------- Mural ----------
 
@@ -70,13 +133,10 @@ export const getPosts = (slug: string, kind?: PostKind) =>
 export const getEvents = (slug: string) => get<ShowEvent[]>(`/artists/${slug}/events`, () => mock.events);
 
 /** GET /artists/{slug}/events/{id} */
-export async function getEvent(slug: string, id: string): Promise<ShowEvent | null> {
-  if (!API_URL) return mock.events.find((e) => e.id === id) ?? null;
-  const res = await fetch(`${API_URL}/artists/${slug}/events/${id}`, { cache: "no-store" });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GET evento falhou: ${res.status}`);
-  return (await res.json()) as ShowEvent;
-}
+export const getEvent = (slug: string, id: string) =>
+  get<ShowEvent | null>(`/artists/${slug}/events/${id}`, () => mock.events.find((e) => e.id === id) ?? null, {
+    notFound: null,
+  });
 
 /** GET /artists/{slug}/events/{id}/vendors */
 export const getVendors = (slug: string, eventId: string) =>
@@ -120,6 +180,19 @@ export const getCampaigns = () => get<Campaign[]>("/admin/campaigns", () => mock
 
 /** GET /admin/sponsors */
 export const getSponsors = () => get<Sponsor[]>("/admin/sponsors", () => mock.sponsors);
+
+/** GET /sponsor/campaigns (campanhas da marca logada) */
+export const getMyCampaigns = () => get<Campaign[]>("/sponsor/campaigns", () => mock.campaigns.slice(0, 2));
+
+/** GET /sponsor/me */
+export const getMySponsor = () =>
+  get<Sponsor | null>("/sponsor/me", () => mock.sponsors[0] ?? null, { notFound: null });
+
+// ---------- Conteúdo para o admin do fã clube (campos editáveis) ----------
+
+/** GET /artists/{slug}/manage/{recurso} */
+export const getManaged = <T>(slug: string, resource: string, query = "") =>
+  get<T[]>(`/artists/${slug}/manage/${resource}${query}`, () => [] as T[]);
 
 // ---------- Utilidades ----------
 
