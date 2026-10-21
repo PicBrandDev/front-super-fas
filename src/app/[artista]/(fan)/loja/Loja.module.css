@@ -1,0 +1,78 @@
+/* Loja Vintage: grade de produtos sobre mist (.prods/.prod/.bag do protótipo). */
+.bag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--fc-fg);
+  font: 400 11px/14px var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.bag b {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  background: var(--fc-amber);
+  color: var(--fc-on-amber);
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+.prods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 12px;
+  padding: 16px 16px 32px;
+}
+.prod {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.img {
+  aspect-ratio: 4 / 5;
+  background: var(--fc-mist);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+.img.cover img {
+  object-fit: cover;
+  mix-blend-mode: normal;
+}
+.empty {
+  grid-column: 1 / -1;
+  margin: 32px 0;
+  color: var(--fc-fg-muted);
+  font-size: 15px;
+  line-height: 22px;
+}
+.prod h3 {
+  margin: 4px 0 0;
+  font: 700 19px/22px var(--fc-font-display);
+}
+.price {
+  font: 700 14px/18px var(--fc-font-grotesk);
+  color: var(--fc-amber-text);
+}
+.prod :global(.btn) {
+  width: 100%;
+}
+.prod :global(.btn)[aria-pressed="true"] {
+  background: var(--fc-fg);
+  color: var(--fc-bg);
+  border-color: var(--fc-fg);
+}
