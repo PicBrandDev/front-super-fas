@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { btnSecondary } from "@/components/admin/ui";
+import { AdminEmpty, btnSecondary } from "@/components/admin/ui";
 import { getMyStaff, getSession } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Seus painéis" };
@@ -42,8 +42,16 @@ export default async function PainelPage() {
             </span>
           </Link>
         ))}
-        {positions.length === 0 && session?.role !== "master" && (
-          <p className="m-0 text-sm text-adm-muted">Você não está na equipe de nenhum fã clube.</p>
+        {positions.length === 0 && envs.size === 0 && session?.role !== "master" && (
+          <AdminEmpty
+            title="Nenhum painel para você"
+            text="Você não está na equipe de nenhum fã clube. Quem administra um fã clube pode te convidar."
+            action={
+              <Link href="/" className={`${btnSecondary} no-underline`}>
+                Ir para a entrada
+              </Link>
+            }
+          />
         )}
         <form action={logout} className="mt-2">
           <button type="submit" className={`${btnSecondary} w-full justify-start text-adm-danger`}>

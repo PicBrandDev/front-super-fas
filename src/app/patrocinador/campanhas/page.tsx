@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Badge, btnPrimary, tdClass, thClass, type Tone } from "@/components/admin/ui";
+import { campaignWhere } from "@/app/admin/midia/slots";
+import { AdminEmpty, Badge, btnPrimary, tdClass, thClass, type Tone } from "@/components/admin/ui";
 import { getMyCampaigns, getSession } from "@/lib/api";
 import type { CampaignStatus } from "@/lib/types";
 
@@ -41,12 +42,14 @@ export default async function MinhasCampanhasPage() {
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((c) => (
+            {campaigns.map((c) => {
+              const where = campaignWhere(c);
+              return (
               <tr key={c.id}>
                 <td className={`${tdClass} font-semibold`}>{c.title}</td>
                 <td className={tdClass}>
-                  {c.club ?? "—"}
-                  <span className="block text-xs text-adm-muted">{c.fanClub ?? "Todo o ambiente"}</span>
+                  {where.place}
+                  {where.artist && <span className="block text-xs text-adm-muted">{where.artist}</span>}
                 </td>
                 <td className={tdClass}>{c.slotName}</td>
                 <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.period}</td>
@@ -54,13 +57,26 @@ export default async function MinhasCampanhasPage() {
                   <Badge tone={look[c.status].tone}>{look[c.status].label}</Badge>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
         {campaigns.length === 0 && (
-          <p className="m-0 px-4 py-6 text-sm text-adm-muted">
-            {session && session.role !== "sponsor" ? "Esta tela mostra as campanhas de uma conta de patrocinador." : "Nenhuma campanha ainda."}
-          </p>
+          <div className="p-4">
+            {session && session.role !== "sponsor" ? (
+              <AdminEmpty title="Só para contas de patrocinador" text="Esta tela mostra as campanhas de uma conta de patrocinador." />
+            ) : (
+              <AdminEmpty
+                title="Nenhuma campanha ainda"
+                text="Monte seu primeiro anúncio: escolha o cantor, onde anunciar e a vitrine."
+                action={
+                  <Link href="/patrocinador" className={`${btnPrimary} no-underline`}>
+                    Nova campanha
+                  </Link>
+                }
+              />
+            )}
+          </div>
         )}
       </div>
     </>
