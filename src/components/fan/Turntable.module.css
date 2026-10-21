@@ -1,0 +1,77 @@
+/*
+ * Toca-discos do PicKap (porte de turntable() do protótipo fanzone.html).
+ * Os cinzas do metal, o vinil, o selo e os LEDs são do próprio aparelho
+ * (não mudam com o tema do artista): ficam declarados aqui, com os valores
+ * do protótipo. O metal do knob é a única exceção à regra "sem gradiente".
+ */
+.tt {
+  --vinyl: #141010;
+  --label-blue: #8fc4d6;
+  --vu-face: #efe7d4;
+  --led-green: #5fcf4a;
+  --led-green-off: #24331f;
+  --led-red-off: #4a1d1a;
+  --metal-hi: #e4e8e8;
+  --metal: #c9cfcf;
+  --metal-lo: #6f7b7b;
+  --metal-ring: #9aa5a5;
+  --key: #2a201c;
+  --key-deep: #0b0605;
+  --groove: #2b2422;
+  --groove-deep: #080505;
+  --divider: #3b3230;
+  --trk-text: #d9d2cc;
+  --sheen: #ffffff;
+
+  display: block;
+  width: 100%;
+  height: auto;
+  flex: none;
+}
+
+.rec,
+.arm,
+.vun,
+.vol {
+  transform-box: view-box;
+}
+.rec {
+  transition: transform 4.2s cubic-bezier(0.12, 0.72, 0.12, 1);
+}
+.arm {
+  transition: transform 0.8s var(--ease, cubic-bezier(0.16, 0.84, 0.24, 1));
+}
+.vun {
+  transition: transform 0.14s linear;
+}
+.vol {
+  transition: transform 4.2s var(--ease, cubic-bezier(0.16, 0.84, 0.24, 1));
+}
+.trk path {
+  fill: transparent;
+}
+.trk text {
+  fill: var(--trk-text);
+}
+.trk.on path {
+  fill: var(--fc-amber);
+}
+.trk.on text {
+  fill: var(--fc-ink);
+}
+.ledG,
+.ledR {
+  transition: fill 0.2s var(--ease, cubic-bezier(0.16, 0.84, 0.24, 1));
+}
+.ledG {
+  fill: var(--led-green-off);
+}
+.ledR {
+  fill: var(--fc-signal);
+}
+.playing .ledG {
+  fill: var(--led-green);
+}
+.playing .ledR {
+  fill: var(--led-red-off);
+}
