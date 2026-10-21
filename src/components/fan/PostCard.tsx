@@ -1,117 +1,169 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
-import type { Post } from "@/lib/types";
+import { postImage } from "@/lib/media";
+import { formatShort, initialsOf } from "@/lib/format";
+import type { Post, PostKind } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
-import { PhotoPlaceholder } from "./decor";
+import { Mark } from "./Mark";
+import { useToast } from "./Toast";
 
-const avatarTones = [
-  "bg-accent-2 text-ink",
-  "bg-ink text-paper",
-];
+const kindLabel: Record<PostKind, string> = { drop: "Mural", galera: "Comunidade", instagram: "Instagram" };
 
-/** Post do mural com curtir / comentar / repostar. */
+/**
+ * Post da comunidade (padrão `.post` do protótipo): entrada editorial sem caixa,
+ * fio 1px embaixo, avatar com a marca (oficial) ou iniciais em chrome, corpo
+ * recuado 44px, ações em mono e respostas que abrem ao tocar em comentar.
+ * Curtir, repostar e responder são simulados no cliente.
+ */
 export function PostCard({
   post,
   index = 0,
   showKindTag = false,
   showClub = true,
+  fresh = false,
 }: {
   post: Post;
   index?: number;
   showKindTag?: boolean;
   showClub?: boolean; // mostra de qual fã clube é o post
+  fresh?: boolean; // acabou de ser publicado (entra com a animação `.new`)
 }) {
-  const { name: artistName } = useArtist();
+  const { slug } = useArtist();
+  const toast = useToast();
   const [liked, setLiked] = useState(false);
   const [reposted, setReposted] = useState(false);
-  const official = !!post.author.official;
-  const avatar = official ? "bg-accent text-accent-fg" : avatarTones[index % 2];
-  const tag = post.kind === "drop" ? "Drop" : post.kind === "galera" ? "Galera" : "Instagram";
+  const [open, setOpen] = useState(false);
+  const [replies, setReplies] = useState<string[]>([]);
+  const [draft, setDraft] = useState("");
+
+  const official = !!post.author.official || post.kind === "drop";
+  const image = postImage(slug, post, index);
+  const replyId = `reply-${post.id}`;
+
+  const sendReply = (e: FormEvent) => {
+    e.preventDefault();
+    const v = draft.trim();
+    if (!v) return;
+    setReplies((cur) => [...cur, v]);
+    setDraft("");
+  };
+
+  const repost = () => {
+    const on = !reposted;
+    setReposted(on);
+    if (on) toast.show("Repostado no seu perfil");
+  };
 
   return (
-    <article className="overflow-hidden rounded-[14px] border-2 border-ink bg-cream">
-      <div className="flex items-center gap-2.5 px-3.5 pt-3 lg:px-[18px] lg:pt-4">
-        <span
-          className={`flex size-10 flex-none items-center justify-center rounded-full border-2 border-ink font-display text-base ${avatar}`}
-        >
-          {post.author.initial}
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <strong className="font-body text-[15px] font-extrabold">{post.author.name}</strong>
-          <span className="font-label text-[11px] text-ink-soft">
-            {post.author.handle} · {post.timeLabel}
-            {post.club && showClub && <> · {post.club.name}</>}
-          </span>
+    <article className={`border-b border-line py-4 ${fresh ? "new" : ""}`}>
+      <div className="flex items-start gap-3">
+        {official ? (
+          <div className="avatar" aria-hidden="true">
+            <Mark size={18} />
+          </div>
+        ) : (
+          <div className="avatar text-chrome" aria-hidden="true">
+            {initialsOf(post.author.name)}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <strong className="text-[15px] leading-5">{post.author.name}</strong>
+            {official ? (
+              <span className="mono verified">
+                <Icon name="check" size={12} />
+                Oficial
+              </span>
+            ) : post.club && showClub ? (
+              <span className="mono">{post.club.name}</span>
+            ) : (
+              <span className="mono">{post.author.handle}</span>
+            )}
+            {(showKindTag || post.kind === "instagram") && (
+              <span className="tag ml-auto">{post.kind === "instagram" ? "Instagram" : kindLabel[post.kind]}</span>
+            )}
+          </div>
+          <div className="mono">
+            {kindLabel[post.kind]} · {post.timeLabel}
+          </div>
         </div>
-        {(official || showKindTag) && (
-          <span
-            className={`rounded-md px-2 py-0.5 font-label text-[11px] font-bold uppercase ${
-              official ? "bg-accent text-accent-fg" : "bg-paper-2 text-ink"
-            }`}
-          >
-            {tag}
-          </span>
+      </div>
+
+      <div className="ml-11">
+        <p className="mb-2 mt-3">{post.text}</p>
+        {post.quote && (
+          <blockquote className="mx-0 mb-0 mt-2 grid gap-1 border-l border-line-strong py-1 pl-3 text-[15px] leading-[22px]">
+            <span className="mono">Repost · Mural</span>
+            <span>{post.quote}</span>
+          </blockquote>
+        )}
+        {image && (
+          <div className="relative mt-3 aspect-[4/5] overflow-hidden rounded-hair">
+            <img src={image.src} alt={image.alt} loading="lazy" className="block h-full w-full object-cover" />
+          </div>
+        )}
+        {post.kind === "instagram" && post.url && (
+          <a href={post.url} target="_blank" rel="noopener noreferrer" className="go mt-2 min-h-11">
+            Ver no Instagram
+            <Icon name="external" size={14} />
+          </a>
         )}
       </div>
 
-      <p className="mx-3.5 mt-2.5 text-[15px] leading-relaxed lg:mx-[18px] lg:text-base">{post.text}</p>
-
-      {post.quote && (
-        <div className="mx-3.5 mt-2.5 flex flex-col gap-1 rounded-[10px] border-[1.5px] border-dashed border-ink px-3 py-2.5">
-          <span className="font-label text-[11px] font-bold text-ink-soft">Repost · Drop News de {artistName}</span>
-          <span className="text-sm font-semibold leading-snug">{post.quote}</span>
-        </div>
-      )}
-
-      {post.hasImage && (
-        <div className="mx-3.5 mt-3 overflow-hidden rounded-[10px] lg:mx-[18px]">
-          <PhotoPlaceholder className="h-[180px] lg:h-[260px]" />
-        </div>
-      )}
-
-      {post.kind === "instagram" && (
-        <div className="mx-3.5 mt-3 overflow-hidden rounded-[10px] border-[1.5px] border-ink">
-          <PhotoPlaceholder label="[Imagem do post original]" tone="warm" align="center" className="h-[200px]" />
-          <div className="flex items-center gap-2 bg-paper-2 px-3 py-2.5">
-            <Icon name="link" size={16} strokeWidth={2.2} />
-            <span className="font-label text-xs">Post do artista via Instagram</span>
-          </div>
-        </div>
-      )}
-
-      <div className="flex gap-0.5 p-1.5">
+      <div className="ml-11 flex items-center">
+        <button type="button" className="act like" aria-pressed={liked} aria-label="Curtir" onClick={() => setLiked((v) => !v)}>
+          <Icon name="heart" size={20} />
+          <span className="num">{formatShort(post.likes + (liked ? 1 : 0))}</span>
+        </button>
         <button
           type="button"
-          onClick={() => setLiked((v) => !v)}
-          aria-pressed={liked}
-          aria-label="Curtir"
-          className={`flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] px-2.5 font-label text-xs font-bold ${
-            liked ? "text-accent" : "text-ink"
-          }`}
+          className="act"
+          aria-expanded={open}
+          aria-controls={replyId}
+          aria-label="Comentários"
+          onClick={() => setOpen((v) => !v)}
         >
-          <Icon name="heart" size={20} filled={liked} />
-          <span>{(post.likes + (liked ? 1 : 0)).toLocaleString("pt-BR")}</span>
-        </button>
-        {/* Comentários ainda não têm tela nem API: mostra só a contagem, sem botão. */}
-        <span className="flex min-h-11 items-center gap-1.5 px-2.5 font-label text-xs font-bold text-ink-soft">
           <Icon name="comment" size={20} />
-          <span>{post.comments.toLocaleString("pt-BR")}</span>
-          <span className="sr-only">comentários</span>
-        </span>
-        <button
-          type="button"
-          onClick={() => setReposted((v) => !v)}
-          aria-pressed={reposted}
-          aria-label="Repostar"
-          className={`flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] px-2.5 font-label text-xs font-bold ${
-            reposted ? "text-accent" : "text-ink"
-          }`}
-        >
-          <Icon name="repost" size={20} />
-          <span>{(post.reposts + (reposted ? 1 : 0)).toLocaleString("pt-BR")}</span>
+          <span className="num">{formatShort(post.comments + replies.length)}</span>
         </button>
+        <button type="button" className="act rp" aria-pressed={reposted} aria-label="Repostar" onClick={repost}>
+          <Icon name="repost" size={20} />
+          <span className="num">{formatShort(post.reposts + (reposted ? 1 : 0))}</span>
+        </button>
+      </div>
+
+      <div id={replyId} hidden={!open} className="ml-11 mt-2 grid gap-2">
+        {open && (
+          <>
+            <div className="text-sm leading-5 text-fg">
+              <b>Lu M.</b> eu vou, bora junto
+            </div>
+            {replies.map((r, i) => (
+              <div key={i} className="new text-sm leading-5 text-fg">
+                <b>Você</b> {r}
+              </div>
+            ))}
+            <form className="flex gap-2" onSubmit={sendReply}>
+              <label htmlFor={`${replyId}-input`} className="sr-only">
+                Responder
+              </label>
+              <input
+                id={`${replyId}-input`}
+                className="field min-h-11 px-2.5 py-2 text-[15px]"
+                placeholder="Responder"
+                autoComplete="off"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                autoFocus
+              />
+              <button type="submit" className="btn btn-outline btn-sm">
+                Enviar
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </article>
   );

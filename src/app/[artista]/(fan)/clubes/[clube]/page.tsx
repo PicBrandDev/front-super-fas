@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdCard } from "@/components/fan/AdCard";
 import { JoinButton } from "@/components/fan/ClubCard";
-import { Rings, StripeBand } from "@/components/fan/decor";
 import { Icon } from "@/components/icons";
 import { getArtist, getClub, getClubHomeAd, getClubPosts, getClubStaff } from "@/lib/api";
 import { ClubWall } from "./ClubWall";
@@ -16,95 +15,72 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: club ? club.name : "Fã clube" };
 }
 
+/** Página de um fã clube: cabeçalho com volta, título em caixa alta, equipe e o mural do clube. */
 export default async function ClubPage({ params }: { params: Params }) {
   const { artista, clube } = await params;
   const [artist, club] = await Promise.all([getArtist(artista), getClub(artista, clube)]);
   if (!artist || !club) notFound();
+  // A equipe só é visível para quem é da equipe (a API responde 403 para os outros).
   const [posts, ad, staff] = await Promise.all([
     getClubPosts(artista, clube),
     getClubHomeAd(artista, clube),
-    getClubStaff(artista, clube),
+    club.myRole ? getClubStaff(artista, clube) : Promise.resolve([]),
   ]);
   const base = `/${artist.slug}`;
-  const isStaff = !!club.myRole;
   const team = staff.filter((s) => !s.pending);
+  const members = `${club.members.toLocaleString("pt-BR")} ${club.members === 1 ? "membro" : "membros"}`;
+  const meta = [club.city, members, club.owner && `dono: ${club.owner.name}`].filter(Boolean).join(" · ");
 
   return (
     <>
-      <header className="relative overflow-hidden bg-ink text-paper">
-        <Rings className="-right-[70px] -top-[60px] size-[240px] lg:-right-16 lg:size-[340px]" />
-        <div className="relative mx-auto flex max-w-[860px] flex-col gap-3 px-4 pb-6 pt-4 lg:px-8 lg:pt-8">
-          <Link
-            href={`${base}/clubes`}
-            aria-label="Voltar para os fã clubes"
-            className="flex size-11 items-center justify-center rounded-full border-2 border-paper text-paper no-underline"
-          >
-            <Icon name="back" size={20} strokeWidth={2.4} />
+      <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-3.5">
+        <Link href={`${base}/clubes`} className="back">
+          <Icon name="back" size={18} />
+          Fã clubes
+        </Link>
+        {club.myRole && (
+          <Link href={`${base}/clubes/${club.slug}/admin`} className="mono flex min-h-11 items-center text-fg no-underline">
+            Painel do clube
           </Link>
-          <div className="flex flex-col gap-1">
-            <span className="font-label text-[11px] font-bold uppercase tracking-[0.12em] text-accent-2">
-              {club.isMaster ? `Fã clube master · ${artist.name}` : `Fã clube · ${artist.name}`}
-            </span>
-            <h1 className="m-0 max-w-[560px] font-display text-[36px] font-normal leading-[0.98] text-cream lg:text-[52px]">{club.name}</h1>
-            <p className="m-0 font-label text-xs text-paper-2">
-              {[club.city, `${club.members.toLocaleString("pt-BR")} ${club.members === 1 ? "membro" : "membros"}`, club.owner && `dono: ${club.owner.name}`]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
-          </div>
-          {club.description && <p className="m-0 max-w-[520px] text-[15px] leading-snug text-paper-2">{club.description}</p>}
-          <div className="flex flex-wrap items-center gap-2">
-            <JoinButton club={club} size="lg" />
-            <Link
-              href={`${base}/pickap?clube=${club.slug}`}
-              className="flex min-h-12 items-center gap-1.5 rounded-full border-2 border-paper px-4 font-label text-sm font-bold text-paper no-underline"
-            >
-              <Icon name="wheel" size={18} /> PicKap do clube
-            </Link>
-            {isStaff && (
-              <Link
-                href={`${base}/clubes/${club.slug}/admin`}
-                className="flex min-h-12 items-center gap-1.5 rounded-full border-2 border-accent-2 px-4 font-label text-sm font-bold text-accent-2 no-underline"
-              >
-                <Icon name="settings" size={18} /> Painel do clube
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
-      <StripeBand className="h-3" />
-
-      <div className="mx-auto flex w-full max-w-[860px] flex-col gap-6 px-4 pb-8 pt-5 lg:px-8">
-        {ad && (
-          <section aria-label="Anúncio patrocinado">
-            <AdCard ad={ad} />
-          </section>
         )}
+      </header>
+
+      <div className="px-4 pt-2">
+        <span className="mono">{club.isMaster ? "Fã clube master" : "Fã clube"} · {artist.name}</span>
+        <h1 className="poster m-0 mt-2 text-[32px] leading-8">{club.name}</h1>
+        {meta && (
+          <div className="mono mt-2 flex items-center gap-1.5">
+            <Icon name="pin" size={13} />
+            {meta}
+          </div>
+        )}
+        {club.description && <p className="mb-0 mt-3 text-[15px] leading-[22px] text-fg-muted">{club.description}</p>}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+          <JoinButton club={club} />
+          <Link href={`${base}/pickap?clube=${club.slug}`} className="go min-h-11">
+            PicKap do clube
+            <Icon name="arrow" size={16} />
+          </Link>
+        </div>
+
+        {ad && <AdCard ad={ad} />}
+
         {team.length > 0 && (
-          <section aria-labelledby="clube-equipe" className="flex flex-col gap-3">
-            <h2 id="clube-equipe" className="m-0 font-body text-lg font-extrabold">
+          <section aria-labelledby="clube-equipe" className="pt-6">
+            <h2 id="clube-equipe" className="poster m-0 mb-3 text-xl leading-[22px] tracking-[-0.01em]">
               Equipe do clube
             </h2>
-            <ul className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2">
-              {team.map((s, i) => (
-                <li key={s.id} className="flex items-center gap-2.5 rounded-[14px] border-2 border-ink bg-cream p-3">
-                  <span
-                    aria-hidden="true"
-                    className={`flex size-10 flex-none items-center justify-center rounded-full border-2 border-ink font-display text-base ${
-                      s.role === "owner" ? "bg-accent text-accent-fg" : i % 2 ? "bg-ink text-paper" : "bg-accent-2 text-ink"
-                    }`}
-                  >
-                    {s.name.charAt(0).toUpperCase()}
-                  </span>
-                  <div className="flex min-w-0 flex-col">
-                    <strong className="truncate font-body text-[15px] font-extrabold">{s.name}</strong>
-                    <span className="font-label text-[11px] font-bold uppercase tracking-wide text-ink-soft">{s.roleLabel}</span>
-                  </div>
+            <ul className="m-0 grid list-none border-t border-line p-0">
+              {team.map((s) => (
+                <li key={s.id} className="flex items-baseline justify-between gap-3 border-b border-line py-3">
+                  <span className="text-[15px] leading-5">{s.name}</span>
+                  <span className="mono">{s.roleLabel}</span>
                 </li>
               ))}
             </ul>
           </section>
         )}
+
         <ClubWall club={{ slug: club.slug, name: club.name }} joined={club.joined} posts={posts} />
       </div>
     </>
