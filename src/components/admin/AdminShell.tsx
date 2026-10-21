@@ -2,23 +2,27 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { logout } from "@/app/actions/auth";
 import { Icon, type IconName } from "@/components/icons";
+import { PlatformBrand } from "@/components/PlatformBrand";
 import { authEnabled } from "@/lib/auth";
 
 export type AdminNavItem = { key: string; label: string; href: string; icon: IconName };
 
 /**
- * Casca dos painéis administrativos (visual neutro da plataforma).
- * Usada pelo admin master e pelo admin de cada fã clube.
+ * Casca dos painéis administrativos (visual neutro da plataforma, white label).
+ * Sem `brand`, mostra a marca da plataforma (admin master); os painéis de
+ * artista e de fã clube passam a marca deles.
  */
 export function AdminShell({
   brand,
+  subtitle,
   nav,
   active,
   extraLink,
   user,
   children,
 }: {
-  brand: { mark: ReactNode; title: string; subtitle: string; markClass?: string };
+  brand?: { mark: ReactNode; title: string; subtitle: string; markClass?: string };
+  subtitle?: string; // legenda da marca da plataforma (quando não há `brand`)
   nav: AdminNavItem[];
   active: string;
   extraLink?: { label: string; href: string };
@@ -28,16 +32,22 @@ export function AdminShell({
   return (
     <div className="flex min-h-dvh flex-wrap bg-adm-bg font-adm text-adm-ink">
       <aside className="flex flex-[1_1_220px] flex-col gap-[22px] bg-adm-side px-3.5 py-5 text-adm-side-text lg:sticky lg:top-0 lg:h-dvh lg:max-w-[260px]">
-        <div className="flex items-center gap-2.5 px-1.5">
-          <span
-            className={`flex size-[34px] items-center justify-center rounded-lg font-bold ${brand.markClass ?? "bg-adm-blue text-white"}`}
-          >
-            {brand.mark}
-          </span>
-          <span className="flex flex-col">
-            <strong className="text-sm">{brand.title}</strong>
-            <span className="font-adm-mono text-[11px] text-adm-side-muted">{brand.subtitle}</span>
-          </span>
+        <div className="px-1.5">
+          {brand ? (
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`flex size-[34px] items-center justify-center rounded-lg font-bold ${brand.markClass ?? "bg-adm-blue text-white"}`}
+              >
+                {brand.mark}
+              </span>
+              <span className="flex flex-col">
+                <strong className="text-sm">{brand.title}</strong>
+                <span className="font-adm-mono text-[11px] text-adm-side-muted">{brand.subtitle}</span>
+              </span>
+            </div>
+          ) : (
+            <PlatformBrand tone="dark" subtitle={subtitle ?? "Admin da plataforma"} />
+          )}
         </div>
         <nav aria-label="Menu do painel" className="flex flex-col gap-0.5">
           {nav.map((item) => {

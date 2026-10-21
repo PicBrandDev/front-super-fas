@@ -29,7 +29,7 @@ export default async function FasClubesPage() {
 
   return (
     <AdminShell
-      brand={{ mark: "P", title: "[Sua plataforma]", subtitle: "Admin master" }}
+      subtitle="Admin da plataforma"
       nav={masterNav}
       active="fas-clubes"
       extraLink={{ label: "Ver portal do patrocinador", href: "/patrocinador" }}

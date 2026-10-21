@@ -3,13 +3,12 @@ import type { Artist, Viewer } from "@/lib/types";
 import { formatBRL } from "@/lib/api";
 import { authEnabled } from "@/lib/auth";
 import { ArtistProvider } from "./ArtistContext";
-import { BottomNav } from "./BottomNav";
+import { FanFrame } from "./FanFrame";
 import { FanSidebar } from "./FanSidebar";
-import { MemberStrip } from "./MemberStrip";
 
 /**
  * Casca da área do fã: aplica o tema do artista, menu lateral no desktop
- * e faixa de membro + menu de baixo fixos no celular.
+ * e, no celular, a faixa de membro + menu de baixo fixos (ver FanFrame).
  */
 export function FanShell({
   artist,
@@ -37,11 +36,7 @@ export function FanShell({
     >
       <div style={themeStyle(artist.theme)} className="min-h-dvh bg-paper font-body text-ink lg:flex">
         <FanSidebar />
-        <div className="min-w-0 flex-1 pb-[136px] lg:pb-0">{children}</div>
-        <div className="fixed inset-x-0 bottom-0 z-30 lg:hidden">
-          <MemberStrip />
-          <BottomNav />
-        </div>
+        <FanFrame>{children}</FanFrame>
       </div>
     </ArtistProvider>
   );

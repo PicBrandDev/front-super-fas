@@ -72,7 +72,7 @@ export async function changePassword(_: FormState, form: FormData): Promise<Form
   const res = await send<TokenOut>("POST", "/auth/change-password", { currentPassword, newPassword });
   if (!res.ok) return { error: res.error };
   await startSession(res.data);
-  redirect(homeFor(res.data.user));
+  redirect(safeNext(form.get("next")) || homeFor(res.data.user));
 }
 
 export async function logout() {

@@ -10,7 +10,7 @@ import { isActive, sideNav } from "./nav";
 
 /** Menu lateral do fã clube (só aparece no desktop). */
 export function FanSidebar() {
-  const { base, priceLabel, viewer, loggedIn } = useArtist();
+  const { slug, base, priceLabel, viewer, loggedIn } = useArtist();
   const pathname = usePathname();
   return (
     <aside className="sticky top-0 hidden h-dvh w-[268px] flex-none flex-col gap-5 overflow-y-auto border-r-2 border-ink bg-cream px-[18px] py-6 lg:flex">
@@ -62,7 +62,7 @@ export function FanSidebar() {
       {loggedIn && (
         <div className="-mt-2.5 flex gap-1.5">
           <Link
-            href="/conta"
+            href={`/conta?artista=${slug}`}
             className="flex min-h-11 flex-1 items-center justify-center rounded-full border-2 border-ink bg-cream font-label text-xs font-bold text-ink no-underline"
           >
             Minha conta

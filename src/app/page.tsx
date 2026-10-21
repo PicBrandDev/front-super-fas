@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logout } from "@/app/actions/auth";
+import { PlatformBrand } from "@/components/PlatformBrand";
 import { getSession, listArtists } from "@/lib/api";
 
 /** Entrada da plataforma: lista os fã clubes e os painéis. */
@@ -17,10 +18,13 @@ export default async function PlatformHome() {
   return (
     <main className="min-h-dvh bg-adm-bg font-adm text-adm-ink">
       <div className="mx-auto flex max-w-[960px] flex-col gap-8 px-4 py-12 sm:px-8">
-        <header className="flex flex-col gap-2">
-          <span className="font-adm-mono text-xs font-semibold uppercase tracking-widest text-adm-muted">
-            {session ? `Olá, ${session.name}` : "Super Fãs"}
-          </span>
+        <header className="flex flex-col gap-4">
+          <PlatformBrand size="lg" />
+          {session && (
+            <span className="font-adm-mono text-xs font-semibold uppercase tracking-widest text-adm-muted">
+              Olá, {session.name}
+            </span>
+          )}
           <h1 className="m-0 text-4xl font-bold">Fã clubes</h1>
           <p className="m-0 text-[15px] text-adm-muted">Escolha um fã clube para entrar.</p>
         </header>

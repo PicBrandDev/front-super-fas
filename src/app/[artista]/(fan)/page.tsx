@@ -53,7 +53,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
             <span className="absolute right-[7px] top-1.5 size-[9px] rounded-full border-2 border-cream bg-accent" />
           </button>
           <Link
-            href="/conta"
+            href={`/conta?artista=${artist.slug}`}
             aria-label="Minha conta"
             className="flex size-11 items-center justify-center rounded-full border-2 border-ink bg-accent-2 font-display text-[17px] text-ink no-underline"
           >

@@ -58,10 +58,11 @@ export function FandomSwitcher({ wide = false }: { wide?: boolean }) {
             <span className="flex-1">{name}</span>
             <Icon name="check" size={18} strokeWidth={2.6} label="Ativo" />
           </button>
+          {/* A API devolve só os nomes dos outros fandoms; a lista de entrada escolhe o ambiente. */}
           {otherFandoms.map((f, i) => (
             <Link
               key={`${f}-${i}`}
-              href="#"
+              href="/"
               className="flex min-h-12 items-center gap-2.5 rounded-[10px] px-2 py-1.5 font-body text-[15px] font-semibold text-ink no-underline"
             >
               <span
@@ -76,7 +77,7 @@ export function FandomSwitcher({ wide = false }: { wide?: boolean }) {
           ))}
           <div className="my-1.5 h-0.5 bg-ink opacity-15" />
           <Link
-            href="#"
+            href="/"
             className="flex min-h-12 items-center gap-2.5 rounded-[10px] px-2 py-1.5 font-label text-[13px] font-bold text-ink no-underline"
           >
             <Icon name="plus" size={20} strokeWidth={2.4} />

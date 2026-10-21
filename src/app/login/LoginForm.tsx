@@ -2,8 +2,7 @@
 
 import { useActionState } from "react";
 import { login } from "@/app/actions/auth";
-import { Field, FormError } from "@/components/auth/AuthShell";
-import { btnPrimary, inputClass } from "@/components/admin/ui";
+import { AuthInput, AuthSubmit, Field, FormError } from "@/components/auth/look";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(login, undefined);
@@ -13,7 +12,7 @@ export function LoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <FormError message={state?.error} />
       <Field id="lg-email" label="E-mail">
-        <input
+        <AuthInput
           key={state?.values?.email}
           id="lg-email"
           name="email"
@@ -21,22 +20,14 @@ export function LoginForm({ next }: { next: string }) {
           autoComplete="email"
           required
           defaultValue={state?.values?.email}
-          className={inputClass}
         />
       </Field>
       <Field id="lg-password" label="Senha">
-        <input
-          id="lg-password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          className={inputClass}
-        />
+        <AuthInput id="lg-password" name="password" type="password" autoComplete="current-password" required />
       </Field>
-      <button type="submit" disabled={pending} aria-busy={pending} className={`${btnPrimary} w-full`}>
-        {pending ? "Entrando…" : "Entrar"}
-      </button>
+      <AuthSubmit pending={pending} idle="Entrar">
+        Entrando…
+      </AuthSubmit>
     </form>
   );
 }

@@ -24,6 +24,21 @@
 
   --font-adm: var(--font-plex-sans), system-ui, sans-serif;
   --font-adm-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Cor da plataforma (white label): vem de --pf-brand, definida em :root e
+     trocável por NEXT_PUBLIC_PLATFORM_COLOR (aplicada no <html> pelo layout). */
+  --color-adm-blue: var(--pf-brand);
+  --color-adm-blue-dark: var(--pf-brand-dark);
+  --color-adm-blue-soft: var(--pf-brand-soft);
+  --color-adm-blue-tint: var(--pf-brand-tint);
+}
+
+/* Cor principal dos painéis e das telas neutras. Os tons derivados saem dela. */
+:root {
+  --pf-brand: #2f5bd3;
+  --pf-brand-dark: color-mix(in srgb, var(--pf-brand) 68%, #000);
+  --pf-brand-soft: color-mix(in srgb, var(--pf-brand) 12%, #fff);
+  --pf-brand-tint: color-mix(in srgb, var(--pf-brand) 6%, #fff);
 }
 
 /* Tokens do admin (neutros, iguais para toda a plataforma). */
@@ -36,10 +51,6 @@
   --color-adm-ink: #14171c;
   --color-adm-muted: #5b6370;
   --color-adm-disabled: #9aa3af;
-  --color-adm-blue: #2f5bd3;
-  --color-adm-blue-dark: #1e3f9e;
-  --color-adm-blue-soft: #e8eefc;
-  --color-adm-blue-tint: #f3f6fe;
   --color-adm-side: #14171c;
   --color-adm-side-line: #3a414c;
   --color-adm-side-muted: #9aa3af;
@@ -99,6 +110,6 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid #2f5bd3;
+  outline: 3px solid var(--pf-brand);
   outline-offset: 2px;
 }
