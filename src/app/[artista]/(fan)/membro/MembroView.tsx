@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { subscribeMembership } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Rings, StripeBand } from "@/components/fan/decor";
+import { Notice } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
 import type { MemberPerk } from "@/lib/types";
 
@@ -22,12 +23,14 @@ export function MembroView({
   priceLabel,
   priceAmount,
   perks,
+  accountHref,
 }: {
   artistName: string;
   artistInitial: string;
   priceLabel: string;
   priceAmount: string;
   perks: MemberPerk[];
+  accountHref: string; // "Minha conta" com o tema do artista (withArtist no servidor)
 }) {
   const { base, viewer, slug } = useArtist();
   const router = useRouter();
@@ -169,13 +172,13 @@ export function MembroView({
               >
                 {processing ? "Confirmando…" : `Assinar por ${priceLabel}/mês`}
               </button>
-              {subError && (
-                <p role="alert" className="m-0 font-label text-xs font-bold text-accent">
-                  {subError}
-                </p>
-              )}
+              {subError && <Notice tone="error">{subError}</Notice>}
               <p className="m-0 text-center font-label text-xs leading-snug text-ink-soft">
-                Cobrança mensal. Cancele quando quiser em Perfil › Assinatura.
+                Cobrança mensal. Cancele quando quiser em{" "}
+                <Link href={accountHref} className="font-bold text-ink">
+                  Minha conta
+                </Link>
+                .
               </p>
             </form>
           </>
@@ -183,10 +186,13 @@ export function MembroView({
           <section aria-live="polite" className="flex flex-col gap-[18px] px-4 pb-7 pt-6">
             <div className="flex flex-col gap-1">
               <h2 ref={successRef} tabIndex={-1} className="m-0 font-display text-[30px] font-normal leading-none text-accent">
-                Bem-vinda ao fã clube!
+                Boas-vindas ao fã clube!
               </h2>
               <p className="m-0 text-[15px] text-ink-soft">Sua carteirinha já está ativa.</p>
             </div>
+            <Notice tone="ok" className="lg:max-w-[420px]">
+              Assinatura confirmada por {pay === "pix" ? "Pix" : "cartão"}. Você já tem acesso aos benefícios de membro.
+            </Notice>
 
             <div className="relative overflow-hidden rounded-2xl border-2 border-ink bg-accent-2 text-ink shadow-[5px_5px_0_var(--fc-ink)] lg:max-w-[420px]">
               <Rings className="-bottom-[60px] -right-[50px] size-[170px]" inner="var(--fc-accent-2)" start={8} step={18} />
@@ -200,8 +206,8 @@ export function MembroView({
                 <strong className="font-display text-[26px] font-normal leading-none">{viewer.name}</strong>
                 <dl className="m-0 flex gap-5">
                   <div className="flex flex-col">
-                    <dt className="font-label text-[11px] font-bold">Nº</dt>
-                    <dd className="m-0 font-label text-sm font-bold">[000000]</dd>
+                    <dt className="font-label text-[11px] font-bold">Membro</dt>
+                    <dd className="m-0 font-label text-sm font-bold">{viewer.handle || viewer.initial}</dd>
                   </div>
                   <div className="flex flex-col">
                     <dt className="font-label text-[11px] font-bold">Membro desde</dt>

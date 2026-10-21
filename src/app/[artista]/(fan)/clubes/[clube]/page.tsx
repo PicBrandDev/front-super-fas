@@ -5,7 +5,7 @@ import { AdCard } from "@/components/fan/AdCard";
 import { JoinButton } from "@/components/fan/ClubCard";
 import { Rings, StripeBand } from "@/components/fan/decor";
 import { Icon } from "@/components/icons";
-import { getArtist, getClub, getClubHomeAd, getClubPosts } from "@/lib/api";
+import { getArtist, getClub, getClubHomeAd, getClubPosts, getClubStaff } from "@/lib/api";
 import { ClubWall } from "./ClubWall";
 
 type Params = Promise<{ artista: string; clube: string }>;
@@ -20,9 +20,14 @@ export default async function ClubPage({ params }: { params: Params }) {
   const { artista, clube } = await params;
   const [artist, club] = await Promise.all([getArtist(artista), getClub(artista, clube)]);
   if (!artist || !club) notFound();
-  const [posts, ad] = await Promise.all([getClubPosts(artista, clube), getClubHomeAd(artista, clube)]);
+  const [posts, ad, staff] = await Promise.all([
+    getClubPosts(artista, clube),
+    getClubHomeAd(artista, clube),
+    getClubStaff(artista, clube),
+  ]);
   const base = `/${artist.slug}`;
   const isStaff = !!club.myRole;
+  const team = staff.filter((s) => !s.pending);
 
   return (
     <>
@@ -73,6 +78,31 @@ export default async function ClubPage({ params }: { params: Params }) {
         {ad && (
           <section aria-label="Anúncio patrocinado">
             <AdCard ad={ad} />
+          </section>
+        )}
+        {team.length > 0 && (
+          <section aria-labelledby="clube-equipe" className="flex flex-col gap-3">
+            <h2 id="clube-equipe" className="m-0 font-body text-lg font-extrabold">
+              Equipe do clube
+            </h2>
+            <ul className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2">
+              {team.map((s, i) => (
+                <li key={s.id} className="flex items-center gap-2.5 rounded-[14px] border-2 border-ink bg-cream p-3">
+                  <span
+                    aria-hidden="true"
+                    className={`flex size-10 flex-none items-center justify-center rounded-full border-2 border-ink font-display text-base ${
+                      s.role === "owner" ? "bg-accent text-accent-fg" : i % 2 ? "bg-ink text-paper" : "bg-accent-2 text-ink"
+                    }`}
+                  >
+                    {s.name.charAt(0).toUpperCase()}
+                  </span>
+                  <div className="flex min-w-0 flex-col">
+                    <strong className="truncate font-body text-[15px] font-extrabold">{s.name}</strong>
+                    <span className="font-label text-[11px] font-bold uppercase tracking-wide text-ink-soft">{s.roleLabel}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
         <ClubWall club={{ slug: club.slug, name: club.name }} joined={club.joined} posts={posts} />

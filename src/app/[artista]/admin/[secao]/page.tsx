@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { ResourceManager, type Item } from "@/components/admin/ResourceManager";
+import { AdminNotice } from "@/components/admin/ui";
 import { apiEnabled, getArtist, getManaged } from "@/lib/api";
 import { eventFields, giftFields, sections, vendorFields } from "./sections";
 
@@ -38,11 +39,7 @@ export default async function ClubContentPage({
 
   return (
     <ClubAdminShell artist={artist} active={secao}>
-      {!apiEnabled() && (
-        <p className="m-0 rounded-lg bg-adm-warn-bg px-3 py-2.5 text-sm text-adm-warn">
-          Modo exemplo: ligue o front à API (API_URL) para salvar conteúdo.
-        </p>
-      )}
+      {!apiEnabled() && <AdminNotice tone="info">Modo exemplo: ligue o front à API (API_URL) para salvar conteúdo.</AdminNotice>}
 
       {event ? (
         <>

@@ -4,7 +4,7 @@ import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { getArtist, getClubs } from "@/lib/api";
 import { ClubesManager } from "./ClubesManager";
 
-export const metadata: Metadata = { title: "Fã clubes do ambiente" };
+export const metadata: Metadata = { title: "Fã clubes" };
 
 export default async function ClubesAdminPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;

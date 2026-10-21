@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { shellUser } from "@/lib/shell";
 import { AdminShell, masterNav } from "@/components/admin/AdminShell";
-import { getClubs, listArtists } from "@/lib/api";
+import { apiEnabled, getClubs, listArtists } from "@/lib/api";
 import { FasClubesClient, type ClubRow } from "./FasClubesClient";
 
 export const metadata: Metadata = { title: "Admin master — Fã clubes" };
@@ -33,9 +33,9 @@ export default async function FasClubesPage() {
       nav={masterNav}
       active="fas-clubes"
       extraLink={{ label: "Ver portal do patrocinador", href: "/patrocinador" }}
-      user={await shellUser({ initials: "VC", name: "Você", role: "Admin master" })}
+      user={await shellUser({ initials: "AD", name: "Você", role: "Admin da plataforma" })}
     >
-      <FasClubesClient initialClubs={clubs} />
+      <FasClubesClient initialClubs={clubs} exampleMode={!apiEnabled()} />
     </AdminShell>
   );
 }

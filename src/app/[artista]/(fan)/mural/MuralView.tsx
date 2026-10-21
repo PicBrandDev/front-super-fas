@@ -1,14 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition, type KeyboardEvent } from "react";
-import { fanPost } from "@/app/actions/fan";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useRef, useState, type KeyboardEvent } from "react";
 import { PageHeader } from "@/components/fan/PageHeader";
 import { PostCard } from "@/components/fan/PostCard";
+import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
 import type { Post, PostKind } from "@/lib/types";
+import { GaleraComposer, InstagramComposer, type ClubRef } from "./Composer";
 
 const tabs: { id: PostKind; label: string }[] = [
   { id: "drop", label: "Drop News" },
@@ -16,70 +14,23 @@ const tabs: { id: PostKind; label: string }[] = [
   { id: "instagram", label: "Instagram" },
 ];
 
-const composerBox = "shadow-hard flex flex-col gap-2 rounded-[14px] border-2 border-ink bg-cream p-3";
-const composerLabel = "font-label text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft";
-const fieldBase = "rounded-[10px] border-[1.5px] border-ink-soft bg-paper text-ink placeholder:text-ink-soft";
-const primaryPill =
-  "flex min-h-11 cursor-pointer items-center rounded-full border-2 border-ink bg-accent font-label font-bold text-accent-fg";
-
-type ClubRef = { slug: string; name: string };
+const emptyByTab: Record<PostKind, { title: string; text: string }> = {
+  drop: { title: "Nenhum Drop News ainda", text: "Quando o artista ou a equipe publicarem uma novidade, ela aparece aqui." },
+  galera: { title: "A galera ainda não postou", text: "Seja a primeira pessoa a contar o que tá rolando no fandom." },
+  instagram: { title: "Nenhum post do Instagram ainda", text: "Cole o link de um post do artista para trazê-lo para o mural." },
+};
 
 export function MuralView({ artistName, posts, clubs }: { artistName: string; posts: Post[]; clubs: ClubRef[] }) {
-  const { viewer, slug, base } = useArtist();
-  const [club, setClub] = useState(clubs[0]?.slug ?? "");
-  const clubName = clubs.find((c) => c.slug === club)?.name ?? "";
-  const router = useRouter();
-  const [postError, setPostError] = useState("");
-  const [posting, start] = useTransition();
   const [tab, setTab] = useState<PostKind>("drop");
-  const [draft, setDraft] = useState("");
-  const [igLink, setIgLink] = useState("");
   const [extra, setExtra] = useState<Post[]>([]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const list = [...extra.filter((p) => p.kind === tab), ...posts.filter((p) => p.kind === tab)];
 
-  function newPost(kind: PostKind, text: string): Post {
-    return {
-      id: `n-${kind}-${Date.now()}`,
-      kind,
-      author: { name: "Você", handle: viewer.handle, initial: viewer.initial },
-      timeLabel: "agora",
-      text,
-      club: club ? { slug: club, name: clubName } : null,
-      likes: 0,
-      comments: 0,
-      reposts: 0,
-    };
-  }
-
-  /** Publica na API; sem API (modo exemplo, status 0) mostra só na tela. */
-  function send(kind: "galera" | "instagram", text: string, url = "", clear: () => void) {
-    if (posting || !club) return;
-    start(async () => {
-      const res = await fanPost(slug, club, kind, text, url);
-      if (!res.ok && res.status !== 0) {
-        setPostError(res.error);
-        return;
-      }
-      setPostError("");
-      clear();
-      if (res.ok) router.refresh();
-      else setExtra((cur) => [newPost(kind, text), ...cur]);
-    });
-  }
-
-  function publish() {
-    const text = draft.trim();
-    if (!text) return;
-    send("galera", text, "", () => setDraft(""));
-  }
-
-  function bringInstagram() {
-    const url = igLink.trim();
-    if (!url) return;
-    send("instagram", "Olha esse post novo dele!", url, () => setIgLink(""));
-  }
+  /** Sem API o post fica só nesta tela; com API a página recarrega com o post de verdade. */
+  const onPosted = (post: Post, simulated: boolean) => {
+    if (simulated) setExtra((cur) => [post, ...cur]);
+  };
 
   function onTabKey(e: KeyboardEvent<HTMLButtonElement>, i: number) {
     let next = -1;
@@ -95,20 +46,7 @@ export function MuralView({ artistName, posts, clubs }: { artistName: string; po
 
   return (
     <>
-      <PageHeader
-        eyebrow={artistName}
-        title="Mural"
-        rings={false}
-        action={
-          <button
-            type="button"
-            aria-label="Buscar no mural"
-            className="flex size-11 flex-none cursor-pointer items-center justify-center rounded-full border-2 border-paper bg-transparent text-paper"
-          >
-            <Icon name="search" size={20} strokeWidth={2.2} />
-          </button>
-        }
-      >
+      <PageHeader eyebrow={artistName} title="Mural" rings={false}>
         <div role="tablist" aria-label="Seções do mural" className="-mb-4 flex gap-1.5 lg:max-w-[520px]">
           {tabs.map((t, i) => {
             const active = tab === t.id;
@@ -150,106 +88,11 @@ export function MuralView({ artistName, posts, clubs }: { artistName: string; po
           </p>
         )}
 
-        {tab !== "drop" && clubs.length === 0 && (
-          <p className="m-0 rounded-[14px] border-2 border-dashed border-ink bg-cream px-3.5 py-3 font-label text-[13px] text-ink">
-            Para postar, entre num fã clube.{" "}
-            <Link href={`${base}/clubes`} className="font-bold text-ink">
-              Ver fã clubes →
-            </Link>
-          </p>
-        )}
-
-        {tab !== "drop" && clubs.length > 1 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor="mural-club" className={composerLabel}>
-              Postar no clube
-            </label>
-            <select
-              id="mural-club"
-              value={club}
-              onChange={(e) => setClub(e.target.value)}
-              className={`min-h-11 px-2.5 font-body text-sm font-semibold ${fieldBase}`}
-            >
-              {clubs.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {tab === "galera" && clubs.length > 0 && (
-          <form
-            className={composerBox}
-            onSubmit={(e) => {
-              e.preventDefault();
-              publish();
-            }}
-          >
-            <label htmlFor="mural-draft" className={composerLabel}>
-              Postar no feed da galera{clubs.length === 1 ? ` · ${clubName}` : ""}
-            </label>
-            <textarea
-              id="mural-draft"
-              rows={2}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="O que tá rolando no fandom?"
-              className={`resize-none p-2.5 font-body text-[15px] leading-snug ${fieldBase}`}
-            />
-            <div className="flex items-center justify-between gap-2">
-              <button
-                type="button"
-                aria-label="Anexar foto"
-                className="flex size-11 cursor-pointer items-center justify-center rounded-[10px] bg-transparent text-ink"
-              >
-                <Icon name="image" size={22} />
-              </button>
-              <button type="submit" disabled={posting} aria-busy={posting} className={`${primaryPill} px-5 text-[13px]`}>
-                {posting ? "Postando…" : "Postar"}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {tab === "instagram" && clubs.length > 0 && (
-          <form
-            className={composerBox}
-            onSubmit={(e) => {
-              e.preventDefault();
-              bringInstagram();
-            }}
-          >
-            <label htmlFor="mural-ig" className={composerLabel}>
-              Trazer um post do Instagram do artista
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="mural-ig"
-                type="url"
-                value={igLink}
-                onChange={(e) => setIgLink(e.target.value)}
-                placeholder="Cole o link do post"
-                className={`min-h-11 min-w-0 flex-1 px-2.5 font-body text-sm ${fieldBase}`}
-              />
-              <button type="submit" disabled={posting} aria-busy={posting} className={`${primaryPill} px-3.5 text-xs`}>
-                Trazer
-              </button>
-            </div>
-          </form>
-        )}
-
-        {postError && (
-          <p role="alert" className="m-0 rounded-[10px] border-2 border-ink bg-cream px-3 py-2 font-label text-xs font-bold text-accent">
-            {postError}
-          </p>
-        )}
+        {tab === "galera" && <GaleraComposer id="mural-draft" clubs={clubs} onPosted={onPosted} />}
+        {tab === "instagram" && <InstagramComposer id="mural-ig" clubs={clubs} onPosted={onPosted} />}
 
         <div className="flex flex-col gap-3.5">
-          {list.length === 0 && (
-            <p className="m-0 font-label text-[13px] text-ink-soft">Nada por aqui ainda.</p>
-          )}
+          {list.length === 0 && <EmptyState title={emptyByTab[tab].title} text={emptyByTab[tab].text} />}
           {list.map((p, i) => (
             <PostCard key={p.id} post={p} index={i} />
           ))}

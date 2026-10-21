@@ -94,14 +94,12 @@ export function PostCard({
           <Icon name="heart" size={20} filled={liked} />
           <span>{(post.likes + (liked ? 1 : 0)).toLocaleString("pt-BR")}</span>
         </button>
-        <button
-          type="button"
-          aria-label="Comentar"
-          className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] px-2.5 font-label text-xs font-bold text-ink"
-        >
+        {/* Comentários ainda não têm tela nem API: mostra só a contagem, sem botão. */}
+        <span className="flex min-h-11 items-center gap-1.5 px-2.5 font-label text-xs font-bold text-ink-soft">
           <Icon name="comment" size={20} />
           <span>{post.comments.toLocaleString("pt-BR")}</span>
-        </button>
+          <span className="sr-only">comentários</span>
+        </span>
         <button
           type="button"
           onClick={() => setReposted((v) => !v)}
@@ -113,13 +111,6 @@ export function PostCard({
         >
           <Icon name="repost" size={20} />
           <span>{(post.reposts + (reposted ? 1 : 0)).toLocaleString("pt-BR")}</span>
-        </button>
-        <button
-          type="button"
-          aria-label="Compartilhar"
-          className="ml-auto flex min-h-11 w-11 cursor-pointer items-center justify-center rounded-[10px] text-ink"
-        >
-          <Icon name="share" size={20} />
         </button>
       </div>
     </article>

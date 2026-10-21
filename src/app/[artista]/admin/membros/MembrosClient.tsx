@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { memberAction } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { FilterChips, SearchField } from "@/components/admin/controls";
-import { Badge, btnPrimary, btnSecondary, tdClass, thClass, type Tone } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, Badge, btnSecondary, tdClass, thClass, type Tone } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import type { Member, MemberStatus } from "@/lib/types";
 
@@ -88,7 +88,7 @@ export function MembrosClient({
   const pending = members.filter((m) => m.status === "pending").length;
   const canceled = members.filter((m) => m.status === "canceled").length;
   const stats = [
-    { label: "Membros ativos", value: String(active) },
+    { label: "Assinantes ativos", value: String(active) },
     { label: "Receita mensal", value: brl(active * priceCents) },
     { label: "Pagamento pendente", value: String(pending) },
     { label: "Cancelados", value: String(canceled) },
@@ -131,7 +131,7 @@ export function MembrosClient({
     });
 
   const exportCsv = () => {
-    const header = ["Nome", "Usuário", "Status", "Membro desde", "Pagamento", "Pontos", "Cidade"];
+    const header = ["Nome", "Usuário", "Status", "Assinante desde", "Pagamento", "Pontos", "Cidade"];
     const lines = rows.map((m) =>
       [m.name, m.handle, statusLook[m.status].label, m.since, m.payment, m.points, m.city].map(csvCell).join(";"),
     );
@@ -139,19 +139,19 @@ export function MembrosClient({
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = `membros-${slug}${filter === "todos" ? "" : `-${filter}`}.csv`;
+    a.download = `assinantes-${slug}${filter === "todos" ? "" : `-${filter}`}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-    setAnnounce(`CSV com ${rows.length} ${rows.length === 1 ? "membro" : "membros"} exportado.`);
+    setAnnounce(`CSV com ${rows.length} ${rows.length === 1 ? "assinante" : "assinantes"} exportado.`);
   };
 
   return (
     <>
       <AdminPageHeader
-        title="Membros"
-        description={`Todos os membros do fã clube ${artistName} · plano de ${plan}.`}
+        title="Assinantes"
+        description={`Quem paga a assinatura de membro do ambiente de ${artistName} · plano de ${plan}.`}
         actions={
           <button type="button" onClick={exportCsv} disabled={rows.length === 0} className={`${btnSecondary} disabled:cursor-not-allowed disabled:text-adm-disabled`}>
             <Icon name="download" size={16} strokeWidth={2.2} />
@@ -174,7 +174,7 @@ export function MembrosClient({
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <SearchField id="mb-search" label="Buscar membro" value={q} onChange={setQ} placeholder="Buscar por nome ou @usuário" />
+        <SearchField id="mb-search" label="Buscar assinante" value={q} onChange={setQ} placeholder="Buscar por nome ou @usuário" />
         <FilterChips label="Filtrar por status" options={filterOptions} value={filter} onChange={setFilter} />
       </div>
 
@@ -184,9 +184,9 @@ export function MembrosClient({
             <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
                 <tr className="bg-adm-bg">
-                  <th scope="col" className={thClass}>Membro</th>
+                  <th scope="col" className={thClass}>Assinante</th>
                   <th scope="col" className={thClass}>Status</th>
-                  <th scope="col" className={thClass}>Membro desde</th>
+                  <th scope="col" className={thClass}>Assinante desde</th>
                   <th scope="col" className={thClass}>Pagamento</th>
                   <th scope="col" className={thClass}>Pontos</th>
                   <th scope="col" className={thClass}>
@@ -239,17 +239,25 @@ export function MembrosClient({
                 })}
               </tbody>
             </table>
-            {rows.length === 0 && <p className="m-0 px-4 py-6 text-sm text-adm-muted">Nenhum membro encontrado.</p>}
+            {rows.length === 0 && (
+              <div className="p-3">
+                {members.length === 0 ? (
+                  <AdminEmpty title="Nenhum assinante ainda" text="Quem assinar o plano de membro do ambiente aparece aqui." />
+                ) : (
+                  <AdminEmpty title="Nenhum assinante encontrado" text="Tente outro nome, @usuário ou filtro de status." />
+                )}
+              </div>
+            )}
           </div>
           <span className="font-adm-mono text-xs text-adm-muted">
-            Mostrando {rows.length} de {members.length} membros
+            Mostrando {rows.length} de {members.length} {members.length === 1 ? "assinante" : "assinantes"}
           </span>
         </div>
 
         {sel && (
           <aside
             id="member-detail"
-            aria-label="Detalhes do membro"
+            aria-label="Detalhes do assinante"
             className="flex min-w-0 flex-[1_1_280px] flex-col gap-4 rounded-xl border border-adm-line bg-white p-5"
           >
             <div className="flex items-center gap-3">
@@ -268,23 +276,16 @@ export function MembrosClient({
             <dl className="m-0 grid grid-cols-2 gap-3">
               <Detail label="Status" value={statusLook[sel.status].label} strong />
               <Detail label="Plano" value={plan} strong />
-              <Detail label="Membro desde" value={sel.since} />
+              <Detail label="Assinante desde" value={sel.since} />
               <Detail label="Pagamento" value={sel.payment} />
               <Detail label="Cidade" value={sel.city} />
               <Detail label="Pontos da sorte" value={fmtPoints(sel.points)} />
             </dl>
             <div className="flex flex-col gap-2">
-              {actionError && (
-                <p role="alert" className="m-0 text-sm font-semibold text-adm-danger">
-                  {actionError}
-                </p>
-              )}
-              <button type="button" className={btnPrimary}>
-                Enviar mensagem
-              </button>
+              {actionError && <AdminNotice tone="error">{actionError}</AdminNotice>}
               {sel.status === "pending" && (
                 <button type="button" onClick={resend} disabled={resent || busy} className={`${btnSecondary} disabled:cursor-default`}>
-                  {resent ? "Cobrança reenviada ✓" : "Reenviar cobrança"}
+                  {resent ? "Cobrança reenviada" : "Reenviar cobrança"}
                 </button>
               )}
               {sel.status !== "canceled" && (

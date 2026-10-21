@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { StripeBand } from "@/components/fan/decor";
+import { EmptyState } from "@/components/fan/states";
 import { Icon, PauseIcon, PlayIcon } from "@/components/icons";
 import type { Track } from "@/lib/types";
 
@@ -24,7 +25,7 @@ const barHeights = (seed: number) =>
   );
 
 export function DropsPlayer({ tracks }: { tracks: Track[] }) {
-  const { base } = useArtist();
+  const { base, name } = useArtist();
   const [sel, setSel] = useState(tracks[0]?.id ?? "");
   const [player, setPlayer] = useState({ playing: false, pos: 0 });
   const [votes, setVotes] = useState<Record<string, boolean>>({});
@@ -161,9 +162,10 @@ export function DropsPlayer({ tracks }: { tracks: Track[] }) {
         <div className="mx-auto flex w-full max-w-[760px] flex-col gap-2.5 px-4 pb-6 pt-[18px] lg:px-8">
           <h2 className="m-0 mb-1 font-body text-xl font-extrabold">Todas as prévias</h2>
           {tracks.length === 0 && (
-            <p className="m-0 rounded-xl border-2 border-dashed border-ink-soft p-3.5 text-sm text-ink-soft">
-              Nenhuma prévia por enquanto.
-            </p>
+            <EmptyState
+              title="Nenhuma prévia por enquanto"
+              text={`Quando ${name} soltar uma música nova, a prévia aparece aqui primeiro.`}
+            />
           )}
           {tracks.map((t) => {
             const isSel = t.id === cur?.id;
