@@ -124,7 +124,7 @@ Os componentes da área do fã usam só tokens (`bg-paper`, `text-ink`, `bg-acce
 
 Painéis, portal do patrocinador e telas de conta usam `src/lib/platform.ts`: nome, selo, legenda e cor vêm das variáveis `NEXT_PUBLIC_PLATFORM_*` (ver `.env.example`). A cor vira `--pf-brand` no `<html>` e alimenta os tokens `adm-blue*` do `globals.css`. O componente `PlatformBrand` desenha o selo.
 
-As telas de login, cadastro, minha conta e senha usam o tema do artista quando a pessoa vem do ambiente dele (`?artista=` ou o `next=` do login); fora disso, o visual neutro. Ver `src/lib/authArtist.ts` e `AuthShell`.
+As telas de login, cadastro, minha conta e senha usam o tema do artista (sistema Noite, ver `docs/visual-noite.md`) quando a pessoa vem do ambiente dele (`?artista=` ou o `next=` do login); fora disso, o visual neutro. Ver `src/lib/authArtist.ts` e `AuthShell`.
 
 ### Integração com o back
 
