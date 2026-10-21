@@ -458,7 +458,7 @@ export function PatrocinadorClient({
             <span className="font-adm-mono text-xs font-semibold uppercase text-adm-muted">Prévia · {slotName}</span>
             <div
               style={club ? themeStyle(club.theme) : undefined}
-              className="rounded-[22px] border-2 border-adm-ink bg-paper px-4 py-[18px] font-body"
+              className="fan rounded-device border border-adm-line bg-night px-4 py-[18px] font-grotesk text-fg"
               onClickCapture={(e) => e.preventDefault()}
             >
               <AdCard ad={preview} />
