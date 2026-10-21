@@ -1,0 +1,116 @@
+/* Tornar membro: preço como manchete, lista de ganhos, forma de pagamento, carteirinha. */
+.body {
+  display: grid;
+  gap: 24px;
+  padding: 0 16px 32px;
+}
+
+.priceBlock {
+  display: grid;
+  gap: 4px;
+  margin: 0 -16px;
+  padding: 24px 16px;
+  background: var(--fc-amber);
+  color: var(--fc-on-amber);
+}
+.price {
+  font: 900 72px/64px var(--fc-font-display);
+  letter-spacing: -0.02em;
+}
+.priceBlock :global(.mono) {
+  color: var(--fc-on-amber);
+}
+
+.h {
+  margin: 0;
+  font: 800 20px/22px var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.gifts {
+  display: grid;
+  border-top: 1px solid var(--fc-line);
+}
+.gift {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fc-line);
+}
+.gift svg {
+  color: var(--fc-amber-text);
+  margin-top: 1px;
+}
+.gift strong {
+  display: block;
+  font: 700 13px/16px var(--fc-font-grotesk);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gift span {
+  display: block;
+  margin-top: 2px;
+  color: var(--fc-fg-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.times {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.times button {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--fc-line-strong);
+  border-radius: 2px;
+  background: none;
+  color: var(--fc-fg);
+  font: 400 12px/14px var(--fc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.times button[aria-pressed="true"] {
+  background: var(--fc-fg);
+  color: var(--fc-bg);
+  border-color: var(--fc-fg);
+}
+
+.card {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 2px;
+  background: var(--fc-mist);
+  color: var(--fc-ink);
+}
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.cardTop :global(.mono) {
+  color: var(--fc-ink);
+}
+.cardName {
+  margin: 0;
+  font: 900 32px/32px var(--fc-font-display);
+  letter-spacing: -0.01em;
+}
+.cardFoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.cardFoot :global(.mono) {
+  color: var(--fc-ink);
+}

@@ -14,14 +14,10 @@ export default async function MembroPage({ params }: { params: Promise<{ artista
   const { artista } = await params;
   const [artist, perks] = await Promise.all([getArtist(artista), getMemberPerks(artista)]);
   if (!artist) notFound();
-  const priceLabel = formatBRL(artist.memberPriceCents); // "R$ 16,90"
-  const priceAmount = priceLabel.replace(/^R\$\s*/u, ""); // "16,90"
   return (
     <MembroView
       artistName={artist.name}
-      artistInitial={artist.initial}
-      priceLabel={priceLabel}
-      priceAmount={priceAmount}
+      priceLabel={formatBRL(artist.memberPriceCents)}
       perks={perks}
       accountHref={withArtist("/conta", artist.slug)}
     />

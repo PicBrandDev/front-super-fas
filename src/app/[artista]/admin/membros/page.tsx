@@ -24,9 +24,9 @@ export default async function MembrosPage({ params }: { params: Promise<{ artist
         priceCents={artist.memberPriceCents}
         priceLabel={formatBRL(artist.memberPriceCents)}
         avatarColors={[
-          { bg: artist.theme.accent, fg: artist.theme.accentFg },
+          { bg: artist.theme.amber, fg: artist.theme.onAmber },
           { bg: "var(--color-adm-ink)", fg: "white" },
-          { bg: artist.theme.accent2, fg: artist.theme.ink },
+          { bg: artist.theme.sun, fg: artist.theme.ink },
           { bg: "var(--color-adm-blue)", fg: "white" },
         ]}
         members={members}

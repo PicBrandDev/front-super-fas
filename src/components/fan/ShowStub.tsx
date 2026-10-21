@@ -1,63 +1,72 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "@/components/icons";
+import { eventName, isPastEvent, statusLabel, statusTagClass } from "@/lib/events";
 import type { ShowEvent } from "@/lib/types";
+import { useArtist } from "./ArtistContext";
+import s from "./ShowStub.module.css";
 
-const statusLabel: Record<ShowEvent["status"], string> = {
-  on_sale: "Vendas abertas",
-  last_batches: "Últimos lotes",
-  soon: "Em breve",
-};
-
-const tones = {
-  gold: { card: "bg-accent-2 text-ink", line: "border-ink", pill: "bg-ink text-paper", outline: "border-ink" },
-  cream: { card: "bg-cream text-ink", line: "border-ink", pill: "bg-accent text-accent-fg", outline: "border-ink" },
-  accent: { card: "bg-accent text-accent-fg", line: "border-accent-fg", pill: "bg-cream text-ink", outline: "border-accent-fg" },
-} as const;
-
-/** Card "canhoto de ingresso" de um show. */
+/**
+ * Linha de evento da Agenda (e do Início): lâmina âmbar com o dia em serifa
+ * e o mês em mono, nome em serifa, cidade · local, tags e "Ver evento →".
+ * Evento passado: lâmina apagada e "Encontrar minhas fotos".
+ */
 export function ShowStub({
   event,
   href,
-  tone = "gold",
-  showStatus = false,
-  showArrow = false,
+  name,
+  demo = false,
 }: {
   event: ShowEvent;
   href: string;
-  tone?: keyof typeof tones;
-  showStatus?: boolean;
-  showArrow?: boolean;
+  /** Nome do evento; sem ele, "Artista em Cidade". */
+  name?: string;
+  /** Dados de exemplo (mock): mostra a tag "Exemplo". */
+  demo?: boolean;
 }) {
-  const t = tones[tone];
+  const { name: artistName } = useArtist();
+  const past = isPastEvent(event);
+  const title = name ?? eventName(artistName, event);
+
   return (
-    <Link href={href} className={`shadow-hard flex overflow-hidden rounded-[14px] border-2 border-ink no-underline ${t.card}`}>
-      <div className={`flex w-[86px] flex-none flex-col items-center justify-center border-r-2 border-dashed px-2 py-3.5 font-label text-xs font-bold ${t.line}`}>
-        <span>{event.weekday}</span>
-        <span className="font-display text-[34px] font-normal leading-tight">{event.day}</span>
-        <span>{event.month}</span>
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1 p-3.5">
-        <strong className="font-body text-[19px] font-extrabold leading-tight">{event.city}</strong>
-        <span className="text-sm">
-          {event.venue} · {event.time}
+    <Link href={href} className={s.ev}>
+      <span className={`${s.slab} ${past ? s.past : ""}`}>
+        <span className={s.d} aria-hidden="true">
+          {event.day}
         </span>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 font-label text-[11px] font-bold ${t.pill}`}>
-            <Icon name="gift" size={13} strokeWidth={2.4} />
-            {event.giftsCount} brindes na sorte
+        <span className="sr-only">{`${event.weekday} ${event.day} de ${event.month}`}</span>
+        <span className="mono" aria-hidden="true">
+          {event.month}
+        </span>
+      </span>
+      <span className={s.evb}>
+        <span className={s.name}>{title}</span>
+        <span className={`mono ${s.where}`}>
+          <Icon name="pin" size={13} />
+          <span className="truncate">
+            {event.city} · {event.venue}
           </span>
-          {showStatus && (
-            <span className={`rounded-full border-[1.5px] px-2.5 py-1 font-label text-[11px] font-bold ${t.outline}`}>
-              {statusLabel[event.status]}
+          {demo && <span className={`tag tag-demo ${s.demo}`}>Exemplo</span>}
+        </span>
+        <span className={s.tags}>
+          {past ? (
+            <span className="tag tag-demo">Encerrado</span>
+          ) : (
+            <span className={statusTagClass[event.status]}>{statusLabel[event.status]}</span>
+          )}
+          {event.giftsCount > 0 && (
+            <span className="tag">
+              <Icon name="gift" size={11} />
+              Brinde antes e depois
             </span>
           )}
-        </div>
-      </div>
-      {showArrow && (
-        <div aria-hidden="true" className="flex items-center pr-3">
-          <Icon name="chevron-right" size={20} strokeWidth={2.4} />
-        </div>
-      )}
+        </span>
+        <span className="go">
+          {past ? "Encontrar minhas fotos" : "Ver evento"}
+          <Icon name="arrow" size={16} />
+        </span>
+      </span>
     </Link>
   );
 }

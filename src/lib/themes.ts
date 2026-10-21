@@ -1,72 +1,125 @@
 import type { CSSProperties } from "react";
 
 /**
- * Tema visual de um ambiente de artista.
- * Cada fã clube define o seu; os componentes só usam as variáveis --fc-*.
+ * Tema visual de um ambiente de artista (sistema "Night" do protótipo fanzone).
+ * Cada fã clube define o seu; os componentes só usam as variáveis --fc-*
+ * (via tokens do Tailwind: bg-night, text-fg, bg-amber, font-grotesk...).
+ *
+ * Regras do sistema: plano e angular (fios 1px, cantos 2px, sem sombra, sem
+ * glow, sem gradiente); cor com economia (só o estado que importa leva cor);
+ * tipografia como imagem (serifa pesada ou grotesca caixa alta cortada pela borda).
  */
 export type ArtistTheme = {
-  paper: string; // fundo principal
-  paper2: string; // fundo secundário / cards apagados
-  cream: string; // superfícies claras e texto sobre fundos escuros
-  ink: string; // texto e bordas
-  inkSoft: string; // texto secundário (contraste ≥ 4.5:1 sobre paper)
-  accent: string; // cor de ação (botões principais)
-  accentFg: string; // texto sobre accent
-  accent2: string; // destaque secundário
-  accent3: string; // banda intermediária das listras
-  deep: string; // tom profundo (placeholders, última listra)
-  fontDisplay: string;
-  fontBody: string;
-  fontLabel: string;
+  bg: string; // fundo da tela
+  surface: string; // campos, folhas (sheet)
+  surfaceRaised: string; // superfície elevada, lâmina de evento passado
+  line: string; // fio 1px padrão
+  lineStrong: string; // fio forte (bordas de tag, avatar, input)
+  text: string; // texto principal
+  textMuted: string; // texto secundário (≥ 4.5:1 sobre bg)
+  amber: string; // acento assinatura (botão primário, ativo)
+  amberText: string; // acento usado como texto (contraste sobre bg)
+  onAmber: string; // texto sobre amber/sun
+  sun: string; // amarelo (PicKap, selo do vinil, tag key)
+  signalRed: string; // alerta, "últimos lotes", curtida
+  lagoon: string; // azul
+  lagoonDeep: string; // azul profundo (cartaz, Photo Finder, Loja)
+  chrome: string; // cinza metálico (ações do post)
+  greyPoster: string; // cinza chapado do cartaz
+  mist: string; // claro quase branco (cartaz da loja)
+  ink: string; // o mais escuro (texto sobre amber/sun/mist)
+  paper: string; // branco
+  fontDisplay: string; // serifa pesada (Playfair Display)
+  fontGrotesk: string; // grotesca (Archivo)
+  fontMono: string; // mono (DM Mono)
 };
 
 export const vintageTheme: ArtistTheme = {
-  paper: "#F2E8D5",
-  paper2: "#E9DCC3",
-  cream: "#FFF8EC",
-  ink: "#211B16",
-  inkSoft: "#5A4B3E",
-  accent: "#B8461A",
-  accentFg: "#FFF8EC",
-  accent2: "#E0A526",
-  accent3: "#D9782A",
-  deep: "#6B3A1F",
-  fontDisplay: "var(--font-shrikhand), Georgia, serif",
-  fontBody: "var(--font-fraunces), Georgia, serif",
-  fontLabel: "var(--font-space-mono), ui-monospace, monospace",
+  bg: "#120907",
+  surface: "#1C1311",
+  surfaceRaised: "#281D19",
+  line: "#3A2E29",
+  lineStrong: "#8A7B73",
+  text: "#F6F1EC",
+  textMuted: "#B8AAA1",
+  amber: "#FE9900",
+  amberText: "#FE9900",
+  onAmber: "#120907",
+  sun: "#FCCA0B",
+  signalRed: "#E5574D",
+  lagoon: "#4391B8",
+  lagoonDeep: "#29495D",
+  chrome: "#8C9898",
+  greyPoster: "#9E9E9E",
+  mist: "#E5E5E8",
+  ink: "#120907",
+  paper: "#FFFFFF",
+  fontDisplay: "var(--font-playfair), 'Bodoni MT', Didot, Georgia, serif",
+  fontGrotesk: "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif",
+  fontMono: "var(--font-dm-mono), ui-monospace, 'SF Mono', Menlo, monospace",
 };
 
-/** Tema padrão para ambientes recém-criados (antes do design próprio). */
+/** Tema padrão para ambientes recém-criados (antes do design próprio): neutro, escuro. */
 export const blankTheme: ArtistTheme = {
-  paper: "#F6F7F9",
-  paper2: "#E6E9EE",
-  cream: "#FFFFFF",
-  ink: "#14171C",
-  inkSoft: "#5B6370",
-  accent: "#2F5BD3",
-  accentFg: "#FFFFFF",
-  accent2: "#9DB4F0",
-  accent3: "#5F82E0",
-  deep: "#1E3F9E",
-  fontDisplay: "var(--font-plex-sans), system-ui, sans-serif",
-  fontBody: "var(--font-plex-sans), system-ui, sans-serif",
-  fontLabel: "var(--font-plex-mono), ui-monospace, monospace",
+  bg: "#121214",
+  surface: "#1B1B1F",
+  surfaceRaised: "#26262C",
+  line: "#35353C",
+  lineStrong: "#86868F",
+  text: "#F4F4F6",
+  textMuted: "#B3B3BC",
+  amber: "#5B8CFF",
+  amberText: "#8FB0FF",
+  onAmber: "#121214",
+  sun: "#9DB4F0",
+  signalRed: "#E5574D",
+  lagoon: "#4391B8",
+  lagoonDeep: "#29495D",
+  chrome: "#8C9898",
+  greyPoster: "#9E9E9E",
+  mist: "#E5E5E8",
+  ink: "#121214",
+  paper: "#FFFFFF",
+  fontDisplay: vintageTheme.fontDisplay,
+  fontGrotesk: vintageTheme.fontGrotesk,
+  fontMono: vintageTheme.fontMono,
 };
+
+/**
+ * Aceita o tema como vier da API (chaves do formato antigo ou parcial) e
+ * devolve um tema completo. Chaves desconhecidas são ignoradas.
+ */
+export function normalizeTheme(raw: unknown): ArtistTheme {
+  if (!raw || typeof raw !== "object") return vintageTheme;
+  const t = raw as Partial<ArtistTheme>;
+  if (!t.bg || !t.amber) return vintageTheme;
+  return { ...vintageTheme, ...t };
+}
 
 export function themeStyle(t: ArtistTheme): CSSProperties {
   return {
-    "--fc-paper": t.paper,
-    "--fc-paper-2": t.paper2,
-    "--fc-cream": t.cream,
+    "--fc-bg": t.bg,
+    "--fc-surface": t.surface,
+    "--fc-raised": t.surfaceRaised,
+    "--fc-line": t.line,
+    "--fc-line-strong": t.lineStrong,
+    "--fc-fg": t.text,
+    "--fc-fg-muted": t.textMuted,
+    "--fc-amber": t.amber,
+    "--fc-amber-text": t.amberText,
+    "--fc-on-amber": t.onAmber,
+    "--fc-sun": t.sun,
+    "--fc-signal": t.signalRed,
+    "--fc-lagoon": t.lagoon,
+    "--fc-lagoon-deep": t.lagoonDeep,
+    "--fc-chrome": t.chrome,
+    "--fc-poster-grey": t.greyPoster,
+    "--fc-mist": t.mist,
     "--fc-ink": t.ink,
-    "--fc-ink-soft": t.inkSoft,
-    "--fc-accent": t.accent,
-    "--fc-accent-fg": t.accentFg,
-    "--fc-accent-2": t.accent2,
-    "--fc-accent-3": t.accent3,
-    "--fc-deep": t.deep,
+    "--fc-paper": t.paper,
     "--fc-font-display": t.fontDisplay,
-    "--fc-font-body": t.fontBody,
-    "--fc-font-label": t.fontLabel,
+    "--fc-font-grotesk": t.fontGrotesk,
+    "--fc-font-mono": t.fontMono,
+    colorScheme: "dark",
   } as CSSProperties;
 }

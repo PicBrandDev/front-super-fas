@@ -1,216 +1,246 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
-import { Rings } from "@/components/fan/decor";
-import { FaceCamera } from "@/components/fan/FaceCamera";
-import { EmptyState } from "@/components/fan/states";
+import { Mark } from "@/components/fan/Mark";
+import { Masthead } from "@/components/fan/Masthead";
+import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
+import type { MediaImage } from "@/lib/types";
+import s from "./PhotoFinderFlow.module.css";
 
-export type ShowOption = { id: string; city: string; label: string };
+export type FinderEvent = { id: string; label: string };
 
-const PHOTO_TONES = ["bg-deep", "bg-accent", "bg-ink", "bg-accent-3", "bg-deep", "bg-accent"];
-const SEARCH_MS = 1600;
+type Stage = "idle" | "scanning" | "found" | "hours";
 
-const stepBadge =
-  "flex size-7 flex-none items-center justify-center rounded-full bg-ink font-label text-xs font-bold text-paper";
-const card = "flex flex-col rounded-[14px] border-2 border-ink bg-cream p-3.5";
+const HOURS = ["22h", "23h", "00h", "01h", "02h", "03h"];
+const FOUND_TIMES = ["23:41", "00:12", "00:58", "01:20", "01:47", "02:33"];
+const SCAN_MS = 2200;
+const SCAN_REDUCED_MS = 300;
 
-export function PhotoFinderFlow({ shows }: { shows: ShowOption[] }) {
+/**
+ * Photo Finder: a selfie fica só no aparelho; a busca é simulada (2,2 s) e
+ * devolve as fotos do evento com marca d'água e horário.
+ */
+export function PhotoFinderFlow({
+  shows,
+  initial,
+  photos,
+  demo,
+}: {
+  shows: FinderEvent[];
+  /** Evento pré-selecionado (?evento=). */
+  initial?: string;
+  /** Fotos "do evento" (até 6). */
+  photos: MediaImage[];
+  demo: boolean;
+}) {
   const { base } = useArtist();
-  const [ev, setEv] = useState(shows[0]?.id ?? "");
-  const [selfie, setSelfie] = useState<{ file: File; url: string } | null>(null);
-  const [searching, setSearching] = useState(false);
-  const [done, setDone] = useState(false);
+  const toast = useToast();
+  const [ev, setEv] = useState(initial ?? shows[0]?.id ?? "");
+  const [stage, setStage] = useState<Stage>("idle");
+  const [hour, setHour] = useState<string | null>(null);
+  const [selfie, setSelfie] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Libera a URL da prévia quando a selfie muda ou a tela sai.
-  const selfieUrl = selfie?.url;
+  // Libera a URL da selfie ao trocar ou sair.
   useEffect(() => {
     return () => {
-      if (selfieUrl) URL.revokeObjectURL(selfieUrl);
+      if (selfie?.startsWith("blob:")) URL.revokeObjectURL(selfie);
     };
-  }, [selfieUrl]);
+  }, [selfie]);
+  useEffect(() => () => clearTimer(), []);
 
-  useEffect(() => {
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, []);
-
-  const onSelfie = (file: File) => {
-    setSelfie({ file, url: URL.createObjectURL(file) });
-    setDone(false);
-  };
-
-  // Volta para a câmera para tirar outra selfie.
-  const retake = () => {
-    setSelfie(null);
-    setDone(false);
-  };
-
-  const search = () => {
-    if (!selfie || searching) return;
-    // TODO: POST /artists/{slug}/photo-finder/search (multipart: eventId = ev, selfie = selfie.file)
-    // e mostrar as fotos devolvidas pela API no lugar dos espaços reservados.
-    setSearching(true);
-    setDone(false);
+  function clearTimer() {
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => {
-      setSearching(false);
-      setDone(true);
-    }, SEARCH_MS);
-  };
+    timer.current = null;
+  }
 
-  const cantSearch = !selfie || searching || !ev;
-  const city = shows.find((s) => s.id === ev)?.city ?? "";
+  function scan(src: string | null) {
+    setSelfie(src);
+    setStage("scanning");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    clearTimer();
+    // Simulado: aqui entraria POST /artists/{slug}/photo-finder/search (evento + selfie).
+    timer.current = setTimeout(() => setStage("found"), reduce ? SCAN_REDUCED_MS : SCAN_MS);
+  }
+
+  function onFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) scan(URL.createObjectURL(file));
+  }
+
+  function reset() {
+    clearTimer();
+    setSelfie(null);
+    setHour(null);
+    setStage("idle");
+  }
+
+  const backHref = initial ? `${base}/eventos/${initial}` : `${base}/agenda`;
+  const scanning = stage === "scanning";
+  const shotsFor = (offset: number, label: (i: number) => string) =>
+    Array.from({ length: 6 }, (_, i) => {
+      const photo = photos[(i + offset) % Math.max(photos.length, 1)];
+      return (
+        <figure key={i} className={s.shot}>
+          {photo && (
+            // eslint-disable-next-line @next/next/no-img-element -- foto estática do artista, sem otimização
+            <img src={photo.src} alt={photo.alt} loading="lazy" />
+          )}
+          <span className={s.wm}>
+            <Mark size={22} />
+          </span>
+          <span className="mono num">{label(i)}</span>
+        </figure>
+      );
+    });
 
   return (
     <>
-      <header className="relative overflow-hidden border-b-2 border-ink bg-accent-2 text-ink">
-        <Rings className="-right-[50px] -top-10 size-[200px] lg:size-[280px]" inner="var(--fc-accent-2)" start={14} step={16} />
-        <div className="relative mx-auto flex w-full max-w-[760px] flex-col gap-3.5 px-4 pb-5 pt-3 lg:px-8 lg:pt-8">
-          <Link
-            href={base}
-            aria-label="Voltar ao início"
-            className="flex size-11 items-center justify-center rounded-full border-2 border-ink bg-cream text-ink no-underline"
+      <Masthead word="Fotos" label="Photo finder" tone="lagoon-deep" />
+
+      <div className={s.ph}>
+        <Link href={backHref} className="back">
+          <Icon name="back" size={18} />
+          {initial ? "Evento" : "Agenda"}
+        </Link>
+        <div className={s.you} aria-hidden="true">
+          Você
+        </div>
+        <p>Envie uma selfie e a gente procura você nas fotos oficiais do evento.</p>
+        <label className="mono" htmlFor="pf-event">
+          Evento
+        </label>
+        {shows.length === 0 ? (
+          <span className="mono">Nenhum evento com fotos ainda</span>
+        ) : (
+          <select
+            id="pf-event"
+            className="field"
+            value={ev}
+            disabled={scanning}
+            onChange={(e) => {
+              setEv(e.target.value);
+              reset();
+            }}
           >
-            <Icon name="back" size={20} strokeWidth={2.4} />
-          </Link>
-          <div className="flex flex-col gap-1.5">
-            <h1 className="m-0 font-display text-4xl font-normal leading-none text-ink lg:text-5xl">Photo Finder</h1>
-            <p className="m-0 max-w-[260px] text-[15px] leading-[1.4] lg:max-w-[420px]">
-              Ache as fotos que os fotógrafos tiraram de você no show.
-            </p>
-          </div>
-        </div>
-      </header>
+            {shows.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
-      <section className="mx-auto flex w-full max-w-[760px] flex-col gap-4 px-4 pb-6 pt-[18px] lg:px-8">
-        {/* Passo 1 */}
-        <div className={`${card} gap-2`}>
-          <div className="flex items-center gap-2.5">
-            <span aria-hidden="true" className={stepBadge}>1</span>
-            <label htmlFor="pf-event" className="font-body text-base font-extrabold">
-              Escolha o show
-            </label>
-          </div>
-          {shows.length === 0 ? (
-            <EmptyState
-              title="Nenhum show para escolher"
-              text="As fotos ficam disponíveis depois dos shows. Veja a agenda para saber quando é o próximo."
-              action={
-                <Link
-                  href={`${base}/agenda`}
-                  className="flex min-h-11 items-center rounded-full border-2 border-ink bg-accent-2 px-4 font-label text-xs font-bold text-ink no-underline"
-                >
-                  Ver agenda
-                </Link>
-              }
-            />
-          ) : (
-            <select
-              id="pf-event"
-              value={ev}
-              onChange={(e) => {
-                setEv(e.target.value);
-                setDone(false);
-              }}
-              className="min-h-12 rounded-[10px] border-2 border-ink bg-paper px-3 font-body text-[15px] font-semibold text-ink"
-            >
-              {shows.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        {/* Passo 2 */}
-        <div className={`${card} gap-2.5`}>
-          <div className="flex items-center gap-2.5">
-            <span aria-hidden="true" className={stepBadge}>2</span>
-            <strong className="font-body text-base font-extrabold">Tire uma selfie</strong>
-          </div>
-          {!selfie ? (
-            <FaceCamera onCapture={onSelfie} />
-          ) : (
-            <div className="flex items-center gap-3">
-              <Image
-                src={selfie.url}
-                alt=""
-                width={64}
-                height={64}
-                unoptimized
-                className="size-16 flex-none rounded-full border-2 border-ink bg-accent-3 object-cover"
+      <div className={s.finder} aria-live="polite">
+        {(stage === "idle" || scanning) && (
+          <>
+            <div className={`${s.frame} ${scanning ? s.scanning : ""}`}>
+              <i />
+              <i />
+              <i />
+              <i />
+              {selfie ? (
+                // eslint-disable-next-line @next/next/no-img-element -- prévia local da selfie
+                <img src={selfie} alt="" />
+              ) : (
+                <Icon name="camera" size={40} />
+              )}
+              <span className={s.scanline} />
+            </div>
+            <div className={s.ctas}>
+              <label className="btn btn-primary btn-block" htmlFor="selfie" aria-disabled={scanning || undefined}>
+                <Icon name="camera" size={18} />
+                Enviar selfie
+              </label>
+              <input
+                id="selfie"
+                className="sr-only"
+                type="file"
+                accept="image/*"
+                capture="user"
+                disabled={scanning || !ev}
+                onChange={onFile}
               />
-              <div className="flex flex-1 flex-col gap-0.5">
-                <strong className="font-body text-[15px] font-extrabold">Selfie pronta</strong>
-                <span className="font-label text-xs text-ink-soft">Usada só para esta busca</span>
-              </div>
               <button
                 type="button"
-                onClick={retake}
-                aria-label="Trocar selfie"
-                className="flex min-h-11 cursor-pointer items-center rounded-full border-2 border-ink bg-transparent px-3 font-label text-xs font-bold text-ink"
+                className="btn btn-outline btn-block"
+                disabled={scanning || !ev}
+                onClick={() => setStage("hours")}
               >
-                Trocar
+                <Icon name="clock" size={18} />
+                Buscar por horário
+              </button>
+              <button
+                type="button"
+                className={`btn btn-ghost ${s.ghost}`}
+                disabled={scanning || !ev}
+                onClick={() => scan(photos[0]?.src ?? null)}
+              >
+                Usar selfie de exemplo
               </button>
             </div>
-          )}
-        </div>
+            {scanning ? (
+              <p className={`mono ${s.status}`} role="status">
+                Procurando você nas fotos do evento
+              </p>
+            ) : (
+              <p className={`mono ${s.note}`}>A selfie serve só para a busca e não é publicada</p>
+            )}
+          </>
+        )}
 
-        {/* Passo 3 */}
-        <button
-          type="button"
-          onClick={search}
-          disabled={cantSearch}
-          aria-busy={searching}
-          className={`shadow-hard flex min-h-14 cursor-pointer items-center justify-center gap-2.5 rounded-full border-2 border-ink font-label text-sm font-bold text-cream disabled:cursor-not-allowed ${
-            cantSearch ? "bg-ink-soft" : "bg-accent"
-          }`}
-        >
-          <Icon name="search" size={20} strokeWidth={2.4} />
-          {searching ? "Procurando você…" : "Buscar minhas fotos"}
-        </button>
-
-        <div aria-live="polite" className="empty:hidden">
-          {done && (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="m-0 font-body text-xl font-extrabold">
-                  {PHOTO_TONES.length} fotos em {city}
-                </h2>
-                {/* TODO: baixar as fotos encontradas */}
-                <button
-                  type="button"
-                  className="min-h-11 flex-none cursor-pointer rounded-full border-2 border-ink bg-ink px-3 font-label text-xs font-bold text-paper"
-                >
-                  Baixar todas
-                </button>
-              </div>
-              <div className="grid grid-cols-3 gap-2 lg:gap-3">
-                {PHOTO_TONES.map((tone, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    aria-label={`Abrir foto ${i + 1}`}
-                    className={`halftone-light relative h-28 cursor-pointer overflow-hidden rounded-[10px] border-2 border-ink p-0 lg:h-44 ${tone}`}
-                  >
-                    <span className="absolute bottom-1.5 left-1.5 rounded-[5px] bg-ink px-1.5 py-0.5 font-label text-[11px] font-bold text-paper">
-                      [Foto]
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <p className="m-0 font-label text-xs leading-[1.4] text-ink-soft">Fotos por [fotógrafo oficial do evento].</p>
+        {stage === "found" && (
+          <>
+            <div className={s.foundH}>
+              <strong>6 fotos com você</strong>
+              <button type="button" className="btn btn-ghost" onClick={reset}>
+                Nova busca
+              </button>
             </div>
-          )}
-        </div>
-      </section>
+            <div className={s.grid}>{shotsFor(0, (i) => FOUND_TIMES[i])}</div>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => toast.show("Fotos salvas com marca d'água")}
+            >
+              <Icon name="download" size={18} />
+              Baixar todas
+            </button>
+            {demo && <p className={`mono ${s.note}`}>Fotos ilustrativas · Exemplo</p>}
+          </>
+        )}
+
+        {stage === "hours" && (
+          <>
+            <div className={s.foundH}>
+              <strong>Por horário</strong>
+              <button type="button" className="btn btn-ghost" onClick={reset}>
+                Voltar à selfie
+              </button>
+            </div>
+            <div className={s.times} role="group" aria-label="Horário">
+              {HOURS.map((h) => (
+                <button key={h} type="button" aria-pressed={h === hour} onClick={() => setHour(h)}>
+                  {h}
+                </button>
+              ))}
+            </div>
+            {hour ? (
+              <>
+                <div className={s.grid}>{shotsFor(HOURS.indexOf(hour) * 3, () => hour)}</div>
+                {demo && <p className="mono m-0">Fotos ilustrativas · Exemplo</p>}
+              </>
+            ) : (
+              <p className={s.hint}>Escolha a hora em que você estava na pista.</p>
+            )}
+          </>
+        )}
+      </div>
     </>
   );
 }

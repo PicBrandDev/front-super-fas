@@ -5,30 +5,35 @@ import { platform } from "@/lib/platform";
 import "./globals.css";
 
 // Fontes hospedadas no próprio projeto (licença OFL, arquivos em src/fonts).
-const fraunces = localFont({
-  src: [{ path: "../fonts/fraunces-latin-opsz-normal.woff2", weight: "100 900", style: "normal" }],
-  variable: "--font-fraunces",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-});
-
-const shrikhand = localFont({
-  src: [{ path: "../fonts/shrikhand-latin-400-normal.woff2", weight: "400", style: "normal" }],
-  variable: "--font-shrikhand",
-  display: "swap",
-  fallback: ["Georgia", "serif"],
-});
-
-const spaceMono = localFont({
+// Fã clube: Playfair Display (serifa pesada), Archivo (grotesca), DM Mono (mono).
+const playfair = localFont({
   src: [
-    { path: "../fonts/space-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/space-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "../fonts/playfair-display-latin-wght-normal.woff2", weight: "400 900", style: "normal" },
+    { path: "../fonts/playfair-display-latin-wght-italic.woff2", weight: "400 900", style: "italic" },
   ],
-  variable: "--font-space-mono",
+  variable: "--font-playfair",
   display: "swap",
-  fallback: ["ui-monospace", "monospace"],
+  fallback: ["Bodoni MT", "Didot", "Georgia", "serif"],
 });
 
+const archivo = localFont({
+  src: [{ path: "../fonts/archivo-latin-wght-normal.woff2", weight: "100 900", style: "normal" }],
+  variable: "--font-archivo",
+  display: "swap",
+  fallback: ["Helvetica Neue", "Arial", "sans-serif"],
+});
+
+const dmMono = localFont({
+  src: [
+    { path: "../fonts/dm-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/dm-mono-latin-500-normal.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-dm-mono",
+  display: "swap",
+  fallback: ["ui-monospace", "SF Mono", "Menlo", "monospace"],
+});
+
+// Painéis (white label): IBM Plex.
 const plexSans = localFont({
   src: [
     { path: "../fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -65,14 +70,15 @@ const brandStyle = platform.color ? ({ "--pf-brand": platform.color } as CSSProp
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#211B16",
+  viewportFit: "cover",
+  themeColor: "#120907",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="pt-BR"
-      className={`${fraunces.variable} ${shrikhand.variable} ${spaceMono.variable} ${plexSans.variable} ${plexMono.variable}`}
+      className={`${playfair.variable} ${archivo.variable} ${dmMono.variable} ${plexSans.variable} ${plexMono.variable}`}
       style={brandStyle}
     >
       <body className="antialiased">{children}</body>

@@ -4,6 +4,9 @@
  */
 import type { ArtistTheme } from "./themes";
 
+/** Imagem com texto alternativo; `cover` = preencher o quadro em vez de caber nele. */
+export type MediaImage = { src: string; alt: string; cover?: boolean };
+
 export type FanClubStatus = "active" | "setup";
 
 export type Artist = {
@@ -88,6 +91,7 @@ export type Post = {
   timeLabel: string;
   text: string;
   hasImage?: boolean;
+  image?: MediaImage | null; // foto do post (a API ainda não manda; ver lib/media.ts)
   quote?: string; // repost de um Drop News
   club?: { slug: string; name: string } | null; // fã clube do post (vazio = oficial)
   url?: string | null; // link do post do Instagram
@@ -141,7 +145,8 @@ export type Product = {
   name: string;
   category: ProductCategory;
   priceLabel: string;
-  color: string;
+  color: string; // cor de fundo quando não há foto
+  image?: MediaImage | null; // foto do produto (a API ainda não manda; ver lib/media.ts)
 };
 
 export type Track = {

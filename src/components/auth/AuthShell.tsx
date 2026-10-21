@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PlatformBrand } from "@/components/PlatformBrand";
-import { Eyebrow, StripeBand } from "@/components/fan/decor";
+import { Mark } from "@/components/fan/Mark";
 import { platform } from "@/lib/platform";
 import { themeStyle } from "@/lib/themes";
 import type { Artist } from "@/lib/types";
@@ -13,7 +13,8 @@ export { Field, FormError } from "./look";
 /**
  * Moldura das telas de login, cadastro, minha conta e senha.
  *
- * Com `artist`, usa o tema do fã clube (a pessoa veio do ambiente daquele artista).
+ * Com `artist`, usa o tema do fã clube (a pessoa veio do ambiente daquele artista):
+ * sistema Noite, plano e angular, âmbar só no título e no botão primário.
  * Sem, usa o visual neutro da plataforma.
  */
 export function AuthShell({
@@ -34,34 +35,28 @@ export function AuthShell({
       <AuthLookProvider look="artist">
         <main
           style={themeStyle(artist.theme)}
-          className="flex min-h-dvh flex-col items-center justify-center bg-paper px-4 py-10 font-body text-ink"
+          className="fan flex min-h-dvh flex-col items-center bg-night px-4 py-8 font-grotesk text-base leading-6 text-fg scheme-dark sm:justify-center sm:py-12"
         >
-          <div className="flex w-full max-w-[420px] flex-col gap-6">
-            <Link href={`/${artist.slug}`} className="flex items-center gap-3 self-start no-underline">
-              <span className="flex size-12 flex-none items-center justify-center rounded-full border-2 border-ink bg-accent font-display text-[22px] text-accent-fg">
-                {artist.initial}
-              </span>
-              <span className="flex flex-col gap-0.5">
-                <Eyebrow className="text-ink-soft">Fã clube</Eyebrow>
-                <strong className="font-display text-2xl font-normal leading-none text-ink">{artist.name}</strong>
+          <div className="flex w-full max-w-[420px] flex-col gap-8">
+            <Link href={`/${artist.slug}`} className="flex min-h-11 items-center gap-3 self-start text-fg no-underline">
+              <Mark size={44} className="flex-none text-amber" />
+              <span className="flex min-w-0 flex-col gap-1">
+                <span className="poster text-[28px] leading-7">{artist.name}</span>
+                <span className="mono">Fã clube</span>
               </span>
             </Link>
 
-            <section className="shadow-hard flex flex-col gap-5 overflow-hidden rounded-[14px] border-2 border-ink bg-cream">
-              <StripeBand className="h-2.5" />
-              <div className="flex flex-col gap-5 px-6 pb-6 sm:px-7 sm:pb-7">
-                <div className="flex flex-col gap-1.5">
-                  <h1 className="m-0 font-display text-[30px] font-normal leading-none">{title}</h1>
-                  <p className="m-0 text-[15px] leading-snug text-ink-soft">{description}</p>
-                </div>
-                {children}
-              </div>
-            </section>
+            <div className="flex flex-col gap-3">
+              <h1 className="m-0 font-display text-[56px] leading-[52px] font-black text-amber-text [overflow-wrap:anywhere]">
+                {title}
+              </h1>
+              <p className="m-0 max-w-[34ch] text-[15px] leading-[22px] text-fg-muted">{description}</p>
+            </div>
 
-            {footer && <div className="text-center text-sm text-ink-soft">{footer}</div>}
-            <p className="m-0 text-center font-label text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
-              {platform.name}
-            </p>
+            <section className="border-t border-line pt-6">{children}</section>
+
+            {footer && <div className="flex flex-col items-start gap-3 text-[14px] leading-5 text-fg-muted">{footer}</div>}
+            <p className="mono m-0">{platform.name}</p>
           </div>
         </main>
       </AuthLookProvider>

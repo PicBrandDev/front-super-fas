@@ -1,9 +1,7 @@
-import { getTracks } from "@/lib/api";
-import { DropsPlayer } from "./DropsPlayer";
+import { redirect } from "next/navigation";
 
+/** Os Drops moram na aba Drops do Mural. */
 export default async function DropsPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
-  const tracks = await getTracks(artista);
-
-  return <DropsPlayer tracks={tracks} />;
+  redirect(`/${artista}/mural?aba=drops`);
 }

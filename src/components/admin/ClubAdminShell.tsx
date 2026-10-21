@@ -11,7 +11,7 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
         mark: (
           <span
             className="flex size-full items-center justify-center rounded-lg text-lg font-normal"
-            style={{ background: artist.brandColor, color: artist.theme.cream, fontFamily: artist.theme.fontDisplay }}
+            style={{ background: artist.brandColor, color: artist.theme.text, fontFamily: artist.theme.fontDisplay }}
           >
             {artist.initial}
           </span>

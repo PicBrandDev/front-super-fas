@@ -37,7 +37,7 @@ export const artists: Artist[] = [
     memberPriceCents: 1690,
     members: "[n]",
     adSlotsSummary: "2 de 6 ocupadas",
-    brandColor: "#B8461A",
+    brandColor: "#FE9900",
   },
 ];
 
@@ -151,12 +151,10 @@ export const prizes: Prize[] = [
 ];
 
 export const products: Product[] = [
-  { id: "p1", name: "Camiseta Tour", category: "roupas", priceLabel: "R$ [PREÇO]", color: "#E0A526" },
-  { id: "p2", name: "Moletom Vintage", category: "roupas", priceLabel: "R$ [PREÇO]", color: "#B8461A" },
-  { id: "p3", name: "Boné bordado", category: "acessorios", priceLabel: "R$ [PREÇO]", color: "#D9782A" },
-  { id: "p4", name: "Bucket hat", category: "acessorios", priceLabel: "R$ [PREÇO]", color: "#E9DCC3" },
-  { id: "p5", name: "Vinil [álbum]", category: "musica", priceLabel: "R$ [PREÇO]", color: "#6B3A1F" },
-  { id: "p6", name: "Pôster retrô", category: "acessorios", priceLabel: "R$ [PREÇO]", color: "#E0A526" },
+  { id: "p1", name: "Oversized LOST", category: "roupas", priceLabel: "Preço a definir", color: "#E5E5E8" },
+  { id: "p2", name: "Oversized Find Create Moments", category: "roupas", priceLabel: "Preço a definir", color: "#E5E5E8" },
+  { id: "p3", name: "Camiseta Bootleg", category: "roupas", priceLabel: "Preço a definir", color: "#E5E5E8" },
+  { id: "p4", name: "Camiseta 93", category: "roupas", priceLabel: "Preço a definir", color: "#E5E5E8" },
 ];
 
 export const tracks: Track[] = [

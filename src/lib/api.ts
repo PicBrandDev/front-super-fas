@@ -6,6 +6,7 @@
  * As páginas não precisam saber de onde vem.
  */
 import { cookies } from "next/headers";
+import { normalizeTheme } from "./themes";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
@@ -108,11 +109,15 @@ function errorMessage(data: unknown, status: number): string {
 // ---------- Ambientes de artista ----------
 
 /** GET /artists */
-export const listArtists = () => get<Artist[]>("/artists", () => mock.artists);
+const withTheme = (a: Artist): Artist => ({ ...a, theme: normalizeTheme(a.theme) });
+
+export const listArtists = () => get<Artist[]>("/artists", () => mock.artists).then((as) => as.map(withTheme));
 
 /** GET /artists/{slug} */
 export const getArtist = (slug: string) =>
-  get<Artist | null>(`/artists/${slug}`, () => mock.artists.find((a) => a.slug === slug) ?? null, { notFound: null });
+  get<Artist | null>(`/artists/${slug}`, () => mock.artists.find((a) => a.slug === slug) ?? null, { notFound: null }).then(
+    (a) => a && withTheme(a),
+  );
 
 /** GET /me?artist={slug} (usuário logado, com pontos e giros naquele fã clube) */
 export const getViewer = (slug?: string) =>

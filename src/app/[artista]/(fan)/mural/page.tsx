@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getArtist, getClubs, getPosts } from "@/lib/api";
+import { apiEnabled, getArtist, getEvents, getPosts, getProducts, getTracks } from "@/lib/api";
+import { mediaFor, productImage } from "@/lib/media";
 import { MuralView } from "./MuralView";
+import { buildPosters } from "./posters";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
   const { artista } = await params;
@@ -9,10 +11,33 @@ export async function generateMetadata({ params }: { params: Promise<{ artista: 
   return { title: artist ? `Mural · Fã clube ${artist.name}` : "Mural" };
 }
 
-export default async function MuralPage({ params }: { params: Promise<{ artista: string }> }) {
-  const { artista } = await params;
-  const [artist, posts, clubs] = await Promise.all([getArtist(artista), getPosts(artista), getClubs(artista)]);
+export default async function MuralPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ artista: string }>;
+  searchParams: Promise<{ aba?: string }>;
+}) {
+  const [{ artista }, { aba }] = await Promise.all([params, searchParams]);
+  const [artist, drops, events, products, tracks] = await Promise.all([
+    getArtist(artista),
+    getPosts(artista, "drop"),
+    getEvents(artista),
+    getProducts(artista),
+    getTracks(artista),
+  ]);
   if (!artist) notFound();
-  const myClubs = clubs.filter((c) => c.joined).map((c) => ({ slug: c.slug, name: c.name }));
-  return <MuralView artistName={artist.name} posts={posts} clubs={myClubs} />;
+  const demo = !apiEnabled();
+  const product = products[0] ?? null;
+  const posters = buildPosters({
+    artistName: artist.name,
+    drops,
+    event: events[0] ?? null,
+    product,
+    hero: mediaFor(artista)?.hero ?? null,
+    productImg: product ? productImage(artista, product, 0) : null,
+    tracks,
+    demo,
+  });
+  return <MuralView posters={posters} tracks={tracks} demo={demo} initialTab={aba === "drops" ? "drops" : "wall"} />;
 }
