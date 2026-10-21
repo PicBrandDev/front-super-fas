@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition, type ChangeEvent, type ReactNode, type Ref } from "react";
 import { createCampaign } from "@/app/actions/admin";
-import { SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
+import { occupiedLabel, slotPrice } from "@/app/admin/midia/slots";
+import { AdminEmpty, AdminNotice, SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { AdCard } from "@/components/fan/AdCard";
 import { Icon } from "@/components/icons";
 import { themeStyle, type ArtistTheme } from "@/lib/themes";
@@ -46,12 +47,15 @@ export function PatrocinadorClient({
   clubs,
   slotsByClub,
   placesByClub,
+  exampleMode = false,
 }: {
   clubs: SponsorClub[];
   /** Vitrines por lugar: chave "cantor" (ambiente) ou "cantor/fã-clube". */
   slotsByClub: Record<string, AdSlot[]>;
   /** Fã clubes de cada cantor onde dá para anunciar (além do ambiente). */
   placesByClub: Record<string, { slug: string; name: string }[]>;
+  /** Sem API: os preços e datas são placeholders do mock. */
+  exampleMode?: boolean;
 }) {
   const [step, setStep] = useState<Step>(1);
   const [sent, setSent] = useState(false);
@@ -77,10 +81,12 @@ export function PatrocinadorClient({
   const [place, setPlace] = useState(""); // "" = ambiente do cantor; senão, slug do fã clube
   const placeKey = club ? (place ? `${club.slug}/${place}` : club.slug) : "";
   const slots = club ? (slotsByClub[placeKey] ?? []).filter((s) => s.active) : [];
-  const placeName = place ? (placesByClub[club?.slug ?? ""]?.find((p) => p.slug === place)?.name ?? place) : "Todo o ambiente";
+  const places = placesByClub[club?.slug ?? ""] ?? [];
+  const placeName = place ? (places.find((p) => p.slug === place)?.name ?? place) : "Ambiente do cantor";
   const slot = slots.find((s) => s.id === slotId) ?? null;
   const slotName = slot?.name ?? "[vitrine]";
-  const clubName = club?.name ?? "[fã clube]";
+  const clubName = club?.name ?? "[cantor]";
+  const whereLabel = place ? `no fã clube ${placeName}` : `no ambiente de ${clubName}`;
 
   const set = (k: keyof AdForm) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -165,10 +171,10 @@ export function PatrocinadorClient({
   const period = `${form.start ? formatDate(form.start) : "[início]"} a ${form.end ? formatDate(form.end) : "[fim]"}`;
   const review = [
     { k: "Cantor", v: clubName },
-    { k: "Onde", v: placeName },
+    { k: "Onde", v: place ? `Fã clube ${placeName}` : `Ambiente de ${clubName} (todos os fãs)` },
     { k: "Vitrine", v: slotName },
     { k: "Período", v: period },
-    { k: "Valor", v: slot?.priceLabel ?? "R$ [PREÇO]" },
+    { k: "Valor", v: slot ? slotPrice(slot, exampleMode) : "—" },
     { k: "Título", v: preview.title },
     { k: "Link", v: form.link.trim() || "—" },
   ];
@@ -219,13 +225,15 @@ export function PatrocinadorClient({
             <h2 ref={headingRef} tabIndex={-1} className="m-0 text-[22px] font-bold outline-none">
               Campanha enviada para aprovação
             </h2>
-            <p className="m-0 max-w-[480px] text-[15px] text-adm-muted">
-              Seu anúncio em “{slotName}” no fã clube {clubName} está na fila de aprovação. Acompanhe o status em{" "}
-              <Link href="/patrocinador/campanhas" className="font-semibold text-adm-blue">
-                Minhas campanhas
-              </Link>
-              .
-            </p>
+            <div className="w-full max-w-[560px] text-left">
+              <AdminNotice tone="ok">
+                Seu anúncio em “{slotName}” {whereLabel} está na fila de aprovação. Acompanhe o status em{" "}
+                <Link href="/patrocinador/campanhas" className="font-semibold text-adm-blue underline">
+                  Minhas campanhas
+                </Link>
+                .
+              </AdminNotice>
+            </div>
             <button
               type="button"
               onClick={restart}
@@ -239,7 +247,13 @@ export function PatrocinadorClient({
 
       {!sent && step === 1 && (
         <section className="flex flex-col gap-3.5">
-          <StepHeading ref={headingRef}>Em qual fã clube você quer anunciar?</StepHeading>
+          <StepHeading ref={headingRef}>Para os fãs de qual cantor você quer anunciar?</StepHeading>
+          {clubs.length === 0 && (
+            <AdminEmpty
+              title="Nenhum cantor no ar ainda"
+              text="Assim que um ambiente de cantor estiver no ar, ele aparece aqui para você anunciar."
+            />
+          )}
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
             {clubs.map((c) => {
               const on = c.slug === clubSlug;
@@ -275,56 +289,47 @@ export function PatrocinadorClient({
                 </button>
               );
             })}
-            <div
-              aria-disabled="true"
-              className="flex items-center gap-3.5 rounded-[14px] border border-dashed border-adm-input bg-white p-[18px] text-adm-muted"
-            >
-              <span
-                aria-hidden="true"
-                className="flex size-14 flex-none items-center justify-center rounded-[14px] bg-adm-off-bg font-bold text-adm-off"
-              >
-                ?
-              </span>
-              <span className="flex flex-col gap-[3px]">
-                <strong className="text-[17px] text-adm-off">[Outro artista]</strong>
-                <span className="text-[13px]">Em breve na plataforma</span>
-              </span>
-            </div>
           </div>
         </section>
       )}
 
       {!sent && step === 2 && (
         <section className="flex flex-col gap-3.5">
-          <StepHeading ref={headingRef}>Onde anunciar em {clubName}</StepHeading>
-          {(placesByClub[club?.slug ?? ""] ?? []).length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="ad-place" className="text-[13px] font-semibold">
-                Ambiente ou fã clube
-              </label>
-              <select
-                id="ad-place"
-                value={place}
-                onChange={(e) => {
-                  setPlace(e.target.value);
-                  setSlotId(null);
-                }}
-                aria-describedby="ad-place-hint"
-                className={`${inputClass} max-w-[420px]`}
-              >
-                <option value="">Todo o ambiente de {clubName} (todos os fãs)</option>
-                {(placesByClub[club?.slug ?? ""] ?? []).map((p) => (
-                  <option key={p.slug} value={p.slug}>
-                    Só no {p.name}
-                  </option>
-                ))}
-              </select>
-              <span id="ad-place-hint" className="text-xs text-adm-muted">
-                Anúncio no ambiente aparece para todos os fãs; num fã clube, só para os membros dele. Quem aprova é quem administra o lugar.
-              </span>
-            </div>
+          <StepHeading ref={headingRef}>Onde anunciar para os fãs de {clubName}</StepHeading>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="ad-place" className="text-[13px] font-semibold">
+              Ambiente ou fã clube
+            </label>
+            <select
+              id="ad-place"
+              value={place}
+              onChange={(e) => {
+                setPlace(e.target.value);
+                setSlotId(null);
+              }}
+              aria-describedby="ad-place-hint"
+              disabled={places.length === 0}
+              className={`${inputClass} max-w-[420px] disabled:bg-adm-bg`}
+            >
+              <option value="">Ambiente de {clubName} — todos os fãs do cantor</option>
+              {places.map((p) => (
+                <option key={p.slug} value={p.slug}>
+                  Fã clube {p.name} — só os membros desse fã clube
+                </option>
+              ))}
+            </select>
+            <span id="ad-place-hint" className="text-xs text-adm-muted">
+              {places.length === 0
+                ? "Este cantor ainda não tem fã clubes no ar: o anúncio vai para todo o ambiente, para todos os fãs."
+                : "No ambiente, o anúncio aparece para todos os fãs do cantor; num fã clube, só para os membros dele. Quem administra o lugar escolhido aprova a campanha."}
+            </span>
+          </div>
+          {slots.length === 0 && (
+            <AdminEmpty
+              title="Nenhuma vitrine disponível aqui"
+              text={place ? "Escolha outro lugar: este fã clube ainda não abriu vitrines." : "Escolha outro cantor ou fã clube, ou volte mais tarde."}
+            />
           )}
-          {slots.length === 0 && <p className="m-0 text-sm text-adm-muted">Nenhuma vitrine disponível aqui no momento.</p>}
           <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
             {slots.map((v) => {
               const on = v.id === slotId;
@@ -347,13 +352,13 @@ export function PatrocinadorClient({
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <strong className="text-[15px] font-bold">{v.name}</strong>
                     <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
-                    <span className="text-[13px] font-semibold">{v.priceLabel}</span>
+                    <span className="text-[13px] font-semibold">{slotPrice(v, exampleMode)}</span>
                     <span
                       className={`mt-1 self-start rounded-full px-[9px] py-[3px] text-xs font-semibold ${
                         v.occupied ? "bg-adm-off-bg text-adm-off" : "bg-adm-ok-bg text-adm-ok"
                       }`}
                     >
-                      {v.occupied ? "Ocupada até [data]" : "Disponível"}
+                      {v.occupied ? occupiedLabel(exampleMode) : "Disponível"}
                     </span>
                   </span>
                 </button>
@@ -458,7 +463,7 @@ export function PatrocinadorClient({
             >
               <AdCard ad={preview} />
             </div>
-            <span className="text-xs text-adm-muted">É assim que os fãs veem seu anúncio no app do {clubName}.</span>
+            <span className="text-xs text-adm-muted">É assim que os fãs veem seu anúncio {whereLabel}.</span>
           </div>
         </section>
       )}
@@ -489,11 +494,7 @@ export function PatrocinadorClient({
         </section>
       )}
 
-      {!sent && sendError && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {sendError}
-        </p>
-      )}
+      {!sent && sendError && <AdminNotice tone="error">{sendError}</AdminNotice>}
 
       {!sent && (
         <div className="flex justify-between gap-3 border-t border-adm-line pt-2">

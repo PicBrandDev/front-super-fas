@@ -6,8 +6,9 @@ import { decideCampaign, inviteSponsor as inviteSponsorAction, updateAdSlot, typ
 import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { Switch } from "@/components/admin/controls";
-import { Badge, SlotDiagram, btnPrimary, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, Badge, SlotDiagram, btnPrimary, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
 import type { AdSlot, Campaign, CampaignStatus, Sponsor } from "@/lib/types";
+import { campaignWhere, occupiedLabel, slotPrice } from "./slots";
 
 type Tab = "slots" | "camps" | "sponsors";
 
@@ -25,11 +26,13 @@ export function MidiaClient({
   slotsByClub,
   campaigns,
   sponsors,
+  exampleMode = false,
 }: {
   clubs: { slug: string; name: string }[];
   slotsByClub: Record<string, AdSlot[]>;
   campaigns: Campaign[];
   sponsors: Sponsor[];
+  exampleMode?: boolean;
 }) {
   const [club, setClub] = useState(clubs[0]?.slug ?? "");
   const [tab, setTab] = useState<Tab>("slots");
@@ -157,11 +160,10 @@ export function MidiaClient({
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
-      {error && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {error}
-        </p>
+      {exampleMode && (
+        <AdminNotice tone="info">Modo exemplo: ligue o front à API (API_URL) para aprovar campanhas e convidar patrocinadores de verdade.</AdminNotice>
       )}
+      {error && <AdminNotice tone="error">{error}</AdminNotice>}
       {newSponsor && (
         <TempPasswordNotice
           email={newSponsor.sponsor.email}
@@ -211,12 +213,16 @@ export function MidiaClient({
           aria-labelledby="tab-slots"
           className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]"
         >
-          {slots.length === 0 && <p className="m-0 text-sm text-adm-muted">Nenhuma vitrine configurada neste fã clube.</p>}
+          {slots.length === 0 && (
+            <div className="col-span-full">
+              <AdminEmpty title="Nenhuma vitrine neste ambiente" text="As vitrines aparecem aqui quando o ambiente do cantor estiver configurado." />
+            </div>
+          )}
           {slots.map((v) => {
             const occ = !v.on
               ? { label: "Pausada", tone: "off" as const }
               : v.occupied
-                ? { label: "Ocupada", tone: "info" as const }
+                ? { label: occupiedLabel(exampleMode), tone: "info" as const }
                 : { label: "Livre para venda", tone: "ok" as const };
             return (
               <article
@@ -278,7 +284,7 @@ export function MidiaClient({
                           </button>
                         </form>
                       ) : (
-                        v.priceLabel
+                        slotPrice(v, exampleMode)
                       )}
                     </dd>
                   </div>
@@ -317,6 +323,7 @@ export function MidiaClient({
             <thead>
               <tr className="bg-adm-bg">
                 <th scope="col" className={thClass}>Patrocinador</th>
+                <th scope="col" className={thClass}>Onde</th>
                 <th scope="col" className={thClass}>Vitrine</th>
                 <th scope="col" className={thClass}>Anúncio</th>
                 <th scope="col" className={thClass}>Período</th>
@@ -329,17 +336,15 @@ export function MidiaClient({
             <tbody>
               {camps.map((c) => {
                 const look = campaignLook[c.status];
+                const where = campaignWhere(c);
                 return (
                   <tr key={c.id}>
                     <td className={`${tdClass} font-semibold`}>{c.sponsor}</td>
                     <td className={tdClass}>
-                      {c.slotName}
-                      {c.club && (
-                        <span className="block text-xs text-adm-muted">
-                          {c.club} · {c.fanClub ?? "ambiente"}
-                        </span>
-                      )}
+                      {where.place}
+                      {where.artist && <span className="block text-xs text-adm-muted">{where.artist}</span>}
                     </td>
+                    <td className={tdClass}>{c.slotName}</td>
                     <td className={`${tdClass} text-adm-muted`}>{c.title}</td>
                     <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.period}</td>
                     <td className={tdClass}>
@@ -370,7 +375,11 @@ export function MidiaClient({
               })}
             </tbody>
           </table>
-          {camps.length === 0 && <p className="m-0 px-4 py-6 text-sm text-adm-muted">Nenhuma campanha ainda.</p>}
+          {camps.length === 0 && (
+            <div className="p-4">
+              <AdminEmpty title="Nenhuma campanha ainda" text="As campanhas enviadas pelos patrocinadores aparecem aqui para você aprovar ou recusar." />
+            </div>
+          )}
         </div>
       )}
 
@@ -434,6 +443,11 @@ export function MidiaClient({
                 ))}
               </tbody>
             </table>
+            {sponsorRows.length === 0 && (
+              <div className="p-4">
+                <AdminEmpty title="Nenhum patrocinador ainda" text="Convide o primeiro pelo e-mail acima. A senha provisória aparece uma única vez." />
+              </div>
+            )}
           </div>
         </div>
       )}

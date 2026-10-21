@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAdSlots, getClubAdSlots, getClubs, listArtists } from "@/lib/api";
+import { apiEnabled, getAdSlots, getClubAdSlots, getClubs, listArtists } from "@/lib/api";
 import type { AdSlot } from "@/lib/types";
 import { PatrocinadorClient, type SponsorClub } from "./PatrocinadorClient";
 
@@ -40,7 +40,7 @@ export default async function PatrocinadorPage() {
           Escolha o cantor, onde anunciar (todo o ambiente ou um fã clube) e monte seu anúncio. Quem administra o lugar aprova antes de ir ao ar.
         </p>
       </div>
-      <PatrocinadorClient clubs={clubs} slotsByClub={slotsByClub} placesByClub={placesByClub} />
+      <PatrocinadorClient clubs={clubs} slotsByClub={slotsByClub} placesByClub={placesByClub} exampleMode={!apiEnabled()} />
     </>
   );
 }
