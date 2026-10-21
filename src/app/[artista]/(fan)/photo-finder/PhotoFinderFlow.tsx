@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Rings } from "@/components/fan/decor";
 import { FaceCamera } from "@/components/fan/FaceCamera";
+import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
 
 export type ShowOption = { id: string; city: string; label: string };
@@ -96,21 +97,36 @@ export function PhotoFinderFlow({ shows }: { shows: ShowOption[] }) {
               Escolha o show
             </label>
           </div>
-          <select
-            id="pf-event"
-            value={ev}
-            onChange={(e) => {
-              setEv(e.target.value);
-              setDone(false);
-            }}
-            className="min-h-12 rounded-[10px] border-2 border-ink bg-paper px-3 font-body text-[15px] font-semibold text-ink"
-          >
-            {shows.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
+          {shows.length === 0 ? (
+            <EmptyState
+              title="Nenhum show para escolher"
+              text="As fotos ficam disponíveis depois dos shows. Veja a agenda para saber quando é o próximo."
+              action={
+                <Link
+                  href={`${base}/agenda`}
+                  className="flex min-h-11 items-center rounded-full border-2 border-ink bg-accent-2 px-4 font-label text-xs font-bold text-ink no-underline"
+                >
+                  Ver agenda
+                </Link>
+              }
+            />
+          ) : (
+            <select
+              id="pf-event"
+              value={ev}
+              onChange={(e) => {
+                setEv(e.target.value);
+                setDone(false);
+              }}
+              className="min-h-12 rounded-[10px] border-2 border-ink bg-paper px-3 font-body text-[15px] font-semibold text-ink"
+            >
+              {shows.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Passo 2 */}

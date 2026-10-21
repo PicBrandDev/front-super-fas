@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { PageHeader } from "@/components/fan/PageHeader";
 import { ShowStub } from "@/components/fan/ShowStub";
+import { EmptyState } from "@/components/fan/states";
 import type { ShowEvent } from "@/lib/types";
 
 const monthNames: Record<string, string> = {
@@ -34,7 +35,11 @@ export function AgendaView({ artistName, events }: { artistName: string; events:
   }, []);
   const filters = [{ key: "todos", label: "Todos" }, ...months];
   const shows = events.filter((e) => filter === "todos" || e.monthKey === filter);
-  const countLabel = `${shows.length} ${shows.length === 1 ? "show" : "shows"} · toque para ver ingressos e brindes`;
+  const countLabel =
+    shows.length === 0
+      ? "Nenhum show"
+      : `${shows.length} ${shows.length === 1 ? "show" : "shows"} · toque para ver ingressos e brindes`;
+  const monthLabel = filters.find((f) => f.key === filter)?.label ?? "";
 
   return (
     <>
@@ -63,13 +68,34 @@ export function AgendaView({ artistName, events }: { artistName: string; events:
         <p aria-live="polite" className="m-0 font-label text-[13px] leading-snug text-ink-soft">
           {countLabel}
         </p>
-        <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
-          {shows.map((e, i) => (
-            <li key={e.id}>
-              <ShowStub event={e} href={`/${slug}/eventos/${e.id}`} tone={tones[i % 3]} showStatus showArrow />
-            </li>
-          ))}
-        </ul>
+        {events.length === 0 ? (
+          <EmptyState
+            title="Nenhum show por enquanto"
+            text={`Quando ${artistName} marcar uma data, ela aparece aqui com ingressos e brindes.`}
+          />
+        ) : shows.length === 0 ? (
+          <EmptyState
+            title={`Nenhum show em ${monthLabel}`}
+            text="Veja os outros meses ou volte para todos os shows."
+            action={
+              <button
+                type="button"
+                onClick={() => setFilter("todos")}
+                className="min-h-11 cursor-pointer rounded-full border-2 border-ink bg-accent-2 px-4 font-label text-xs font-bold text-ink"
+              >
+                Ver todos os shows
+              </button>
+            }
+          />
+        ) : (
+          <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
+            {shows.map((e, i) => (
+              <li key={e.id}>
+                <ShowStub event={e} href={`/${slug}/eventos/${e.id}`} tone={tones[i % 3]} showStatus showArrow />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </>
   );

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { spinPickap } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { StripeBand } from "@/components/fan/decor";
+import { EmptyState, Notice } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
 import type { Prize } from "@/lib/types";
 
@@ -123,14 +124,16 @@ export function PicKapWheel({
 
   const btnLabel = spinning || asking ? "Girando…" : spins > 0 ? "Girar" : "Sem giros";
   const showResult = !!result && !spinning;
+  const noPrizes = !!club && prizes.length === 0;
+  const noSpins = !!club && !noPrizes && spins <= 0 && !spinning && !asking;
 
+  // A API ainda não informa quantos giros cada ação vale, então as linhas não mostram número.
   const ways = [
-    { href: `${base}/agenda`, label: "Comprar ingresso de um show", bonus: "+[n] giros", tone: "bg-accent-2" },
-    { href: `${base}/mural`, label: "Postar no mural da galera", bonus: "+[n] por dia", tone: "bg-cream" },
+    { href: `${base}/agenda`, label: "Ganhe giros comprando ingresso de um show", tone: "bg-accent-2" },
+    { href: `${base}/mural`, label: "Ganhe giros postando no mural da galera", tone: "bg-cream" },
     {
       href: nextEventId ? `${base}/eventos/${nextEventId}` : `${base}/agenda`,
-      label: "Entrar na sorte de um evento",
-      bonus: "+[n] giro",
+      label: "Ganhe giros entrando na sorte de um evento",
       tone: "bg-cream",
     },
   ];
@@ -170,13 +173,33 @@ export function PicKapWheel({
           </nav>
         )}
 
-        {(notJoined || !club) && (
-          <p className="mx-4 mt-3 rounded-[14px] border-2 border-dashed border-paper-2 px-3.5 py-3 font-label text-[13px] text-paper lg:mx-8">
-            {notJoined ? `Entre no ${notJoined} para girar a roleta dele. ` : "Entre num fã clube para girar a roleta dele. "}
-            <Link href={`${base}/clubes`} className="font-bold text-accent-2">
-              Ver fã clubes →
+        {notJoined && (
+          <Notice className="mx-4 mt-3 lg:mx-8">
+            Entre no {notJoined} para girar a roleta dele.{" "}
+            <Link href={`${base}/clubes`} className="font-bold text-ink">
+              Ver fã clubes
             </Link>
-          </p>
+          </Notice>
+        )}
+        {!club && (
+          <EmptyState
+            className="mx-4 mt-3 bg-cream lg:mx-8"
+            title="Você ainda não entrou em nenhum fã clube"
+            text="Cada fã clube tem a sua roleta. Entre em um para girar e concorrer aos prêmios."
+            action={
+              <Link
+                href={`${base}/clubes`}
+                className="flex min-h-11 items-center rounded-full border-2 border-ink bg-accent-2 px-4 font-label text-xs font-bold text-ink no-underline"
+              >
+                Ver fã clubes
+              </Link>
+            }
+          />
+        )}
+        {noPrizes && (
+          <Notice className="mx-4 mt-3 lg:mx-8">
+            A roleta do {club.name} ainda não tem prêmios cadastrados. Volte mais tarde.
+          </Notice>
         )}
 
         <section className="flex flex-col items-center gap-[22px] px-4 pb-2.5 pt-[22px]">
@@ -236,9 +259,14 @@ export function PicKapWheel({
             {btnLabel}
           </button>
           {spinError && (
-            <p role="alert" className="m-0 text-center font-label text-xs font-bold text-accent-2">
+            <Notice tone="error" className="w-full max-w-[326px] text-center">
               {spinError}
-            </p>
+            </Notice>
+          )}
+          {noSpins && !spinError && (
+            <Notice className="w-full max-w-[326px] text-center">
+              Você está sem giros. Veja abaixo como ganhar mais.
+            </Notice>
           )}
 
           <div aria-live="polite" className="w-full max-w-[326px] empty:hidden">
@@ -250,7 +278,7 @@ export function PicKapWheel({
                     {result.isRetry ? "Não foi dessa vez" : `Você ganhou: ${result.label}`}
                   </strong>
                   <span className="font-label text-xs">
-                    {result.isRetry ? "Ganhe mais giros e tente de novo." : "O prêmio já está em “Seus prêmios”."}
+                    {result.isRetry ? "Ganhe mais giros e tente de novo." : "O prêmio já está em “Prêmios desta sessão”."}
                   </span>
                 </div>
               </div>
@@ -264,11 +292,12 @@ export function PicKapWheel({
       <section className="flex-1 bg-paper text-ink">
         <div className="mx-auto flex w-full max-w-[760px] flex-col gap-[18px] px-4 pb-6 pt-5 lg:px-8">
           <div className="flex flex-col gap-2.5">
-            <h2 className="m-0 font-body text-xl font-extrabold">Seus prêmios</h2>
+            <h2 className="m-0 font-body text-xl font-extrabold">Prêmios desta sessão</h2>
             {won.length === 0 ? (
-              <p className="m-0 rounded-xl border-2 border-dashed border-ink-soft p-3.5 text-sm text-ink-soft">
-                Gire a roleta para ganhar seu primeiro prêmio.
-              </p>
+              <EmptyState
+                title="Nenhum prêmio ainda"
+                text={club ? "Gire a roleta para ganhar o primeiro." : "Entre num fã clube e gire a roleta dele."}
+              />
             ) : (
               <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
                 {won.map((w) => (
@@ -293,7 +322,7 @@ export function PicKapWheel({
                 className={`flex min-h-[52px] items-center justify-between gap-2 rounded-xl border-2 border-ink px-3.5 text-ink no-underline ${w.tone}`}
               >
                 <span className="font-body text-[15px] font-semibold">{w.label}</span>
-                <span className="font-label text-xs font-bold">{w.bonus}</span>
+                <Icon name="chevron-right" size={18} strokeWidth={2.6} className="flex-none" />
               </Link>
             ))}
           </div>
