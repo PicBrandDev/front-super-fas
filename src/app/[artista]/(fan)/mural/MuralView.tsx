@@ -1,103 +1,322 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
-import { PageHeader } from "@/components/fan/PageHeader";
-import { PostCard } from "@/components/fan/PostCard";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useArtist } from "@/components/fan/ArtistContext";
+import { Mark } from "@/components/fan/Mark";
+import { Masthead } from "@/components/fan/Masthead";
+import { Sheet, SheetOption } from "@/components/fan/Sheet";
+import { Tabs } from "@/components/fan/Tabs";
+import { useToast } from "@/components/fan/Toast";
+import { Turntable, TT, recAngleFor } from "@/components/fan/Turntable";
+import { Vinyl } from "@/components/fan/Vinyl";
 import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
-import type { Post, PostKind } from "@/lib/types";
-import { GaleraComposer, InstagramComposer, type ClubRef } from "./Composer";
+import type { Track } from "@/lib/types";
+import s from "./Mural.module.css";
+import { fmtShort, type Poster } from "./posters";
 
-const tabs: { id: PostKind; label: string }[] = [
-  { id: "drop", label: "Drop News" },
-  { id: "galera", label: "Galera" },
-  { id: "instagram", label: "Instagram" },
+export type MuralTab = "wall" | "drops";
+
+const tabs: { id: MuralTab; label: string }[] = [
+  { id: "wall", label: "Cartazes" },
+  { id: "drops", label: "Drops" },
 ];
 
-const emptyByTab: Record<PostKind, { title: string; text: string }> = {
-  drop: { title: "Nenhum Drop News ainda", text: "Quando o artista ou a equipe publicarem uma novidade, ela aparece aqui." },
-  galera: { title: "A galera ainda não postou", text: "Seja a primeira pessoa a contar o que tá rolando no fandom." },
-  instagram: { title: "Nenhum post do Instagram ainda", text: "Cole o link de um post do artista para trazê-lo para o mural." },
-};
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const longest = (words: string[]) => Math.max(1, ...words.map((w) => w.length));
+/** Tamanho da manchete em cqw: o molde pede o máximo, mas nenhuma letra pode sumir pela borda. */
+const fit = (max: number, perChar: number, words: string[]) => `${Math.min(max, perChar / longest(words)).toFixed(1)}cqw`;
 
-export function MuralView({ artistName, posts, clubs }: { artistName: string; posts: Post[]; clubs: ClubRef[] }) {
-  const [tab, setTab] = useState<PostKind>("drop");
-  const [extra, setExtra] = useState<Post[]>([]);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+const PICK_ON = 4; // "Ingresso" sob a agulha, como no protótipo
 
-  const list = [...extra.filter((p) => p.kind === tab), ...posts.filter((p) => p.kind === tab)];
+export function MuralView({
+  posters,
+  tracks,
+  demo,
+  initialTab = "wall",
+}: {
+  posters: Poster[];
+  tracks: Track[];
+  demo: boolean;
+  initialTab?: MuralTab;
+}) {
+  const { base } = useArtist();
+  const router = useRouter();
+  const toast = useToast();
+  const [tab, setTab] = useState<MuralTab>(initialTab);
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [sheet, setSheet] = useState(false);
+  const [reacts, setReacts] = useState<Record<string, boolean>>({});
+  const wall = useRef<HTMLDivElement>(null);
 
-  /** Sem API o post fica só nesta tela; com API a página recarrega com o post de verdade. */
-  const onPosted = (post: Post, simulated: boolean) => {
-    if (simulated) setExtra((cur) => [post, ...cur]);
+  // Liga `in` no cartaz encaixado e avança o contador.
+  useEffect(() => {
+    const root = wall.current;
+    if (tab !== "wall" || !root) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          en.target.classList.toggle(s.in, en.isIntersecting);
+          if (en.isIntersecting) setIndex(Number((en.target as HTMLElement).dataset.i));
+        }
+      },
+      { root, threshold: 0.6 },
+    );
+    root.querySelectorAll<HTMLElement>("[data-i]").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [tab, posters.length]);
+
+  // Prévia simulada: para sozinha no fim da duração (a API ainda não manda o áudio).
+  useEffect(() => {
+    if (!playing) return;
+    const t = tracks.find((x) => x.id === playing);
+    const id = setTimeout(() => setPlaying(null), (t?.durationSec || 30) * 1000);
+    return () => clearTimeout(id);
+  }, [playing, tracks]);
+
+  const toggle = (key: string, isRepost = false) => {
+    const on = !reacts[key];
+    setReacts((r) => ({ ...r, [key]: on }));
+    if (isRepost && on) toast.show("Repostado no seu perfil");
   };
 
-  function onTabKey(e: KeyboardEvent<HTMLButtonElement>, i: number) {
-    let next = -1;
-    if (e.key === "ArrowRight") next = (i + 1) % tabs.length;
-    else if (e.key === "ArrowLeft") next = (i - 1 + tabs.length) % tabs.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = tabs.length - 1;
-    if (next < 0) return;
-    e.preventDefault();
-    setTab(tabs[next].id);
-    tabRefs.current[next]?.focus();
-  }
+  const onCta = (p: Poster) => {
+    if (p.cta?.act === "listen") {
+      setTab("drops");
+      if (tracks[0]) setPlaying(tracks[0].id);
+      return;
+    }
+    if (p.cta?.href) router.push(base + p.cta.href);
+  };
+
+  const acts = (id: string, likes: number, comments: number, reposts: number) => {
+    const liked = !!reacts[`l-${id}`];
+    const rp = !!reacts[`r-${id}`];
+    return (
+      <div className={s.acts}>
+        <button type="button" className="act like" aria-pressed={liked} aria-label="Curtir" onClick={() => toggle(`l-${id}`)}>
+          <Icon name="heart" size={20} />
+          <span className="num">{fmtShort(likes + (liked ? 1 : 0))}</span>
+        </button>
+        <Link href={`${base}/comunidade`} className="act" aria-label="Comentários">
+          <Icon name="comment" size={20} />
+          <span className="num">{fmtShort(comments)}</span>
+        </Link>
+        <button type="button" className="act rp" aria-pressed={rp} aria-label="Repostar" onClick={() => toggle(`r-${id}`, true)}>
+          <Icon name="repost" size={20} />
+          <span className="num">{fmtShort(reposts + (rp ? 1 : 0))}</span>
+        </button>
+      </div>
+    );
+  };
 
   return (
-    <>
-      <PageHeader eyebrow={artistName} title="Mural" rings={false}>
-        <div role="tablist" aria-label="Seções do mural" className="-mb-4 flex gap-1.5 lg:max-w-[520px]">
-          {tabs.map((t, i) => {
-            const active = tab === t.id;
+    <div className={s.screen}>
+      <Masthead word="Mural" steps={2} index={tab === "wall" ? 0 : 1} />
+      <Tabs
+        tabs={tabs}
+        value={tab}
+        onChange={setTab}
+        label="Seções do mural"
+        slot={
+          <span
+            className={`${s.counter} num`}
+            aria-live="polite"
+            style={{ visibility: tab === "wall" && posters.length ? "visible" : "hidden" }}
+          >
+            <b>{pad2(index + 1)}</b> / {pad2(posters.length)}
+          </span>
+        }
+      />
+
+      {tab === "wall" && (
+        <div ref={wall} className={s.wall}>
+          {posters.length === 0 && (
+            <EmptyState className="px-4" title="Nenhum cartaz ainda" text="Quando o artista publicar um Drop News, ele vira cartaz aqui." />
+          )}
+          {posters.map((p, i) => (
+            <article key={p.id} className={s.slide} data-i={i} aria-label={`Cartaz ${i + 1} de ${posters.length}: ${p.cap}`}>
+              <Plate p={p} />
+              <div className={s.meta}>
+                <div className={s.who}>
+                  <div className="avatar" style={{ width: 24, height: 24 }}>
+                    <Mark size={14} />
+                  </div>
+                  <strong>{p.by}</strong>
+                  <span className="mono verified">
+                    <Icon name="check" size={12} />
+                    Oficial
+                  </span>
+                  {demo && (
+                    <span className="tag tag-demo" style={{ marginLeft: "auto" }}>
+                      Exemplo
+                    </span>
+                  )}
+                </div>
+                <p>{p.text}</p>
+                <div className={s.bar}>
+                  {acts(p.id, p.likes, p.comments, p.reposts)}
+                  {p.cta && (
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => onCta(p)}>
+                      {p.cta.label}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {tab === "drops" && (
+        <div className={s.list}>
+          {tracks.length === 0 && <EmptyState className="px-4" title="Nenhuma prévia por enquanto" text="Quando sair um drop novo, a prévia aparece aqui primeiro." />}
+          {tracks.map((t, i) => {
+            const on = playing === t.id;
+            const voted = !!reacts[`v-${t.id}`];
             return (
-              <button
-                key={t.id}
-                ref={(el) => {
-                  tabRefs.current[i] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`mural-tab-${t.id}`}
-                aria-selected={active}
-                aria-controls="mural-panel"
-                tabIndex={active ? 0 : -1}
-                onClick={() => setTab(t.id)}
-                onKeyDown={(e) => onTabKey(e, i)}
-                className={`min-h-11 flex-1 cursor-pointer rounded-t-xl border-2 border-b-0 border-paper px-1 py-2 font-label text-xs font-bold ${
-                  active ? "bg-paper text-ink" : "bg-transparent text-paper"
-                }`}
-              >
-                {t.label}
-              </button>
+              <article key={t.id} className={`${s.drop} ${on ? s.playing : ""}`} style={{ "--dur": `${t.durationSec || 30}s` } as CSSProperties}>
+                <div className={s.disc}>
+                  <Vinyl />
+                </div>
+                <div>
+                  <h3>{t.title}</h3>
+                  <div className="mono">
+                    {t.meta}
+                    <br />
+                    Lançamento {t.releaseLabel}
+                  </div>
+                  <div className={s.tags}>
+                    {i === 0 && <span className="tag">Drop novo</span>}
+                    {demo && <span className="tag tag-demo">Exemplo</span>}
+                  </div>
+                  <div className={s.prog}>
+                    <i />
+                  </div>
+                  <div className={s.ops}>
+                    <button type="button" className="btn btn-primary btn-sm" aria-pressed={on} onClick={() => setPlaying(on ? null : t.id)}>
+                      <Icon name={on ? "pause" : "play"} size={16} />
+                      <span>{on ? "Pausar" : "Ouvir"}</span>
+                    </button>
+                    <button type="button" className="go" onClick={() => setSheet(true)}>
+                      Streaming <Icon name="external" size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      className="act like"
+                      aria-pressed={voted}
+                      aria-label="Quero a versão completa"
+                      onClick={() => toggle(`v-${t.id}`)}
+                    >
+                      <Icon name="heart" size={20} />
+                      <span className="num">{fmtShort(t.votes + (voted ? 1 : 0))}</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
             );
           })}
         </div>
-      </PageHeader>
+      )}
 
-      <div
-        id="mural-panel"
-        role="tabpanel"
-        aria-labelledby={`mural-tab-${tab}`}
-        className="mx-auto flex w-full max-w-[760px] flex-col gap-3.5 px-4 pb-8 pt-4 lg:px-8 lg:pt-6"
-      >
-        {tab === "drop" && (
-          <p className="m-0 flex items-center gap-2 font-label text-[13px] leading-snug text-ink-soft">
-            <Icon name="star" size={18} />
-            Notícias publicadas pelo artista e pela equipe.
-          </p>
-        )}
+      <Sheet open={sheet} onClose={() => setSheet(false)} title="Ouvir em">
+        <div className="opts">
+          {["Spotify", "Apple Music", "Beatport"].map((n) => (
+            <SheetOption key={n} title={n} sub="Abre fora da fanzone" />
+          ))}
+        </div>
+        <button type="button" className="btn btn-outline" data-close>
+          Fechar
+        </button>
+      </Sheet>
+    </div>
+  );
+}
 
-        {tab === "galera" && <GaleraComposer id="mural-draft" clubs={clubs} onPosted={onPosted} />}
-        {tab === "instagram" && <InstagramComposer id="mural-ig" clubs={clubs} onPosted={onPosted} />}
+/** O cartaz: um campo chapado por molde, tipo medido em cqw da largura. */
+function Plate({ p }: { p: Poster }) {
+  const cap = (cls: string, children: React.ReactNode) => <span className={`${s.cap} ${cls}`}>{children}</span>;
+  const lines = (arr: string[]) =>
+    arr.map((l, i) => (
+      <span key={i}>
+        {i > 0 && <br />}
+        {l}
+      </span>
+    ));
 
-        <div className="flex flex-col gap-3.5">
-          {list.length === 0 && <EmptyState title={emptyByTab[tab].title} text={emptyByTab[tab].text} />}
-          {list.map((p, i) => (
-            <PostCard key={p.id} post={p} index={i} />
+  if (p.kind === "lost") {
+    return (
+      <div className={`${s.pst} ${s["p-lost"]}`} style={{ "--hl": fit(51, 204, p.headline) } as CSSProperties}>
+        {cap(s.t1, <span className="tag">{p.cap}</span>)}
+        <div className={s.disc}>
+          <Vinyl />
+        </div>
+        <div className={s.hl} aria-hidden="true">
+          {p.headline.join(" ")}
+        </div>
+        {cap(s.t2, lines(p.credits))}
+      </div>
+    );
+  }
+  if (p.kind === "culture") {
+    return (
+      <div className={`${s.pst} ${s["p-culture"]}`} style={{ "--hl": fit(20, 140, p.headline) } as CSSProperties}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {p.image && <img className={s.art} src={p.image.src} alt={p.image.alt} />}
+        {cap(s.t1, p.credits[0])}
+        {cap(s.t2, p.credits[1])}
+        <div className={s.hl} aria-hidden="true">
+          {p.headline.map((w, i) => (
+            <span key={i}>
+              {i > 0 && <br />}
+              {i === 1 && (
+                <span className={s.mk}>
+                  <Mark size={80} style={{ width: "100%", height: "auto" }} />
+                </span>
+              )}
+              {w}
+            </span>
           ))}
         </div>
       </div>
-    </>
+    );
+  }
+  if (p.kind === "date") {
+    return (
+      <div className={`${s.pst} ${s["p-date"]}`}>
+        {cap(s.t1, p.cap)}
+        <div className={s.mon}>{p.month}</div>
+        {cap(s.t2, lines(p.credits))}
+        <div className={`${s.hl} num`} aria-hidden="true">
+          {p.day}
+        </div>
+      </div>
+    );
+  }
+  if (p.kind === "pick") {
+    return (
+      <div className={`${s.pst} ${s["p-pick"]}`} style={{ "--rec-rot": `${recAngleFor(PICK_ON)}deg` } as CSSProperties}>
+        {cap(s.t1, p.credits[0])}
+        <Turntable prefix="pp" deck={false} on={PICK_ON} rot={recAngleFor(PICK_ON)} arm={TT.play} />
+        <div className={s.hl} aria-hidden="true">
+          Tente
+          <br />a <em>sorte</em>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={`${s.pst} ${s["p-store"]}`}>
+      {cap(s.t1, p.credits[0])}
+      <div className={s.hl} aria-hidden="true">
+        {lines(p.headline)}
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {p.image && <img className={s.tee} src={p.image.src} alt="" />}
+      {cap(s.t2, p.credits[1])}
+    </div>
   );
 }

@@ -1,0 +1,396 @@
+/* Mural: muro de cartazes (um por tela, snap obrigatório) e lista de Drops.
+   Porte fiel do protótipo fanzone.html (.wall .slide .pst .meta .p-* .drop .prog). */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--navspace));
+  min-height: 0;
+}
+@media (min-width: 64rem) {
+  .screen {
+    height: calc(100dvh - 48px);
+  }
+}
+
+.counter {
+  font: 400 11px/14px var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  color: var(--fc-fg-muted);
+}
+.counter b {
+  font-weight: 500;
+  color: var(--fc-fg);
+}
+
+/* ---------- o muro ---------- */
+.wall {
+  flex: 1;
+  min-height: 0;
+  margin-top: 12px;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.wall::-webkit-scrollbar {
+  display: none;
+}
+.slide {
+  height: calc(100% - 14px);
+  display: flex;
+  flex-direction: column;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  container-type: size;
+}
+.slide:last-child {
+  height: 100%;
+}
+.pst {
+  position: relative;
+  flex: 0 1 125cqw;
+  min-height: 0;
+  overflow: hidden;
+  container-type: size;
+  border-top: 1px solid var(--fc-line);
+}
+.meta {
+  flex: none;
+  padding: 12px 16px 8px;
+  display: grid;
+  gap: 6px;
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.who strong {
+  font-size: 14px;
+  line-height: 20px;
+}
+.meta p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.acts {
+  display: flex;
+  align-items: center;
+}
+
+/* ---------- cartazes: um campo chapado cada, tipo como imagem (cqw da largura) ---------- */
+.cap {
+  position: absolute;
+  font: 400 max(10px, 2.9cqw) / 1.3 var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.hl {
+  position: absolute;
+}
+
+.p-lost {
+  background: var(--fc-lagoon-deep);
+  color: var(--fc-paper);
+}
+.p-lost .hl {
+  left: 4cqw;
+  top: 14cqw;
+  font: 900 var(--hl, 51cqw) / 0.8 var(--fc-font-display);
+  color: var(--fc-amber);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.p-lost .disc {
+  position: absolute;
+  left: -30cqw;
+  top: 71cqw;
+  width: 74cqw;
+  height: 74cqw;
+}
+.p-lost .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+}
+.p-lost .t2 {
+  right: 4.5cqw;
+  bottom: 4.5cqw;
+  text-align: right;
+}
+.p-lost :global(.tag) {
+  border-color: var(--fc-paper);
+  color: var(--fc-paper);
+}
+
+.p-culture {
+  background: var(--fc-poster-grey);
+  color: var(--fc-ink);
+}
+.p-culture .art {
+  position: absolute;
+  right: -11cqw;
+  bottom: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  mix-blend-mode: multiply;
+  filter: grayscale(1) contrast(1.05);
+}
+.p-culture .hl {
+  z-index: 1;
+  left: 3.5cqw;
+  bottom: -5cqw;
+  font: 800 var(--hl, 20cqw) / 0.84 var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  color: var(--fc-mist);
+}
+.p-culture .hl .mk {
+  display: inline-block;
+  vertical-align: 0.02em;
+  margin-right: 2.2cqw;
+  width: 18cqw;
+  color: var(--fc-ink);
+}
+.p-culture .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+  z-index: 1;
+}
+.p-culture .t2 {
+  right: 4.5cqw;
+  top: 4.5cqw;
+  z-index: 1;
+}
+
+.p-date {
+  background: var(--fc-amber);
+  color: var(--fc-ink);
+}
+.p-date .hl {
+  left: -7cqw;
+  bottom: -14cqw;
+  font: 900 104cqw / 0.8 var(--fc-font-display);
+  letter-spacing: -0.04em;
+}
+.p-date .mon {
+  position: absolute;
+  right: 4.5cqw;
+  top: 13cqw;
+  font: 800 24cqw / 0.85 var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  text-align: right;
+}
+.p-date .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+  font-weight: 500;
+}
+.p-date .t2 {
+  right: 4.5cqw;
+  top: 36cqw;
+  text-align: right;
+}
+
+.p-pick {
+  background: var(--fc-sun);
+  color: var(--fc-ink);
+}
+.p-pick :global(.tt) {
+  position: absolute;
+  left: -30cqw;
+  top: 30cqw;
+  width: 130cqw;
+  height: auto;
+}
+.p-pick .hl {
+  left: 4.5cqw;
+  top: 11cqw;
+  font: 800 15cqw / 0.84 var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}
+.p-pick .hl em {
+  font: italic 900 15cqw / 0.84 var(--fc-font-display);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+.p-pick .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+}
+
+.p-store {
+  background: var(--fc-mist);
+  color: var(--fc-ink);
+}
+.p-store .hl {
+  left: 3.5cqw;
+  top: 9cqw;
+  font: 800 40cqw / 0.8 var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+.p-store .tee {
+  position: absolute;
+  right: -8cqw;
+  bottom: -4cqw;
+  width: 52cqw;
+  height: auto;
+  max-width: none;
+  mix-blend-mode: multiply;
+}
+.p-store .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+}
+.p-store .t2 {
+  left: 4.5cqw;
+  bottom: 4.5cqw;
+}
+
+/* assinatura: a manchete cortada entra pela borda que a corta */
+@keyframes inR {
+  from {
+    transform: translateX(14cqw);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes inL {
+  from {
+    transform: translateX(-14cqw);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes inB {
+  from {
+    transform: translateY(12cqw);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes turn {
+  from {
+    transform: rotate(-24deg);
+  }
+  to {
+    transform: none;
+  }
+}
+/* o disco do PicKap já tem rotação própria (--rec-rot): gira a partir dela */
+@keyframes turnRec {
+  from {
+    transform: rotate(calc(var(--rec-rot, 0deg) - 24deg));
+  }
+  to {
+    transform: rotate(var(--rec-rot, 0deg));
+  }
+}
+.in .p-lost .hl {
+  animation: inR 0.22s var(--ease);
+}
+.in .p-lost .disc {
+  animation: turn 0.6s var(--ease);
+}
+.in .p-culture .hl {
+  animation: inB 0.22s var(--ease);
+}
+.in .p-date .hl {
+  animation: inL 0.22s var(--ease);
+}
+.in .p-pick :global(.rec) {
+  animation: turnRec 0.9s var(--ease);
+}
+.in .p-store .hl {
+  animation: inR 0.22s var(--ease);
+}
+
+/* ---------- drops ---------- */
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.drop {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 16px;
+  padding: 24px 16px 24px 0;
+  border-bottom: 1px solid var(--fc-line);
+  overflow: hidden;
+}
+.drop .disc {
+  width: 220px;
+  height: 220px;
+  margin-left: -100px;
+  align-self: center;
+}
+.playing .disc svg {
+  animation: spin 1.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.drop h3 {
+  margin: 0 0 4px;
+  font: 900 34px/34px var(--fc-font-display);
+  color: var(--fc-fg);
+}
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.ops {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.prog {
+  height: 1px;
+  background: var(--fc-line-strong);
+  margin-top: 12px;
+  position: relative;
+}
+.prog i {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 3px;
+  width: 0;
+  background: var(--fc-amber);
+}
+.playing .prog i {
+  animation: prog var(--dur, 30s) linear forwards;
+}
+@keyframes prog {
+  to {
+    width: 100%;
+  }
+}
