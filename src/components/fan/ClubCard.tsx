@@ -7,6 +7,7 @@ import { setClubMembership } from "@/app/actions/fan";
 import { Icon } from "@/components/icons";
 import type { FanClub } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
+import { Notice } from "./states";
 
 /** Botão entrar/sair de um fã clube (grátis; o fã pode estar em vários). */
 export function JoinButton({ club, size = "md" }: { club: FanClub; size?: "md" | "lg" }) {
@@ -30,26 +31,24 @@ export function JoinButton({ club, size = "md" }: { club: FanClub; size?: "md" |
     });
 
   const big = size === "lg";
+  const text = pending ? (joined ? "Saindo…" : "Entrando…") : joined ? "Você está aqui" : "Entrar no clube";
   return (
-    <span className="flex flex-col items-start gap-1">
+    <span className="flex flex-col items-start gap-2">
       <button
         type="button"
         onClick={toggle}
         disabled={pending}
+        aria-busy={pending}
         aria-pressed={joined}
         aria-label={`${joined ? "Sair do" : "Entrar no"} ${club.name}`}
-        className={`flex cursor-pointer items-center gap-1.5 rounded-full border-2 border-ink font-label font-bold disabled:cursor-wait ${
+        className={`flex cursor-pointer items-center gap-1.5 rounded-full border-2 border-ink font-label font-bold disabled:cursor-wait disabled:opacity-80 ${
           big ? "min-h-12 px-5 text-sm" : "min-h-11 px-3.5 text-xs"
         } ${joined ? "bg-cream text-ink" : "bg-accent text-accent-fg"}`}
       >
-        {joined && <Icon name="check" size={16} strokeWidth={2.6} />}
-        {pending ? "…" : joined ? "Você está aqui" : "Entrar no clube"}
+        {joined && !pending && <Icon name="check" size={16} strokeWidth={2.6} />}
+        {text}
       </button>
-      {error && (
-        <span role="alert" className="font-label text-[11px] font-bold text-accent">
-          {error}
-        </span>
-      )}
+      {error && <Notice tone="error">{error}</Notice>}
     </span>
   );
 }
