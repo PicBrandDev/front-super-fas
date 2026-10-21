@@ -13,3 +13,7 @@ export const initialsOf = (name: string) =>
     .join("")
     .slice(0, 2)
     .toUpperCase() || "?";
+
+/** Contador curto do protótipo: 2400 → "2,4 mil", 318 → "318". */
+export const formatShort = (n: number) =>
+  n >= 1000 ? `${(n / 1000).toFixed(1).replace(".0", "").replace(".", ",")} mil` : String(n);
