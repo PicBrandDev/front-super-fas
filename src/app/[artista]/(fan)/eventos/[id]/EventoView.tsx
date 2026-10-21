@@ -129,7 +129,8 @@ export function EventoView({
       </section>
       <StripeBand className="h-3" />
 
-      <div className="mx-auto w-full max-w-[760px] lg:px-4">
+      {/* No celular a barra de ingressos fica fixa acima do menu de baixo (o FanFrame só reserva o menu). */}
+      <div className="mx-auto w-full max-w-[760px] pb-[78px] lg:px-4 lg:pb-0">
         {/* Informações */}
         <section aria-label="Informações do evento" className="p-4">
           <dl className="m-0 grid grid-cols-3 gap-2">
@@ -325,6 +326,22 @@ export function EventoView({
             ))}
           </ul>
         </section>
+      </div>
+
+      {/* Barra fixa de ingressos (só celular), logo acima do menu de baixo. */}
+      <div className="fixed inset-x-0 bottom-[calc(62px+max(10px,env(safe-area-inset-bottom)))] z-20 lg:hidden">
+        <div className="flex items-center justify-between gap-3 border-t-2 border-ink bg-accent-2 px-4 py-2.5 text-ink">
+          <div className="flex min-w-0 flex-col leading-tight">
+            <strong className="font-body text-[15px] font-extrabold">Ingressos e pacotes</strong>
+            <span className="font-label text-xs">Compre e libere brindes</span>
+          </div>
+          <a
+            href="#comprar"
+            className="flex min-h-12 flex-none items-center rounded-full border-2 border-ink bg-ink px-[18px] font-label text-[13px] font-bold text-paper no-underline"
+          >
+            Ver opções
+          </a>
+        </div>
       </div>
     </>
   );

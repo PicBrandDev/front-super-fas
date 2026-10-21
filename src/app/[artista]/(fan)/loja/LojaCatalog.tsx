@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Rings } from "@/components/fan/decor";
+import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
 import type { Product, ProductCategory } from "@/lib/types";
 
@@ -28,8 +29,8 @@ export function LojaCatalog({ artistName, products }: { artistName: string; prod
       <header className="border-b-2 border-ink">
         <div className="mx-auto flex w-full max-w-[1000px] items-center justify-between gap-3 px-4 pb-3 pt-3.5 lg:px-8 lg:pt-8">
           <div className="flex flex-col gap-0.5">
-            <span className="font-label text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">{artistName}</span>
-            <h1 className="m-0 font-display text-[32px] font-normal leading-none text-accent lg:text-5xl">Loja Vintage</h1>
+            <span className="font-label text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">Loja {artistName}</span>
+            <h1 className="m-0 font-display text-[32px] font-normal leading-none text-accent lg:text-5xl">Loja</h1>
           </div>
           {/* TODO: abrir a sacola / checkout quando existir */}
           <button
@@ -59,7 +60,7 @@ export function LojaCatalog({ artistName, products }: { artistName: string; prod
             Coleção [nome do drop]
           </h2>
           <p className="relative m-0 mt-2 max-w-[200px] text-sm text-paper-2 lg:max-w-[360px]">
-            Peças em edição limitada para o fã clube.
+            Peças em edição limitada para o fã clube {artistName}.
           </p>
         </section>
 
@@ -82,10 +83,25 @@ export function LojaCatalog({ artistName, products }: { artistName: string; prod
           })}
         </div>
 
-        {visible.length === 0 ? (
-          <p className="m-0 rounded-xl border-2 border-dashed border-ink-soft p-3.5 text-sm text-ink-soft">
-            Nenhum produto nesta categoria por enquanto.
-          </p>
+        {products.length === 0 ? (
+          <EmptyState
+            title="A loja ainda está vazia"
+            text={`Quando ${artistName} colocar produtos à venda, eles aparecem aqui.`}
+          />
+        ) : visible.length === 0 ? (
+          <EmptyState
+            title="Nenhum produto nesta categoria"
+            text="Veja as outras categorias ou volte para todos os produtos."
+            action={
+              <button
+                type="button"
+                onClick={() => setCat("todos")}
+                className="min-h-11 cursor-pointer rounded-full border-2 border-ink bg-accent-2 px-4 font-label text-xs font-bold text-ink"
+              >
+                Ver todos os produtos
+              </button>
+            }
+          />
         ) : (
           <ul className="m-0 grid list-none grid-cols-2 gap-3 p-0 lg:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] lg:gap-4">
             {visible.map((p) => {
