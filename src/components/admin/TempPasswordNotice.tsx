@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AdminNotice, btnSecondary } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 
 /**
  * Mostra uma única vez a senha provisória de uma conta criada por convite.
- * Ainda não enviamos e-mail: quem convidou passa a senha para a pessoa.
+ * Ainda não enviamos e-mail: quem convidou copia a senha e passa para a pessoa.
+ * Ao fechar, a senha some e não dá para vê-la de novo.
  */
 export function TempPasswordNotice({
   email,
@@ -16,7 +18,7 @@ export function TempPasswordNotice({
   password: string | null;
   onClose: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"idle" | "ok" | "fail">("idle");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,9 +29,10 @@ export function TempPasswordNotice({
     if (!password) return;
     try {
       await navigator.clipboard.writeText(`Login: ${email}\nSenha provisória: ${password}`);
-      setCopied(true);
+      setCopied("ok");
     } catch {
-      // Sem permissão de área de transferência: a pessoa copia na mão.
+      // Sem permissão de área de transferência: a pessoa seleciona e copia na mão.
+      setCopied("fail");
     }
   };
 
@@ -37,43 +40,45 @@ export function TempPasswordNotice({
     <div
       ref={ref}
       tabIndex={-1}
-      role="status"
-      className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-adm-ok bg-adm-ok-bg p-4 text-adm-ink outline-none"
+      role="region"
+      aria-label={`Conta criada para ${email}`}
+      className="flex flex-col gap-3 rounded-xl border border-adm-ok bg-white p-4 outline-none"
     >
-      <div className="flex flex-col gap-1">
-        <strong className="text-sm">Conta criada para {email}</strong>
-        {password ? (
-          <>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <strong className="text-sm">Conta criada para {email}</strong>
+          {password ? (
             <span className="text-sm">
-              Senha provisória: <code className="rounded bg-white px-1.5 py-0.5 font-adm-mono text-[13px] font-semibold">{password}</code>
+              Senha provisória:{" "}
+              <code className="select-all rounded bg-adm-bg px-1.5 py-0.5 font-adm-mono text-[15px] font-semibold">{password}</code>
             </span>
-            <span className="text-xs text-adm-muted">
-              Anote agora: ela não aparece de novo. No primeiro login a pessoa escolhe a própria senha.
-            </span>
-          </>
-        ) : (
-          <span className="text-sm">A pessoa já tinha conta e foi vinculada; ela entra com a senha que já usa.</span>
-        )}
-      </div>
-      <div className="flex gap-2">
-        {password && (
+          ) : (
+            <span className="text-sm">A pessoa já tinha conta e foi vinculada; ela entra com a senha que já usa.</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {password && (
+            <button type="button" onClick={copy} className={btnSecondary}>
+              {copied === "ok" ? "Copiado" : "Copiar"}
+            </button>
+          )}
           <button
             type="button"
-            onClick={copy}
-            className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold"
+            onClick={onClose}
+            aria-label="Fechar aviso da senha provisória"
+            className="flex size-11 cursor-pointer items-center justify-center rounded-lg border border-adm-line bg-white"
           >
-            {copied ? "Copiado" : "Copiar"}
+            <Icon name="close" size={14} strokeWidth={2.6} />
           </button>
-        )}
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fechar aviso"
-          className="flex size-10 cursor-pointer items-center justify-center rounded-lg border border-adm-line bg-white"
-        >
-          <Icon name="close" size={14} strokeWidth={2.6} />
-        </button>
+        </div>
       </div>
+      {password && (
+        <AdminNotice tone={copied === "fail" ? "error" : "warn"}>
+          {copied === "fail"
+            ? "Não deu para copiar automaticamente. Selecione a senha acima e copie na mão antes de fechar."
+            : "Esta senha aparece só agora: copie e passe para a pessoa antes de fechar. No primeiro login ela escolhe a própria senha."}
+        </AdminNotice>
+      )}
     </div>
   );
 }

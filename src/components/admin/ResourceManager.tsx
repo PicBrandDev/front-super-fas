@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { deleteContent, saveContent } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
-import { btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 
 export type FieldDef = {
@@ -159,11 +159,7 @@ export function ResourceManager({
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
-      {error && !editing && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {error}
-        </p>
-      )}
+      {error && !editing && <AdminNotice tone="error">{error}</AdminNotice>}
 
       {editing && (
         <ItemForm
@@ -270,7 +266,19 @@ export function ResourceManager({
           </tbody>
         </table>
         {items.length === 0 && (
-          <p className="m-0 px-4 py-6 text-sm text-adm-muted">{emptyText ?? `${feminine ? "Nenhuma" : "Nenhum"} ${singular} cadastrad${o} ainda.`}</p>
+          <div className="p-3">
+            <AdminEmpty
+              title={`${feminine ? "Nenhuma" : "Nenhum"} ${singular} cadastrad${o} ainda`}
+              text={emptyText}
+              action={
+                allowAdd && !editing ? (
+                  <button type="button" onClick={() => setEditing("new")} className={btnPrimary}>
+                    Adicionar {singular}
+                  </button>
+                ) : undefined
+              }
+            />
+          </div>
         )}
       </div>
     </section>
@@ -338,11 +346,7 @@ function ItemForm({
       className="flex flex-col gap-4 rounded-xl border border-adm-blue bg-white p-5"
     >
       <h3 className="m-0 text-base font-bold">{formTitle}</h3>
-      {error && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {error}
-        </p>
-      )}
+      {error && <AdminNotice tone="error">{error}</AdminNotice>}
       <div className="grid gap-4 sm:grid-cols-2">
         {fields.map((f, i) => {
           const id = `fld-${resource}-${f.name}`;

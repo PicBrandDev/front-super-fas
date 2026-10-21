@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { AdminShell, fanClubNav } from "@/components/admin/AdminShell";
+import { initialsOf, shellUser } from "@/lib/shell";
 import type { Artist, FanClub } from "@/lib/types";
-import { shellUser } from "@/lib/shell";
 
-/** Casca do painel de um fã clube (dono e ajudantes). */
+/** Casca do painel de um fã clube (dono e ajudantes). O selo leva a inicial do clube na cor do artista. */
 export async function FanClubShell({
   artist,
   club,
@@ -23,7 +23,7 @@ export async function FanClubShell({
             className="flex size-full items-center justify-center rounded-lg text-lg font-normal"
             style={{ background: artist.brandColor, color: artist.theme.cream, fontFamily: artist.theme.fontDisplay }}
           >
-            {artist.initial}
+            {initialsOf(club.name).charAt(0)}
           </span>
         ),
         markClass: "bg-transparent",
@@ -33,7 +33,7 @@ export async function FanClubShell({
       nav={fanClubNav(artist.slug, club.slug)}
       active={active}
       extraLink={{ label: "Ver página do clube", href: `/${artist.slug}/clubes/${club.slug}` }}
-      user={await shellUser({ initials: "DC", name: "Dono do clube", role: "Equipe de fã clube" })}
+      user={await shellUser({ initials: "EQ", name: "Equipe do fã clube", role: "Equipe do fã clube" })}
     >
       {children}
     </AdminShell>

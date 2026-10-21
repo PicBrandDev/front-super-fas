@@ -23,7 +23,7 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
       nav={clubNav(artist.slug)}
       active={active}
       extraLink={{ label: "Ver área do fã", href: `/${artist.slug}` }}
-      user={await shellUser({ initials: "RL", name: "Rafa Lima", role: "Admin master do cantor" })}
+      user={await shellUser({ initials: "EQ", name: "Equipe do fã clube", role: "Administração do ambiente" })}
     >
       {children}
     </AdminShell>

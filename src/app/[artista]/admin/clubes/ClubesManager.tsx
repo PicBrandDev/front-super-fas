@@ -6,7 +6,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { createClub, deleteClub, updateClub, type InviteResult } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
-import { Badge, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import type { FanClub } from "@/lib/types";
 
@@ -19,7 +19,6 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
   const [form, setForm] = useState({ name: "", city: "", description: "", ownerEmail: "", ownerName: "" });
   const [error, setError] = useState("");
   const [invite, setInvite] = useState<InviteResult | null>(null);
-  const [confirm, setConfirm] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
   const full = clubs.length >= MAX_CLUBS;
@@ -66,7 +65,6 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
       }
       setError("");
       setAnnounce(done);
-      setConfirm(null);
       router.refresh();
     });
 
@@ -74,11 +72,12 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
     <>
       <AdminPageHeader
         title="Fã clubes"
+        headingId="clubes-title"
         description={`Até ${MAX_CLUBS} fã clubes no ambiente de ${artistName}: o master (de vocês) e mais ${MAX_CLUBS - 1}. Cada um tem um dono, que convida os ajudantes dele.`}
         actions={
           <button type="button" onClick={() => setOpen(true)} disabled={full || open} className={btnPrimary}>
             <Icon name="plus" size={18} strokeWidth={2.4} />
-            {full ? "Limite de 10 fã clubes" : "Criar fã clube"}
+            {full ? `Limite de ${MAX_CLUBS} fã clubes` : "Criar fã clube"}
           </button>
         }
       />
@@ -86,26 +85,24 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
         {announce}
       </p>
       {invite && <TempPasswordNotice email={invite.email} password={invite.tempPassword} onClose={() => setInvite(null)} />}
-      {error && !open && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {error}
-        </p>
-      )}
+      {error && !open && <AdminNotice tone="error">{error}</AdminNotice>}
+      <p className="m-0 flex flex-wrap items-center gap-2 text-sm text-adm-muted">
+        <span className="font-adm-mono text-[13px] font-semibold text-adm-ink">
+          {clubs.length}/{MAX_CLUBS}
+        </span>
+        fã clubes criados{full ? " (limite atingido)" : ""}.
+      </p>
 
       {open && (
         <form onSubmit={submit} noValidate aria-label="Novo fã clube" className="flex flex-col gap-4 rounded-xl border border-adm-blue bg-white p-5">
           <h2 className="m-0 text-base font-bold">Novo fã clube</h2>
-          {error && (
-            <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-              {error}
-            </p>
-          )}
+          {error && <AdminNotice tone="error">{error}</AdminNotice>}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="nc-name" className="text-[13px] font-semibold">
                 Nome do fã clube *
               </label>
-              <input id="nc-name" autoFocus value={form.name} onChange={set("name")} placeholder="Ex.: Fã Clube Vintage SP" className={inputClass} />
+              <input id="nc-name" autoFocus value={form.name} onChange={set("name")} placeholder="Ex.: Fã Clube de São Paulo" className={inputClass} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="nc-city" className="text-[13px] font-semibold">
@@ -182,7 +179,7 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
                 <td className={tdClass}>{c.owner?.name ?? <span className="text-adm-muted">Sem dono</span>}</td>
                 <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.members.toLocaleString("pt-BR")}</td>
                 <td className={tdClass}>
-                  <Badge tone={c.status === "active" ? "ok" : "warn"}>{c.status === "active" ? "No ar" : "Em configuração"}</Badge>
+                  <Badge tone={c.status === "active" ? "ok" : "off"}>{c.status === "active" ? "No ar" : "Fora do ar"}</Badge>
                 </td>
                 <td className={tdClass}>
                   <div className="flex flex-wrap justify-end gap-2">
@@ -208,40 +205,41 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
                         <span className="sr-only"> {c.name}</span>
                       </button>
                     )}
-                    {!c.isMaster &&
-                      (confirm === c.id ? (
-                        <>
-                          <button type="button" onClick={() => setConfirm(null)} className={btnSecondary}>
-                            Manter
-                          </button>
-                          <button
-                            type="button"
-                            disabled={pending}
-                            onClick={() => run(() => deleteClub(artist, c.slug), `${c.name} apagado.`)}
-                            className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-adm-danger px-3 text-sm font-semibold text-white"
-                          >
-                            Apagar fã clube
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setConfirm(c.id)}
-                          className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold text-adm-danger"
-                        >
-                          Apagar<span className="sr-only"> {c.name}</span>
-                        </button>
-                      ))}
+                    {!c.isMaster && (
+                      <button
+                        type="button"
+                        disabled={pending}
+                        onClick={() => {
+                          if (window.confirm(`Apagar o fã clube "${c.name}"? Os membros saem do clube e isso não tem volta.`)) {
+                            run(() => deleteClub(artist, c.slug), `${c.name} apagado.`);
+                          }
+                        }}
+                        className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold text-adm-danger"
+                      >
+                        Apagar<span className="sr-only"> {c.name}</span>
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {clubs.length === 0 && (
+          <div className="p-3">
+            <AdminEmpty
+              title="Nenhum fã clube ainda"
+              text="Crie o primeiro fã clube do ambiente e escolha quem vai ser o dono."
+              action={
+                <button type="button" onClick={() => setOpen(true)} disabled={open} className={btnPrimary}>
+                  Criar fã clube
+                </button>
+              }
+            />
+          </div>
+        )}
       </div>
-      <p className="m-0 text-sm text-adm-muted">
-        {clubs.length} de {MAX_CLUBS} fã clubes. Para trocar o dono de um clube, abra o painel dele, em Equipe.
-      </p>
+      <p className="m-0 text-sm text-adm-muted">Para trocar o dono de um clube, abra o painel dele, em Equipe.</p>
     </>
   );
 }

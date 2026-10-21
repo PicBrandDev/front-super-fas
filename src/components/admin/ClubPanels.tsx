@@ -5,7 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { deleteContent, removeClubMember, updateClub } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { SearchField } from "@/components/admin/controls";
-import { Badge, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
 import type { ClubMemberRow, FanClub, Post } from "@/lib/types";
 
 function useAction() {
@@ -34,11 +34,7 @@ function Feedback({ error, announce }: { error: string; announce: string }) {
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
-      {error && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {error}
-        </p>
-      )}
+      {error && <AdminNotice tone="error">{error}</AdminNotice>}
     </>
   );
 }
@@ -125,7 +121,15 @@ export function ClubMembersClient({ artist, club, clubName, members }: { artist:
             ))}
           </tbody>
         </table>
-        {rows.length === 0 && <p className="m-0 px-4 py-6 text-sm text-adm-muted">Nenhum membro encontrado.</p>}
+        {rows.length === 0 && (
+          <div className="p-3">
+            {members.length === 0 ? (
+              <AdminEmpty title="Nenhum membro ainda" text="Quem entrar no fã clube pela área do fã aparece aqui." />
+            ) : (
+              <AdminEmpty title="Nenhum membro encontrado" text="Tente outro nome, @ ou cidade." />
+            )}
+          </div>
+        )}
       </div>
     </>
   );
@@ -140,7 +144,7 @@ export function ClubPostsClient({ artist, club, clubName, posts }: { artist: str
       <AdminPageHeader title="Mural da galera" description={`Posts dos membros no ${clubName}. Apague o que não segue as regras do clube.`} />
       <Feedback error={error} announce={announce} />
       <div className="flex flex-col gap-3">
-        {posts.length === 0 && <p className="m-0 text-sm text-adm-muted">Ninguém postou ainda.</p>}
+        {posts.length === 0 && <AdminEmpty title="Ninguém postou ainda" text="Os posts dos membros no mural da galera aparecem aqui para moderação." />}
         {posts.map((p) => (
           <article key={p.id} className="flex flex-wrap items-start gap-3 rounded-xl border border-adm-line bg-white p-4">
             <span
@@ -234,7 +238,7 @@ export function ClubDataForm({ artist, club, canPublish }: { artist: string; clu
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="flex items-center gap-2 text-sm">
-            <Badge tone={club.status === "active" ? "ok" : "warn"}>{club.status === "active" ? "No ar" : "Em configuração"}</Badge>
+            <Badge tone={club.status === "active" ? "ok" : "off"}>{club.status === "active" ? "No ar" : "Fora do ar"}</Badge>
             {canPublish && !club.isMaster && (
               <button
                 type="button"
