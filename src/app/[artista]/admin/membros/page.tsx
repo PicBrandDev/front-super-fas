@@ -7,7 +7,7 @@ import { MembrosClient } from "./MembrosClient";
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
   const { artista } = await params;
   const artist = await getArtist(artista);
-  return { title: artist ? `Membros — ${artist.name}` : "Membros" };
+  return { title: artist ? `Assinantes — ${artist.name}` : "Assinantes" };
 }
 
 export default async function MembrosPage({ params }: { params: Promise<{ artista: string }> }) {

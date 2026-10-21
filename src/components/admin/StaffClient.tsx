@@ -5,7 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { inviteStaff, removeStaff, type InviteResult } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
-import { Badge, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
 import type { StaffMember } from "@/lib/types";
 
 const MAX_STAFF = 10;
@@ -64,8 +64,12 @@ export function StaffClient({
   const remove = (id: string) =>
     start(async () => {
       const res = await removeStaff(artist, club, id);
-      if (!res.ok) setError(res.error);
       setConfirm(null);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      setError("");
       router.refresh();
     });
 
@@ -85,11 +89,7 @@ export function StaffClient({
             ({staff.length}/{MAX_STAFF})
           </span>
         </h2>
-        {error && (
-          <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-            {error}
-          </p>
-        )}
+        {error && <AdminNotice tone="error">{error}</AdminNotice>}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="st-email" className="text-[13px] font-semibold">
@@ -189,7 +189,11 @@ export function StaffClient({
             ))}
           </tbody>
         </table>
-        {staff.length === 0 && <p className="m-0 px-4 py-6 text-sm text-adm-muted">Ninguém na equipe ainda.</p>}
+        {staff.length === 0 && (
+          <div className="p-3">
+            <AdminEmpty title="Ninguém na equipe ainda" text="Convide o dono e os ajudantes pelo formulário acima." />
+          </div>
+        )}
       </div>
     </>
   );

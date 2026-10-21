@@ -5,7 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { decideCampaign, updateAdSlot } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { Switch } from "@/components/admin/controls";
-import { Badge, SlotDiagram, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
+import { AdminEmpty, AdminNotice, Badge, SlotDiagram, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
 import type { AdSlot, Campaign, CampaignStatus } from "@/lib/types";
 
 const look: Record<CampaignStatus, { label: string; tone: Tone }> = {
@@ -70,11 +70,7 @@ export function AnunciosClient({
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
-      {error && (
-        <p role="alert" className="m-0 rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger">
-          {error}
-        </p>
-      )}
+      {error && <AdminNotice tone="error">{error}</AdminNotice>}
 
       <section aria-labelledby="an-camps" className="flex flex-col gap-3">
         <h2 id="an-camps" className="m-0 text-lg font-bold">
@@ -133,7 +129,11 @@ export function AnunciosClient({
               ))}
             </tbody>
           </table>
-          {campaigns.length === 0 && <p className="m-0 px-4 py-6 text-sm text-adm-muted">Nenhuma campanha ainda.</p>}
+          {campaigns.length === 0 && (
+            <div className="p-3">
+              <AdminEmpty title="Nenhuma campanha ainda" text="As campanhas que os patrocinadores mandarem para estas vitrines aparecem aqui para aprovação." />
+            </div>
+          )}
         </div>
       </section>
 
@@ -192,7 +192,7 @@ export function AnunciosClient({
             </article>
           ))}
         </div>
-        {slots.length === 0 && <p className="m-0 text-sm text-adm-muted">Nenhuma vitrine.</p>}
+        {slots.length === 0 && <AdminEmpty title="Nenhuma vitrine" text="As vitrines de anúncio deste lugar ainda não foram configuradas." />}
       </section>
     </>
   );
