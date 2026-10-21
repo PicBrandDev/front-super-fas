@@ -1,53 +1,76 @@
 import type { CSSProperties } from "react";
 import { MARK_POINTS } from "./Mark";
+import s from "./Turntable.module.css";
 
 /**
- * Toca-discos do PicKap (porte da função `turntable()` do protótipo fanzone).
- * O disco é a roleta: cada faixa (`.trk`) é um prêmio; a agulha escolhe.
+ * Toca-discos do PicKap: o disco é a roleta e a agulha escolhe o prêmio.
+ * Porte fiel de `turntable()` do protótipo fanzone.html.
  *
- * Uso no cartaz (Mural): `<Turntable deck={false} on={4} rot={recAngleFor(4)} arm={TT.play} prefix="pp" />`.
- * Uso ao vivo (PicKap): `<Turntable live on={i} rot={angle} arm={0} prefix="dk" />` e, para animar,
- * mude `rot`/`arm` (o CSS global `.tt .rec/.arm` faz a transição) ou alcance os nós pelos ids
- * `${prefix}Rec`, `${prefix}Arm`, `${prefix}Vu`, `${prefix}Vol`, `${prefix}LedG`, `${prefix}LedR`.
+ * API
+ *   <Turntable prizes={["Camiseta", ...]} />            só o disco (viewBox 0 0 390 300)
+ *   <Turntable prizes={...} deck live />                 disco + deck (VU, LEDs PLAY/STOP,
+ *                                                        knob de volume), viewBox 0 0 390 472
+ * Props
+ *   prizes   rótulos das fatias, no sentido horário a partir do topo (12h).
+ *   deck     mostra o painel de controles (padrão: true).
+ *   on       índice da fatia acesa em âmbar (-1 = nenhuma).
+ *   rot      ângulo do disco em graus (ver `recordAngleFor`).
+ *   arm      ângulo do braço (0 = descansando, `TT.play` = sobre o disco).
+ *   live     role="img" com descrição; sem `live` é decorativo (aria-hidden).
+ *   prefix   prefixo dos ids ("tt" → #ttRec, #ttArm, #ttVu, #ttVol, #ttLedG, #ttLedR).
+ *   playing  LEDs em modo "tocando" (PLAY verde, STOP apagado).
+ *   vu       ângulo do ponteiro do VU (padrão -46; oscila entre -30 e 32 tocando).
+ *   volume   ângulo do knob (padrão -120; vai a 100 tocando).
  *
- * - `deck`: com `true` desenha o VU, PLAY/STOP e o botão de volume (viewBox 390×472); com `false`, só o disco (390×300).
- * - `on`: índice do prêmio aceso (faixa âmbar), -1 para nenhum.
- * - `rot`: rotação do disco em graus (use `recAngleFor(i)` para deixar o prêmio `i` sob a agulha).
- * - `arm`: rotação do braço em graus (0 em repouso, `TT.play` sobre o disco).
- * - `live`: `role="img"` + ids nos nós animáveis; `false` deixa o SVG decorativo.
- * - `prizes`: rótulos das 8 faixas (padrão `PRIZES`).
+ * Para animar, troque `rot`/`arm`/`vu`/`volume`/`on` por estado: as
+ * transições (4,2 s no disco, 0,8 s no braço, 0,14 s no VU) estão no CSS
+ * Module. Os ids também estão lá para quem preferir ouvir `transitionend`.
+ * Fatias: `.trk[data-i]`. Geometria em `TT`; `stylusTheta` é o ângulo
+ * (a partir das 12h) em que a agulha toca o disco; `recordAngleFor(i, n)`
+ * é o ângulo do disco que põe a fatia `i` embaixo da agulha.
  */
-export const PRIZES = ["Camiseta", "Boné", "Pôster", "Vinil", "Ingresso", "Adesivo", "Tente de novo", "Pulseira"];
+export const TT = { cx: 170, cy: 210, piv: [345, 54] as const, tip: [335.2, 267.9] as const, play: 15.5 };
 
-/** Geometria fixa do desenho: centro do disco, pivô do braço, ponta da agulha e ângulo de "tocando". */
-export const TT: { cx: number; cy: number; piv: [number, number]; tip: [number, number]; play: number } = {
-  cx: 170,
-  cy: 210,
-  piv: [345, 54],
-  tip: [335.2, 267.9],
-  play: 15.5,
-};
+export const norm = (a: number) => ((a % 360) + 360) % 360;
 
-/** Ângulo (a partir do topo, horário) em que a agulha toca o disco quando o braço está em `TT.play`. */
+/** Ângulo (graus, a partir das 12h, horário) em que a agulha encosta no disco com o braço em TT.play. */
 export const stylusTheta = (() => {
   const a = (TT.play * Math.PI) / 180;
   const dx = TT.tip[0] - TT.piv[0];
   const dy = TT.tip[1] - TT.piv[1];
   const x = TT.piv[0] + dx * Math.cos(a) - dy * Math.sin(a);
   const y = TT.piv[1] + dx * Math.sin(a) + dy * Math.cos(a);
-  const deg = (Math.atan2(x - TT.cx, -(y - TT.cy)) * 180) / Math.PI;
-  return (deg + 360) % 360;
-})();
+  return (Math.atan2(x - TT.cx, -(y - TT.cy)) * 180) / Math.PI + 360;
+})() % 360;
 
-export const norm = (a: number) => ((a % 360) + 360) % 360;
+/** Ângulo do disco que deixa a fatia `index` (de `count`) embaixo da agulha. */
+export const recordAngleFor = (index: number, count: number) => norm(stylusTheta - index * (360 / Math.max(count, 1)));
 
-/** Rotação do disco que deixa o prêmio `i` sob a agulha. */
-export const recAngleFor = (i: number, n = PRIZES.length) => norm(stylusTheta - i * (360 / n));
+/** Prêmios do protótipo (usados quando a API não manda a lista). */
+export const PRIZES = ["Camiseta", "Boné", "Pôster", "Vinil", "Ingresso", "Adesivo", "Tente de novo", "Pulseira"];
+
+/** Atalho de `recordAngleFor` com os prêmios do protótipo (cartaz do Mural). */
+export const recAngleFor = (i: number, n = PRIZES.length) => recordAngleFor(i, n);
+
+export type TurntableProps = {
+  prizes: string[];
+  deck?: boolean;
+  on?: number;
+  rot?: number;
+  arm?: number;
+  live?: boolean;
+  prefix?: string;
+  className?: string;
+  playing?: boolean;
+  vu?: number;
+  volume?: number;
+};
 
 const P = (a: number, r: number): [number, number] => {
   const t = ((a - 90) * Math.PI) / 180;
   return [+(TT.cx + r * Math.cos(t)).toFixed(2), +(TT.cy + r * Math.sin(t)).toFixed(2)];
 };
+
 const ann = (a0: number, a1: number, r0: number, r1: number) => {
   const [x0, y0] = P(a0, r1);
   const [x1, y1] = P(a1, r1);
@@ -57,44 +80,42 @@ const ann = (a0: number, a1: number, r0: number, r1: number) => {
 };
 
 const mono: CSSProperties = { fontFamily: "var(--fc-font-mono)" };
-const grotesk: CSSProperties = { fontFamily: "var(--fc-font-grotesk)", fontWeight: 800 };
+const grotesk: CSSProperties = { fontFamily: "var(--fc-font-grotesk)" };
+
+const origin = (x: number, y: number, deg: number): CSSProperties => ({
+  transformOrigin: `${x}px ${y}px`,
+  transform: `rotate(${deg}deg)`,
+});
 
 export function Turntable({
+  prizes,
   deck = true,
   on = -1,
   rot = 0,
   arm = 0,
   live = false,
-  prefix = "t",
-  prizes = PRIZES,
+  prefix = "tt",
   className = "",
-}: {
-  deck?: boolean;
-  on?: number;
-  rot?: number;
-  arm?: number;
-  live?: boolean;
-  prefix?: string;
-  prizes?: string[];
-  className?: string;
-}) {
-  const { cx, cy } = TT;
-  const n = prizes.length;
+  playing = false,
+  vu = -46,
+  volume = -120,
+}: TurntableProps) {
+  const c = TT;
+  const n = Math.max(prizes.length, 1);
   const step = 360 / n;
-  const [px, py] = TT.piv;
-  const id = (s: string) => (live ? `${prefix}${s}` : undefined);
+  const [px, py] = c.piv;
 
   const grooves: number[] = [];
   for (let r = 58; r <= 147; r += 3.1) grooves.push(+r.toFixed(1));
 
-  const vu: { x0: string; y0: string; x1: string; y1: string; hot: boolean }[] = [];
-  const knob: { x0: string; y0: string; x1: string; y1: string }[] = [];
+  const vuTicks: { x0: string; y0: string; x1: string; y1: string; hot: boolean }[] = [];
+  const knobTicks: { x0: string; y0: string; x1: string; y1: string }[] = [];
   const brush: number[] = [];
   if (deck) {
     for (let k = -48; k <= 48; k += 8) {
       const t = (k * Math.PI) / 180;
       const r0 = k % 16 === 0 ? 60 : 63;
-      vu.push({
+      vuTicks.push({
         x0: (95 + r0 * Math.sin(t)).toFixed(1),
         y0: (476 - r0 * Math.cos(t)).toFixed(1),
         x1: (95 + 70 * Math.sin(t)).toFixed(1),
@@ -105,7 +126,7 @@ export function Turntable({
     for (let k = -135; k <= 135; k += 15) {
       const t = (k * Math.PI) / 180;
       const r1 = k % 45 === 0 ? 42 : 39;
-      knob.push({
+      knobTicks.push({
         x0: (322 + 35 * Math.sin(t)).toFixed(1),
         y0: (424 - 35 * Math.cos(t)).toFixed(1),
         x1: (322 + r1 * Math.sin(t)).toFixed(1),
@@ -116,9 +137,11 @@ export function Turntable({
   }
   const vuArc = `M${(95 - 70 * Math.sin(0.84)).toFixed(1)} ${(476 - 70 * Math.cos(0.84)).toFixed(1)}A70 70 0 0 1 ${(95 + 70 * Math.sin(0.84)).toFixed(1)} ${(476 - 70 * Math.cos(0.84)).toFixed(1)}`;
 
+  const id = (name: string) => `${prefix}${name}`;
+
   return (
     <svg
-      className={`tt ${className}`}
+      className={`${s.tt} tt ${playing ? s.playing : ""} ${className}`}
       viewBox={`0 0 390 ${deck ? 472 : 300}`}
       role={live ? "img" : undefined}
       aria-label={live ? `Toca-discos com ${n} prêmios no disco; a agulha escolhe o prêmio` : undefined}
@@ -127,47 +150,46 @@ export function Turntable({
     >
       {deck && (
         <defs>
-          <radialGradient id={`${prefix}kg`} cx=".36" cy=".3" r=".8">
-            <stop offset="0" stopColor="var(--tt-metal-hi)" />
-            <stop offset=".55" stopColor="var(--tt-metal-mid)" />
-            <stop offset="1" stopColor="var(--tt-metal-lo)" />
+          <radialGradient id={id("kg")} cx=".36" cy=".3" r=".8">
+            <stop offset="0" stopColor="#f4f6f6" />
+            <stop offset=".55" stopColor="#a7b1b1" />
+            <stop offset="1" stopColor="#6f7b7b" />
           </radialGradient>
-          <clipPath id={`${prefix}vc`}>
+          <clipPath id={id("vc")}>
             <rect x="26" y="394" width="138" height="60" rx="4" />
           </clipPath>
         </defs>
       )}
-      <circle cx={cx} cy={cy} r="153" fill="var(--tt-plinth)" />
-      <g
-        className="rec"
-        id={id("Rec")}
-        style={{ transformOrigin: `${cx}px ${cy}px`, transform: `rotate(${rot}deg)` } as CSSProperties}
-      >
-        <circle cx={cx} cy={cy} r="150" fill="var(--tt-vinyl)" />
+
+      {/* prato */}
+      <circle cx={c.cx} cy={c.cy} r="153" fill="var(--key-deep)" />
+
+      {/* disco */}
+      <g id={id("Rec")} className={`${s.rec} rec`} style={origin(c.cx, c.cy, rot)}>
+        <circle cx={c.cx} cy={c.cy} r="150" fill="var(--vinyl)" />
         {grooves.map((r) => (
-          <circle key={r} cx={cx} cy={cy} r={r} fill="none" stroke="var(--tt-groove)" strokeWidth=".7" />
+          <circle key={r} cx={c.cx} cy={c.cy} r={r} fill="none" stroke="var(--groove)" strokeWidth=".7" />
         ))}
         {[86, 112, 134].map((r) => (
-          <circle key={r} cx={cx} cy={cy} r={r} fill="none" stroke="var(--tt-groove-deep)" strokeWidth="2.2" />
+          <circle key={r} cx={c.cx} cy={c.cy} r={r} fill="none" stroke="var(--groove-deep)" strokeWidth="2.2" />
         ))}
-        {prizes.map((_, i) => {
+        {prizes.map((label, i) => {
           const a = i * step;
           const [x0, y0] = P(a - step / 2, 58);
           const [x1, y1] = P(a - step / 2, 149);
-          return <line key={i} x1={x0} y1={y0} x2={x1} y2={y1} stroke="var(--tt-sep)" strokeWidth=".8" />;
+          return <line key={i} x1={x0} y1={y0} x2={x1} y2={y1} stroke="var(--divider)" strokeWidth=".8" />;
         })}
         {prizes.map((label, i) => {
           const a = i * step;
           return (
-            <g key={label + i} className={`trk${i === on ? " on" : ""}`} data-i={i}>
-              <path d={ann(a - step / 2, a + step / 2, 58, 149)} fill="transparent" />
+            <g key={i} className={`${s.trk} trk${i === on ? ` ${s.on} on` : ""}`} data-i={i}>
+              <path d={ann(a - step / 2, a + step / 2, 58, 149)} />
               <text
-                transform={`rotate(${a} ${cx} ${cy}) translate(${cx} ${cy - 122})`}
+                transform={`rotate(${a} ${c.cx} ${c.cy}) translate(${c.cx} ${c.cy - 122})`}
                 textAnchor="middle"
-                style={mono}
                 fontSize={label.length > 9 ? 8.5 : 10}
                 letterSpacing="1"
-                fill="var(--tt-label-text)"
+                style={mono}
               >
                 {label.toUpperCase()}
               </text>
@@ -175,112 +197,114 @@ export function Turntable({
           );
         })}
         {/* selo */}
-        <circle cx={cx} cy={cy} r="52" fill="var(--tt-label-blue)" />
-        <circle cx={cx} cy={cy} r="47" fill="none" stroke="var(--fc-ink)" strokeWidth=".6" />
-        <text x={cx} y={cy - 17} textAnchor="middle" style={grotesk} fontSize="12" fill="var(--fc-ink)">
+        <circle cx={c.cx} cy={c.cy} r="52" fill="var(--label-blue)" />
+        <circle cx={c.cx} cy={c.cy} r="47" fill="none" stroke="var(--fc-ink)" strokeWidth=".6" />
+        <text x={c.cx} y={c.cy - 17} textAnchor="middle" fontWeight="800" fontSize="12" fill="var(--fc-ink)" style={grotesk}>
           PICKAP
         </text>
-        <g transform={`translate(${cx - 15} ${cy + 5}) scale(.034)`} fill="none" stroke="var(--fc-ink)" strokeWidth="40">
+        <g transform={`translate(${c.cx - 15} ${c.cy + 5}) scale(0.034)`} fill="none" stroke="var(--fc-ink)" strokeWidth="40">
           <g transform="translate(-146 -288)">
             {MARK_POINTS.map((p) => (
               <polygon key={p} points={p} />
             ))}
           </g>
         </g>
-        <text x={cx} y={cy + 39} textAnchor="middle" style={mono} fontSize="6" letterSpacing="1" fill="var(--fc-ink)">
+        <text x={c.cx} y={c.cy + 39} textAnchor="middle" fontSize="6" letterSpacing="1" fill="var(--fc-ink)" style={mono}>
           DA SORTE · 33 RPM
         </text>
-        <circle cx={cx} cy={cy} r="5" fill="var(--tt-metal-hi)" stroke="var(--tt-metal-lo)" />
+        <circle cx={c.cx} cy={c.cy} r="5" fill="var(--metal-hi)" stroke="var(--metal-lo)" />
       </g>
-      {/* brilho */}
-      <path d={ann(-58, -28, 60, 148)} fill="var(--fc-paper)" opacity=".07" />
-      <path d={ann(122, 152, 60, 148)} fill="var(--fc-paper)" opacity=".07" />
+
+      {/* brilho do vinil */}
+      <path d={ann(-58, -28, 60, 148)} fill="var(--sheen)" opacity=".07" />
+      <path d={ann(122, 152, 60, 148)} fill="var(--sheen)" opacity=".07" />
+
       {/* base do braço */}
-      <circle cx={px} cy={py} r="30" fill="var(--tt-metal)" stroke="var(--fc-chrome)" strokeWidth="2" />
-      <circle cx={px} cy={py} r="21" fill="var(--tt-metal-hi)" stroke="var(--tt-metal-edge)" />
-      <g
-        className="arm"
-        id={id("Arm")}
-        style={{ transformOrigin: `${px}px ${py}px`, transform: `rotate(${arm}deg)` } as CSSProperties}
-      >
-        <rect x={px - 14} y={py - 48} width="28" height="30" rx="5" fill="var(--tt-metal)" stroke="var(--tt-metal-lo)" />
-        <rect x={px - 11} y={py - 42} width="22" height="2" fill="var(--tt-metal-lo)" />
-        <rect x={px - 11} y={py - 36} width="22" height="2" fill="var(--tt-metal-lo)" />
-        <line x1={px} y1={py - 14} x2={px} y2="232" stroke="var(--tt-metal-lo)" strokeWidth="7" strokeLinecap="round" />
-        <line x1={px} y1={py - 14} x2={px} y2="232" stroke="var(--tt-metal-hi)" strokeWidth="3.5" strokeLinecap="round" />
+      <circle cx={px} cy={py} r="30" fill="var(--metal)" stroke="var(--fc-chrome)" strokeWidth="2" />
+      <circle cx={px} cy={py} r="21" fill="var(--metal-hi)" stroke="var(--metal-ring)" />
+
+      {/* braço */}
+      <g id={id("Arm")} className={s.arm} style={origin(px, py, arm)}>
+        <rect x={px - 14} y={py - 48} width="28" height="30" rx="5" fill="var(--metal)" stroke="var(--metal-lo)" />
+        <rect x={px - 11} y={py - 42} width="22" height="2" fill="var(--metal-lo)" />
+        <rect x={px - 11} y={py - 36} width="22" height="2" fill="var(--metal-lo)" />
+        <line x1={px} y1={py - 14} x2={px} y2="232" stroke="var(--metal-lo)" strokeWidth="7" strokeLinecap="round" />
+        <line x1={px} y1={py - 14} x2={px} y2="232" stroke="var(--metal-hi)" strokeWidth="3.5" strokeLinecap="round" />
         <g transform={`rotate(24 ${px} 246)`}>
-          <rect x={px - 9} y="228" width="18" height="34" rx="2" fill="var(--tt-metal)" stroke="var(--tt-metal-lo)" />
-          <rect x={px + 8} y="233" width="11" height="3" rx="1" fill="var(--tt-metal)" stroke="var(--tt-metal-lo)" strokeWidth=".6" />
+          <rect x={px - 9} y="228" width="18" height="34" rx="2" fill="var(--metal)" stroke="var(--metal-lo)" />
+          <rect x={px + 8} y="233" width="11" height="3" rx="1" fill="var(--metal)" stroke="var(--metal-lo)" strokeWidth=".6" />
           <line x1={px} y1="262" x2={px} y2="270" stroke="var(--fc-line)" strokeWidth="2" />
         </g>
       </g>
-      <circle cx={px} cy={py} r="9" fill="var(--fc-chrome)" stroke="var(--tt-metal-lo)" />
+      <circle cx={px} cy={py} r="9" fill="var(--fc-chrome)" stroke="var(--metal-lo)" />
+
       {deck && (
         <>
-          <rect x="20" y="388" width="150" height="72" rx="8" fill="var(--tt-metal)" stroke="var(--tt-metal-lo)" />
-          <rect x="26" y="394" width="138" height="60" rx="4" fill="var(--tt-vu-face)" />
-          <g clipPath={`url(#${prefix}vc)`}>
+          {/* VU */}
+          <rect x="20" y="388" width="150" height="72" rx="8" fill="var(--metal)" stroke="var(--metal-lo)" />
+          <rect x="26" y="394" width="138" height="60" rx="4" fill="var(--vu-face)" />
+          <g clipPath={`url(#${id("vc")})`}>
             <path d={vuArc} fill="none" stroke="var(--fc-ink)" strokeWidth="1" />
-            {vu.map((l, i) => (
+            {vuTicks.map((t) => (
               <line
-                key={i}
-                x1={l.x0}
-                y1={l.y0}
-                x2={l.x1}
-                y2={l.y1}
-                stroke={l.hot ? "var(--fc-signal)" : "var(--fc-ink)"}
-                strokeWidth={l.hot ? 2 : 1}
+                key={t.x0 + t.y0}
+                x1={t.x0}
+                y1={t.y0}
+                x2={t.x1}
+                y2={t.y1}
+                stroke={t.hot ? "var(--fc-signal)" : "var(--fc-ink)"}
+                strokeWidth={t.hot ? 2 : 1}
               />
             ))}
-            <text x="95" y="438" textAnchor="middle" style={mono} fontSize="9" letterSpacing="1" fill="var(--fc-ink)">
+            <text x="95" y="438" textAnchor="middle" fontSize="9" letterSpacing="1" fill="var(--fc-ink)" style={mono}>
               VU
             </text>
-            <text x="40" y="412" style={mono} fontSize="6" fill="var(--fc-ink)">
+            <text x="40" y="412" fontSize="6" fill="var(--fc-ink)" style={mono}>
               -20
             </text>
-            <text x="146" y="412" style={mono} fontSize="6" fill="var(--fc-signal)">
+            <text x="146" y="412" fontSize="6" fill="var(--fc-signal)" style={mono}>
               +3
             </text>
             <line
-              className="vun"
               id={id("Vu")}
+              className={s.vun}
               x1="95"
               y1="476"
               x2="95"
               y2="404"
               stroke="var(--fc-signal)"
               strokeWidth="1.4"
-              style={{ transformOrigin: "95px 476px", transform: "rotate(-46deg)" } as CSSProperties}
+              style={origin(95, 476, vu)}
             />
           </g>
-          <circle cx="210" cy="414" r="10" fill="var(--tt-metal)" stroke="var(--tt-metal-lo)" />
-          <circle className="led-g" id={id("LedG")} cx="210" cy="414" r="7" fill="var(--tt-led-off-g)" />
-          <text x="210" y="440" textAnchor="middle" style={mono} fontSize="7" letterSpacing="1" fill="var(--fc-ink)">
+
+          {/* LEDs */}
+          <circle cx="210" cy="414" r="10" fill="var(--metal)" stroke="var(--metal-lo)" />
+          <circle id={id("LedG")} className={s.ledG} cx="210" cy="414" r="7" />
+          <text x="210" y="440" textAnchor="middle" fontSize="7" letterSpacing="1" fill="var(--fc-ink)" style={mono}>
             PLAY
           </text>
-          <circle cx="244" cy="414" r="10" fill="var(--tt-metal)" stroke="var(--tt-metal-lo)" />
-          <circle className="led-r" id={id("LedR")} cx="244" cy="414" r="7" fill="var(--fc-signal)" />
-          <text x="244" y="440" textAnchor="middle" style={mono} fontSize="7" letterSpacing="1" fill="var(--fc-ink)">
+          <circle cx="244" cy="414" r="10" fill="var(--metal)" stroke="var(--metal-lo)" />
+          <circle id={id("LedR")} className={s.ledR} cx="244" cy="414" r="7" />
+          <text x="244" y="440" textAnchor="middle" fontSize="7" letterSpacing="1" fill="var(--fc-ink)" style={mono}>
             STOP
           </text>
-          {knob.map((l, i) => (
-            <line key={i} x1={l.x0} y1={l.y0} x2={l.x1} y2={l.y1} stroke="var(--fc-ink)" strokeWidth="1.2" />
+
+          {/* volume */}
+          {knobTicks.map((t) => (
+            <line key={t.x0 + t.y0} x1={t.x0} y1={t.y0} x2={t.x1} y2={t.y1} stroke="var(--fc-ink)" strokeWidth="1.2" />
           ))}
-          <text x="294" y="466" style={mono} fontSize="7" fill="var(--fc-ink)">
+          <text x="294" y="466" fontSize="7" fill="var(--fc-ink)" style={mono}>
             min
           </text>
-          <text x="338" y="466" style={mono} fontSize="7" fill="var(--fc-ink)">
+          <text x="338" y="466" fontSize="7" fill="var(--fc-ink)" style={mono}>
             max
           </text>
-          <circle cx="322" cy="424" r="29" fill={`url(#${prefix}kg)`} stroke="var(--tt-metal-lo)" />
+          <circle cx="322" cy="424" r="29" fill={`url(#${id("kg")})`} stroke="var(--metal-lo)" />
           {brush.map((r) => (
-            <circle key={r} cx="322" cy="424" r={r} fill="none" stroke="var(--fc-paper)" strokeOpacity=".18" strokeWidth=".6" />
+            <circle key={r} cx="322" cy="424" r={r} fill="none" stroke="var(--sheen)" strokeOpacity=".18" strokeWidth=".6" />
           ))}
-          <g
-            className="vol"
-            id={id("Vol")}
-            style={{ transformOrigin: "322px 424px", transform: "rotate(-120deg)" } as CSSProperties}
-          >
+          <g id={id("Vol")} className={s.vol} style={origin(322, 424, volume)}>
             <line x1="322" y1="400" x2="322" y2="411" stroke="var(--fc-ink)" strokeWidth="3" />
           </g>
         </>

@@ -9,7 +9,7 @@ import { Masthead } from "@/components/fan/Masthead";
 import { Sheet, SheetOption } from "@/components/fan/Sheet";
 import { Tabs } from "@/components/fan/Tabs";
 import { useToast } from "@/components/fan/Toast";
-import { Turntable, TT, recAngleFor } from "@/components/fan/Turntable";
+import { PRIZES, Turntable, TT, recAngleFor } from "@/components/fan/Turntable";
 import { Vinyl } from "@/components/fan/Vinyl";
 import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
@@ -300,7 +300,7 @@ function Plate({ p }: { p: Poster }) {
     return (
       <div className={`${s.pst} ${s["p-pick"]}`} style={{ "--rec-rot": `${recAngleFor(PICK_ON)}deg` } as CSSProperties}>
         {cap(s.t1, p.credits[0])}
-        <Turntable prefix="pp" deck={false} on={PICK_ON} rot={recAngleFor(PICK_ON)} arm={TT.play} />
+        <Turntable prefix="pp" prizes={PRIZES} deck={false} on={PICK_ON} rot={recAngleFor(PICK_ON)} arm={TT.play} />
         <div className={s.hl} aria-hidden="true">
           Tente
           <br />a <em>sorte</em>

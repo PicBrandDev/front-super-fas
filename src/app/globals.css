@@ -619,56 +619,6 @@ body {
   .new {
     animation: fan-drop 0.3s var(--ease);
   }
-
-  /* ---------- toca-discos (Turntable): roleta do PicKap e cartaz do Mural ----------
-     As cores --tt-* são do objeto (vinil, metal, selo), não do tema do artista. */
-  .fan .tt {
-    --tt-vinyl: #141010;
-    --tt-plinth: #0b0605;
-    --tt-groove: #2b2422;
-    --tt-groove-deep: #080505;
-    --tt-sep: #3b3230;
-    --tt-label-text: #d9d2cc;
-    --tt-label-blue: #8fc4d6;
-    --tt-vu-face: #efe7d4;
-    --tt-metal-hi: #e4e8e8;
-    --tt-metal: #c9cfcf;
-    --tt-metal-mid: #a7b1b1;
-    --tt-metal-lo: #6f7b7b;
-    --tt-metal-edge: #9aa5a5;
-    --tt-led-off-g: #24331f;
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-  .fan .tt .rec,
-  .fan .tt .arm,
-  .fan .tt .vun,
-  .fan .tt .vol {
-    transform-box: view-box;
-  }
-  .fan .tt .rec {
-    transition: transform 4.2s cubic-bezier(0.12, 0.72, 0.12, 1);
-  }
-  .fan .tt .arm {
-    transition: transform 0.8s var(--ease);
-  }
-  .fan .tt .vun {
-    transition: transform 0.14s linear;
-  }
-  .fan .tt .vol {
-    transition: transform 4.2s var(--ease);
-  }
-  .fan .tt .trk.on path {
-    fill: var(--fc-amber);
-  }
-  .fan .tt .trk.on text {
-    fill: var(--fc-ink);
-  }
-  .fan .tt .led-g,
-  .fan .tt .led-r {
-    transition: fill 0.2s var(--ease);
-  }
 }
 
 @keyframes fan-up {
