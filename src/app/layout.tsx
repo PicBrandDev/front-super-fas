@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import type { CSSProperties } from "react";
+import { platform } from "@/lib/platform";
 import "./globals.css";
 
 // Fontes hospedadas no próprio projeto (licença OFL, arquivos em src/fonts).
@@ -51,11 +53,14 @@ const plexMono = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Super Fãs",
-    template: "%s · Super Fãs",
+    default: platform.name,
+    template: `%s · ${platform.name}`,
   },
-  description: "Plataforma de fã clubes: mural, agenda, sorte, loja, prévias e muito mais.",
+  description: platform.description,
 };
+
+// Cor da plataforma (white label); sem configuração fica o azul padrão do globals.css.
+const brandStyle = platform.color ? ({ "--pf-brand": platform.color } as CSSProperties) : undefined;
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -68,6 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html
       lang="pt-BR"
       className={`${fraunces.variable} ${shrikhand.variable} ${spaceMono.variable} ${plexSans.variable} ${plexMono.variable}`}
+      style={brandStyle}
     >
       <body className="antialiased">{children}</body>
     </html>

@@ -1,18 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AuthShell } from "@/components/auth/AuthShell";
+import { AuthShell, authLook } from "@/components/auth/AuthShell";
 import { homeFor } from "@/lib/auth";
 import { getSession } from "@/lib/api";
+import { authArtist, withArtist, type AuthParams } from "@/lib/authArtist";
 import { PasswordForm } from "./PasswordForm";
 
 export const metadata: Metadata = { title: "Trocar senha" };
 
-export default async function SenhaPage({ searchParams }: { searchParams: Promise<{ primeiro?: string }> }) {
-  const { primeiro } = await searchParams;
-  const session = await getSession();
-  const first = primeiro === "1";
+export default async function SenhaPage({ searchParams }: { searchParams: Promise<AuthParams & { primeiro?: string }> }) {
+  const params = await searchParams;
+  const first = params.primeiro === "1";
+  const [session, artist] = await Promise.all([getSession(), first ? null : authArtist(params)]);
+  const ui = authLook(artist);
+  // Depois de salvar: de volta ao fã clube de onde a pessoa veio, ou ao painel dela.
+  const next = artist ? `/${artist.slug}` : "";
   return (
     <AuthShell
+      artist={artist}
       title={first ? "Crie sua senha" : "Trocar senha"}
       description={
         first
@@ -21,13 +26,13 @@ export default async function SenhaPage({ searchParams }: { searchParams: Promis
       }
       footer={
         !first && session ? (
-          <Link href={homeFor(session)} className="font-semibold text-adm-blue">
+          <Link href={artist ? withArtist("/conta", artist.slug) : homeFor(session)} className={ui.link}>
             Voltar
           </Link>
         ) : undefined
       }
     >
-      <PasswordForm first={first} />
+      <PasswordForm first={first} next={next} />
     </AuthShell>
   );
 }

@@ -120,6 +120,12 @@ src/
 
 Os componentes da área do fã usam só tokens (`bg-paper`, `text-ink`, `bg-accent`, `font-display`...). Os valores vêm de `src/lib/themes.ts` e são aplicados pelo `FanShell` como variáveis CSS. Para um artista novo, crie um tema e associe ao `Artist`. Nenhum componente precisa mudar.
 
+### Marca da plataforma (white label)
+
+Painéis, portal do patrocinador e telas de conta usam `src/lib/platform.ts`: nome, selo, legenda e cor vêm das variáveis `NEXT_PUBLIC_PLATFORM_*` (ver `.env.example`). A cor vira `--pf-brand` no `<html>` e alimenta os tokens `adm-blue*` do `globals.css`. O componente `PlatformBrand` desenha o selo.
+
+As telas de login, cadastro, minha conta e senha usam o tema do artista quando a pessoa vem do ambiente dele (`?artista=` ou o `next=` do login); fora disso, o visual neutro. Ver `src/lib/authArtist.ts` e `AuthShell`.
+
 ### Integração com o back
 
 Leituras: cada função de `src/lib/api.ts` indica o endpoint que chama (ex.: `GET /artists/{slug}/posts?kind=drop`), sempre com o token do login.

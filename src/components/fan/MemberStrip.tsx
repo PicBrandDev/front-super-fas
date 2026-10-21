@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useArtist } from "./ArtistContext";
 
-/** Faixa "Seja membro" fixa acima do menu de baixo (some para membros e na própria tela do plano). */
+/**
+ * Faixa "Seja membro" fixa acima do menu de baixo.
+ * Quem decide se ela aparece é o FanFrame (membro e tela atual).
+ */
 export function MemberStrip() {
-  const { base, priceLabel, viewer } = useArtist();
-  const pathname = usePathname();
-  if (viewer.isMember || pathname.startsWith(`${base}/membro`)) return null;
+  const { base, priceLabel } = useArtist();
   return (
     <div className="flex items-center justify-between gap-2.5 border-t-2 border-ink bg-accent py-1.5 pl-4 pr-2 text-accent-fg">
       <span className="flex flex-col leading-tight">

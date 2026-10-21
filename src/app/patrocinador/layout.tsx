@@ -1,4 +1,5 @@
 import { logout } from "@/app/actions/auth";
+import { PlatformBrand } from "@/components/PlatformBrand";
 import { authEnabled } from "@/lib/auth";
 import { getMySponsor, getSession } from "@/lib/api";
 import { initialsOf } from "@/lib/shell";
@@ -13,15 +14,7 @@ export default async function SponsorLayout({ children }: { children: React.Reac
   return (
     <div className="flex min-h-dvh flex-col bg-adm-bg font-adm text-adm-ink">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-adm-line bg-white px-4 py-3.5 sm:px-7">
-        <div className="flex items-center gap-2.5">
-          <span aria-hidden="true" className="flex size-[34px] items-center justify-center rounded-lg bg-adm-blue font-bold text-white">
-            S
-          </span>
-          <span className="flex flex-col">
-            <strong className="text-sm">Super Fãs · Mídia</strong>
-            <span className="font-adm-mono text-[11px] text-adm-muted">Portal do patrocinador</span>
-          </span>
-        </div>
+        <PlatformBrand subtitle="Portal do patrocinador" />
         <nav aria-label="Conta" className="flex flex-wrap items-center gap-1.5">
           <SponsorNav />
           <span className="ml-2 flex items-center gap-2 border-l border-adm-line pl-3">
