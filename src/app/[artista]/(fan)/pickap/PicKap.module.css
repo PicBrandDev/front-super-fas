@@ -1,0 +1,151 @@
+/* PicKap: um toca-discos sobre um pedestal amarelo (#s-pickap do protótipo). */
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  margin-bottom: calc(-1 * var(--navspace));
+  padding-bottom: var(--navspace);
+}
+@media (min-width: 1024px) {
+  .screen {
+    margin-bottom: -48px;
+    padding-bottom: 48px;
+  }
+}
+
+.plinth {
+  padding: 12px 16px 24px;
+  display: grid;
+  gap: 16px;
+}
+.lead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+.lead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  max-width: 24ch;
+}
+.lead :global(.mono) {
+  color: var(--fc-ink);
+  text-align: right;
+}
+
+.clubs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.clubs a {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--fc-ink);
+  border-radius: 2px;
+  color: var(--fc-ink);
+  font: 400 12px/14px var(--fc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.clubs a[aria-current="page"] {
+  background: var(--fc-ink);
+  color: var(--fc-sun);
+}
+
+.startkey {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  background: var(--fc-ink);
+  color: var(--fc-sun);
+  border: 0;
+  --key-deep: #0b0605; /* teclas do deck, como no menu de baixo */
+  --led-off: #4a3a33;
+  border-bottom: 5px solid var(--key-deep);
+  border-radius: 4px;
+  font: 800 16px/20px var(--fc-font-grotesk);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform 0.12s var(--ease),
+    border-bottom-width 0.12s var(--ease);
+}
+.startkey .led {
+  display: block;
+  width: 14px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--led-off);
+}
+.startkey:active,
+.startkey[aria-busy="true"] {
+  transform: translateY(4px);
+  border-bottom-width: 1px;
+}
+.startkey[aria-busy="true"] .led {
+  background: var(--fc-amber);
+}
+.startkey[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+  color: var(--fc-ink);
+  opacity: 0.78;
+}
+.err {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+  color: var(--fc-ink);
+  font-weight: 700;
+}
+
+.mine {
+  border-top: 1px solid var(--fc-ink);
+  padding-top: 16px;
+}
+.mine h3 {
+  margin: 0 0 8px;
+  font: 800 20px/22px var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+.mine .empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  opacity: 0.78;
+}
+.won {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid var(--fc-ink);
+}
+.won strong {
+  font: 700 19px/22px var(--fc-font-display);
+}
+.mine :global(.tag) {
+  border-color: var(--fc-ink);
+  color: var(--fc-ink);
+}

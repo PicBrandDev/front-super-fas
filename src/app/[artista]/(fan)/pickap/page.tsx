@@ -1,7 +1,14 @@
-import { getClubPrizes, getClubs, getEvents, getViewer } from "@/lib/api";
+import type { Metadata } from "next";
+import { apiEnabled, getArtist, getClubPrizes, getClubs, getViewer } from "@/lib/api";
 import { PicKapWheel } from "./PicKapWheel";
 
-/** Cada fã clube tem sua roleta; os giros e pontos são do fã no ambiente do cantor. */
+export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
+  const { artista } = await params;
+  const artist = await getArtist(artista);
+  return { title: artist ? `PicKap da sorte · Fã clube ${artist.name}` : "PicKap da sorte" };
+}
+
+/** Cada fã clube tem seu disco; os giros são do fã no ambiente do cantor. */
 export default async function PicKapPage({
   params,
   searchParams,
@@ -11,21 +18,20 @@ export default async function PicKapPage({
 }) {
   const { artista } = await params;
   const { clube } = await searchParams;
-  const [viewer, events, clubs] = await Promise.all([getViewer(artista), getEvents(artista), getClubs(artista)]);
+  const [viewer, clubs] = await Promise.all([getViewer(artista), getClubs(artista)]);
   const mine = clubs.filter((c) => c.joined);
   const current = mine.find((c) => c.slug === clube) ?? mine[0] ?? null;
   const prizes = current ? await getClubPrizes(artista, current.slug) : [];
-  const next = events[0];
 
   return (
     <PicKapWheel
       key={current?.slug ?? "none"}
       prizes={prizes}
       initialSpins={viewer.spins}
-      nextEventId={next?.id ?? null}
       club={current ? { slug: current.slug, name: current.name } : null}
       clubs={mine.map((c) => ({ slug: c.slug, name: c.name }))}
       notJoined={clube && !mine.some((c) => c.slug === clube) ? (clubs.find((c) => c.slug === clube)?.name ?? null) : null}
+      demo={!apiEnabled()}
     />
   );
 }
