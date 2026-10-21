@@ -2,99 +2,55 @@
 
 import { useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
-import { PageHeader } from "@/components/fan/PageHeader";
+import { Masthead } from "@/components/fan/Masthead";
 import { ShowStub } from "@/components/fan/ShowStub";
 import { EmptyState } from "@/components/fan/states";
+import { Tabs } from "@/components/fan/Tabs";
+import { isPastEvent } from "@/lib/events";
 import type { ShowEvent } from "@/lib/types";
 
-const monthNames: Record<string, string> = {
-  jan: "Janeiro",
-  fev: "Fevereiro",
-  mar: "Março",
-  abr: "Abril",
-  mai: "Maio",
-  jun: "Junho",
-  jul: "Julho",
-  ago: "Agosto",
-  set: "Setembro",
-  out: "Outubro",
-  nov: "Novembro",
-  dez: "Dezembro",
+type Tab = "next" | "gift" | "past";
+
+const tabs: { id: Tab; label: string }[] = [
+  { id: "next", label: "Próximos" },
+  { id: "gift", label: "Com brinde" },
+  { id: "past", label: "Passados" },
+];
+
+const empty: Record<Tab, { title: string; text: string }> = {
+  next: { title: "Nenhuma data marcada.", text: "Quando sair um show, ele aparece aqui com ingressos e brindes." },
+  gift: { title: "Nenhum show com brinde por enquanto.", text: "Os brindes de cada evento aparecem aqui quando a sorte abrir." },
+  past: { title: "Nenhum show passado.", text: "Depois do primeiro show, as fotos oficiais ficam aqui." },
 };
 
-const tones = ["gold", "cream", "accent"] as const;
+export function AgendaView({ events, demo }: { events: ShowEvent[]; demo: boolean }) {
+  const { base } = useArtist();
+  const [tab, setTab] = useState<Tab>("next");
+  const index = tabs.findIndex((t) => t.id === tab);
 
-export function AgendaView({ artistName, events }: { artistName: string; events: ShowEvent[] }) {
-  const { slug } = useArtist();
-  const [filter, setFilter] = useState("todos");
-
-  // Meses na ordem em que aparecem na agenda.
-  const months = events.reduce<{ key: string; label: string }[]>((acc, e) => {
-    if (!acc.some((m) => m.key === e.monthKey)) acc.push({ key: e.monthKey, label: monthNames[e.monthKey] ?? e.month });
-    return acc;
-  }, []);
-  const filters = [{ key: "todos", label: "Todos" }, ...months];
-  const shows = events.filter((e) => filter === "todos" || e.monthKey === filter);
-  const countLabel =
-    shows.length === 0
-      ? "Nenhum show"
-      : `${shows.length} ${shows.length === 1 ? "show" : "shows"} · toque para ver ingressos e brindes`;
-  const monthLabel = filters.find((f) => f.key === filter)?.label ?? "";
+  const list = events.filter((e) => {
+    const past = isPastEvent(e);
+    if (tab === "past") return past;
+    if (tab === "gift") return !past && e.giftsCount > 0;
+    return !past;
+  });
 
   return (
     <>
-      <PageHeader eyebrow={`${artistName} · ao vivo`} title="Agenda">
-        <div role="group" aria-label="Filtrar por mês" className="flex flex-wrap gap-2">
-          {filters.map((f) => {
-            const active = filter === f.key;
-            return (
-              <button
-                key={f.key}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setFilter(f.key)}
-                className={`min-h-11 cursor-pointer rounded-full border-2 border-paper px-4 font-label text-xs font-bold ${
-                  active ? "bg-paper text-ink" : "bg-transparent text-paper"
-                }`}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
-      </PageHeader>
-
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3.5 px-4 pb-6 pt-[18px] lg:px-8 lg:pt-6">
-        <p aria-live="polite" className="m-0 font-label text-[13px] leading-snug text-ink-soft">
-          {countLabel}
-        </p>
-        {events.length === 0 ? (
-          <EmptyState
-            title="Nenhum show por enquanto"
-            text={`Quando ${artistName} marcar uma data, ela aparece aqui com ingressos e brindes.`}
-          />
-        ) : shows.length === 0 ? (
-          <EmptyState
-            title={`Nenhum show em ${monthLabel}`}
-            text="Veja os outros meses ou volte para todos os shows."
-            action={
-              <button
-                type="button"
-                onClick={() => setFilter("todos")}
-                className="min-h-11 cursor-pointer rounded-full border-2 border-ink bg-accent-2 px-4 font-label text-xs font-bold text-ink"
-              >
-                Ver todos os shows
-              </button>
-            }
-          />
+      <Masthead word="Agenda" tone="amber" steps={3} index={index} />
+      <Tabs tabs={tabs} value={tab} onChange={setTab} label="Agenda" />
+      <div role="tabpanel" aria-label={tabs[index].label}>
+        {list.length === 0 ? (
+          <EmptyState className="px-4" title={empty[tab].title} text={empty[tab].text} />
         ) : (
-          <ul className="m-0 flex list-none flex-col gap-3.5 p-0">
-            {shows.map((e, i) => (
-              <li key={e.id}>
-                <ShowStub event={e} href={`/${slug}/eventos/${e.id}`} tone={tones[i % 3]} showStatus showArrow />
-              </li>
-            ))}
-          </ul>
+          list.map((e) => (
+            <ShowStub
+              key={e.id}
+              event={e}
+              demo={demo}
+              href={isPastEvent(e) ? `${base}/photo-finder?evento=${e.id}` : `${base}/eventos/${e.id}`}
+            />
+          ))
         )}
       </div>
     </>

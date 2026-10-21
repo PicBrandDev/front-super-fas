@@ -1,348 +1,270 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { joinEventLuck } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
-import { Rings, StripeBand } from "@/components/fan/decor";
+import { Sheet, SheetOption } from "@/components/fan/Sheet";
+import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
+import { eventName, isPastEvent, statusLabel, statusTagClass } from "@/lib/events";
 import type { Gift, ShowEvent, Vendor } from "@/lib/types";
+import s from "./EventoView.module.css";
 
-type Step = "before" | "after";
-
-const steps: { id: Step; label: string }[] = [
-  { id: "before", label: "Antes de comprar" },
-  { id: "after", label: "Depois de comprar" },
-];
-
-const heroCircle =
-  "flex size-11 flex-none items-center justify-center rounded-full border-2 border-paper bg-ink text-paper no-underline";
+const CODE_MIN = 6;
 
 export function EventoView({
   artistName,
   event,
   vendors,
   gifts,
+  demo,
 }: {
   artistName: string;
   event: ShowEvent;
   vendors: Vendor[];
   gifts: Gift[];
+  demo: boolean;
 }) {
-  const { base, viewer, slug } = useArtist();
-  const [step, setStep] = useState<Step>("before");
+  const { base, slug } = useArtist();
+  const toast = useToast();
+  const past = isPastEvent(event);
+  const title = eventName(artistName, event);
+  const photosHref = `${base}/photo-finder?evento=${event.id}`;
+
+  const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [code, setCode] = useState("");
+  const [codeErr, setCodeErr] = useState("");
   const [validated, setValidated] = useState(false);
-  const [q, setQ] = useState("");
-  const [shareMsg, setShareMsg] = useState("");
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [buyOpen, setBuyOpen] = useState(false);
 
-  const title = `${artistName} em ${event.city}`;
-  const beforeGifts = gifts.filter((g) => g.phase === "before");
-  const afterGifts = gifts.filter((g) => g.phase === "after");
-  const query = q.trim().toLowerCase();
-  const shownVendors = vendors.filter(
-    (v) => !query || `${v.name} ${v.type} ${v.tag}`.toLowerCase().includes(query),
-  );
+  const before = gifts.filter((g) => g.phase === "before");
+  const after = gifts.filter((g) => g.phase === "after");
+  const hasLuck = !past && (event.giftsCount > 0 || gifts.length > 0);
 
-  async function share() {
-    const url = window.location.href;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      setShareMsg("Link do evento copiado.");
-    } catch {
-      // Compartilhamento cancelado pelo usuário.
+  // Line-up: a API manda um texto livre; "[a definir]" vira a linha padrão do protótipo.
+  const lineup = event.lineup && !/^\[.*\]$/.test(event.lineup.trim()) ? event.lineup : "";
+
+  async function join() {
+    if (joining) return;
+    setJoining(true);
+    // Sem API (modo exemplo, status 0) só marca na tela.
+    const res = await joinEventLuck(slug, event.id);
+    setJoining(false);
+    if (res.ok || res.status === 0) {
+      setJoined(true);
+      toast.show("Você está concorrendo ao brinde");
+    } else {
+      toast.show(res.error ?? "Não deu para entrar na sorte agora");
     }
   }
 
-  async function join() {
-    // Sem API (modo exemplo, status 0) só marca na tela.
-    const res = await joinEventLuck(slug, event.id);
-    if (res.ok || res.status === 0) setJoined(true);
-  }
-
-  function validate() {
-    if (!code.trim()) return;
-    // TODO: POST /artists/{slug}/events/{id}/tickets/validate
-    setValidated(true);
-  }
-
-  function onTabKey(e: KeyboardEvent<HTMLButtonElement>, i: number) {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
+  function validate(e: FormEvent) {
     e.preventDefault();
-    const next =
-      e.key === "Home" ? 0 : e.key === "End" ? steps.length - 1 : (i + (e.key === "ArrowRight" ? 1 : -1) + steps.length) % steps.length;
-    setStep(steps[next].id);
-    tabRefs.current[next]?.focus();
+    const v = code.trim();
+    if (v.length < CODE_MIN) {
+      setCodeErr(`Código curto demais. Ele tem pelo menos ${CODE_MIN} caracteres e está no e-mail da agência.`);
+      return;
+    }
+    // Simulado: a validação do ingresso ainda não existe na API.
+    setCodeErr("");
+    setValidated(true);
+    toast.show("Ingresso validado");
   }
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-ink text-paper">
-        <Rings className="left-1/2 top-10 -ml-[180px] size-[360px] opacity-90 lg:top-6" start={22} step={14} />
-        <div className="relative mx-auto flex w-full max-w-[760px] flex-col px-4 pb-6 pt-3 lg:px-8 lg:pb-10 lg:pt-8">
-          <div className="flex items-center justify-between">
-            <Link href={`${base}/agenda`} aria-label="Voltar para a agenda" className={heroCircle}>
-              <Icon name="back" size={20} strokeWidth={2.4} />
-            </Link>
-            <div className="flex items-center gap-2">
-              {!viewer.isMember && (
-                <Link
-                  href={`${base}/membro`}
-                  className="flex min-h-11 items-center rounded-full border-2 border-paper bg-accent-2 px-3.5 font-label text-xs font-bold text-ink no-underline"
-                >
-                  Tornar membro
-                </Link>
-              )}
-              <button type="button" onClick={share} aria-label="Compartilhar evento" className={`${heroCircle} cursor-pointer`}>
-                <Icon name="share" size={20} strokeWidth={2.2} />
-              </button>
-            </div>
-          </div>
-          <p aria-live="polite" className="sr-only">
-            {shareMsg}
-          </p>
+      <header className={s.hd}>
+        <Link href={`${base}/agenda`} className="back">
+          <Icon name="back" size={18} />
+          Agenda
+        </Link>
+        {demo && <span className="tag tag-demo">Exemplo</span>}
+      </header>
 
-          <div className="mt-[150px] flex flex-col gap-2">
-            <span className="self-start rounded-md bg-accent-2 px-2.5 py-[5px] font-label text-xs font-bold text-ink">
-              {event.weekday} {event.day} {event.month} · {event.time}
-            </span>
-            <h1 className="m-0 font-display text-[38px] font-normal leading-none text-cream lg:text-[56px]">{title}</h1>
-            <p className="m-0 text-[15px] text-paper-2">
-              {event.venue} · {event.address}
-            </p>
-            <a
-              href="#comprar"
-              className="mt-3 flex min-h-12 items-center gap-2 self-start rounded-full border-2 border-paper bg-accent-2 px-[18px] font-label text-[13px] font-bold text-ink no-underline"
-            >
-              Ver opções de compra
-              <Icon name="chevron-down" size={16} strokeWidth={2.6} />
-            </a>
+      <div className={`${s.ehero} ${past ? s.past : ""}`}>
+        <div className={s.d} aria-hidden="true">
+          {event.day}
+        </div>
+        <div className={s.r}>
+          <span className={s.m}>{event.month}</span>
+          <span className="mono">{event.city}</span>
+          {past ? (
+            <span className="tag tag-demo">Encerrado</span>
+          ) : (
+            <span className={statusTagClass[event.status]}>{statusLabel[event.status]}</span>
+          )}
+        </div>
+      </div>
+
+      <div className={s.etitle}>
+        <h1>{title}</h1>
+        <div className={`mono ${s.where}`}>
+          <Icon name="pin" size={13} />
+          <span>
+            {event.city} · {event.venue} · {event.day} {event.month}
+          </span>
+        </div>
+      </div>
+
+      <dl className={s.info}>
+        <dt className="mono">Portões</dt>
+        <dd className="num">{event.doorsOpen}</dd>
+        <dt className="mono">Classificação</dt>
+        <dd>{event.ageRating}</dd>
+        <dt className="mono">Endereço</dt>
+        <dd>{event.address}</dd>
+      </dl>
+
+      <section className={s.sect} aria-labelledby="lineup-h">
+        <h2 id="lineup-h">Line-up</h2>
+        <div className={s.lineup}>
+          <div>
+            <span className={s.h}>{artistName}</span>
+            <span className="mono">Headliner</span>
+          </div>
+          <div>
+            <span>{lineup || "Convidados a anunciar"}</span>
+            <span className="mono">—</span>
           </div>
         </div>
       </section>
-      <StripeBand className="h-3" />
 
-      {/* No celular a barra de ingressos fica fixa acima do menu de baixo (o FanFrame só reserva o menu). */}
-      <div className="mx-auto w-full max-w-[760px] pb-[78px] lg:px-4 lg:pb-0">
-        {/* Informações */}
-        <section aria-label="Informações do evento" className="p-4">
-          <dl className="m-0 grid grid-cols-3 gap-2">
-            {[
-              ["Abertura", event.doorsOpen],
-              ["Idade", event.ageRating],
-              ["Line-up", event.lineup],
-            ].map(([label, value]) => (
-              <div key={label} className="flex flex-col gap-0.5 rounded-xl border-2 border-ink bg-cream p-2.5">
-                <dt className="font-label text-[11px] font-bold text-ink-soft">{label}</dt>
-                <dd className="m-0 font-body text-[15px] font-extrabold">{value}</dd>
-              </div>
-            ))}
-          </dl>
+      {past && (
+        <section className={s.sect} aria-labelledby="fotos-h">
+          <h2 id="fotos-h">Fotos do evento</h2>
+          <p>As fotos oficiais já estão na fanzone. Envie uma selfie e encontre as suas.</p>
+          <Link href={photosHref} className="btn btn-outline">
+            <Icon name="camera" size={18} />
+            Encontrar minhas fotos
+          </Link>
         </section>
+      )}
 
-        {/* Sorte do evento */}
-        <section
-          aria-labelledby="sorte-title"
-          className="mx-4 flex flex-col gap-3.5 rounded-2xl border-2 border-ink bg-accent p-4 text-accent-fg shadow-[5px_5px_0_var(--fc-ink)]"
-        >
-          <div className="flex items-center gap-2.5">
-            <Icon name="gift" size={28} />
-            <div className="flex flex-col">
-              <h2 id="sorte-title" className="m-0 font-display text-2xl font-normal leading-tight">
-                Sorte do evento
-              </h2>
-              <span className="font-label text-xs">Brindes antes e depois do ingresso</span>
+      {hasLuck && (
+        <section className={s.sect} aria-labelledby="sorte-h">
+          <h2 id="sorte-h">A sorte do evento</h2>
+
+          <div className={s.gift}>
+            <Icon name="gift" size={22} />
+            <div>
+              <h3>Brinde antes da compra</h3>
+              <p>Concorra a um brinde do evento antes de garantir o ingresso.</p>
+              {before.length > 0 && (
+                <ul>
+                  {before.map((g) => (
+                    <li key={g.id}>
+                      <span>{g.name}</span>
+                      {g.qtyLabel && <span className="mono num">{g.qtyLabel}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div aria-live="polite">
+                {joined ? (
+                  <div className="ok">
+                    <Icon name="check" size={16} />
+                    Você está concorrendo
+                  </div>
+                ) : (
+                  <button type="button" className="btn btn-outline btn-sm" onClick={join} aria-busy={joining}>
+                    Concorrer
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          <div role="tablist" aria-label="Etapas da sorte" className="flex gap-1.5 rounded-full bg-deep p-1">
-            {steps.map((s, i) => {
-              const active = step === s.id;
-              return (
-                <button
-                  key={s.id}
-                  ref={(el) => {
-                    tabRefs.current[i] = el;
-                  }}
-                  type="button"
-                  role="tab"
-                  id={`sorte-tab-${s.id}`}
-                  aria-selected={active}
-                  aria-controls="sorte-panel"
-                  tabIndex={active ? 0 : -1}
-                  onClick={() => setStep(s.id)}
-                  onKeyDown={(e) => onTabKey(e, i)}
-                  className={`min-h-11 flex-1 cursor-pointer rounded-full font-label text-xs font-bold ${
-                    active ? "bg-cream text-ink" : "bg-transparent text-cream"
-                  }`}
-                >
-                  {s.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div id="sorte-panel" role="tabpanel" aria-labelledby={`sorte-tab-${step}`} className="flex flex-col gap-2.5">
-            {step === "before" ? (
-              <>
-                <p className="m-0 text-sm leading-snug">Confirme presença na sorte e concorra antes mesmo de comprar.</p>
-                <ul className="m-0 flex list-none flex-col gap-2 p-0">
-                  {beforeGifts.map((g) => (
-                    <li key={g.id} className="flex justify-between gap-2 rounded-[10px] bg-cream px-3 py-2.5 text-ink">
-                      <span className="font-body text-[15px] font-semibold">{g.name}</span>
-                      {g.qtyLabel && <span className="font-label text-[11px] font-bold">{g.qtyLabel}</span>}
+          <div className={s.gift}>
+            <Icon name="gift" size={22} />
+            <div>
+              <h3>Brinde depois da compra</h3>
+              <p>Já comprou? Informe o código do ingresso e concorra a mais um brinde.</p>
+              {after.length > 0 && (
+                <ul>
+                  {after.map((g) => (
+                    <li key={g.id}>
+                      <span>{g.name}</span>
+                      {g.qtyLabel && <span className="mono num">{g.qtyLabel}</span>}
                     </li>
                   ))}
                 </ul>
-                <div aria-live="polite">
-                  {joined ? (
-                    <div className="flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-dashed border-cream font-label text-[13px] font-bold">
-                      <Icon name="check" size={18} strokeWidth={2.6} />
-                      Você está concorrendo
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={join}
-                      className="min-h-12 w-full cursor-pointer rounded-full border-2 border-ink bg-accent-2 font-label text-sm font-bold text-ink"
-                    >
-                      Participar da sorte
-                    </button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="m-0 text-sm leading-snug">Já comprou? Valide o ingresso para liberar os brindes de quem vai.</p>
-                {!validated && (
-                  <form
-                    className="flex flex-col gap-1.5"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      validate();
-                    }}
-                  >
-                    <label htmlFor="ev-code" className="font-label text-[11px] font-bold uppercase tracking-[0.08em]">
-                      Código do ingresso
-                    </label>
-                    <div className="flex gap-2">
+              )}
+              <div aria-live="polite">
+                {validated ? (
+                  <div className="ok">
+                    <Icon name="check" size={16} />
+                    Ingresso validado · concorrendo
+                  </div>
+                ) : (
+                  <>
+                    <form onSubmit={validate} noValidate>
+                      <label className="sr-only" htmlFor="tcode">
+                        Código do ingresso
+                      </label>
                       <input
-                        id="ev-code"
+                        id="tcode"
+                        className="field"
+                        placeholder="Código do ingresso"
+                        autoComplete="off"
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        placeholder="Ex.: VC-0000-0000"
-                        autoComplete="off"
-                        className="min-h-12 min-w-0 flex-1 rounded-[10px] border-2 border-ink bg-cream px-3 font-label text-sm text-ink placeholder:text-ink-soft"
+                        aria-invalid={codeErr ? true : undefined}
+                        aria-describedby={codeErr ? "tcode-err" : undefined}
                       />
-                      <button
-                        type="submit"
-                        className="min-h-12 cursor-pointer rounded-[10px] border-2 border-ink bg-accent-2 px-3.5 font-label text-[13px] font-bold text-ink"
-                      >
+                      <button type="submit" className="btn btn-outline btn-sm">
                         Validar
                       </button>
-                    </div>
-                  </form>
+                    </form>
+                    {codeErr && (
+                      <p id="tcode-err" className="err" role="alert">
+                        {codeErr}
+                      </p>
+                    )}
+                  </>
                 )}
-                <ul aria-live="polite" className="m-0 flex list-none flex-col gap-2 p-0">
-                  {afterGifts.map((g) => (
-                    <li
-                      key={g.id}
-                      className={`flex items-center justify-between gap-2 rounded-[10px] px-3 py-2.5 text-ink ${
-                        validated ? "bg-accent-2" : "bg-paper-2"
-                      }`}
-                    >
-                      <span className="font-body text-[15px] font-semibold">{g.name}</span>
-                      <span className="rounded-md bg-ink px-2 py-0.5 font-label text-[11px] font-bold text-paper">
-                        {validated ? "Liberado" : "Bloqueado"}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </section>
+      )}
 
-        {/* Onde comprar */}
-        <section id="comprar" aria-labelledby="comprar-title" className="flex scroll-mt-4 flex-col gap-3 px-4 pb-7 pt-6">
-          <h2 id="comprar-title" className="m-0 font-body text-[22px] font-extrabold">
-            Onde comprar
-          </h2>
-          <p className="m-0 text-sm leading-snug text-ink-soft">Agências, ticketeiras e pacotes parceiros deste show.</p>
-          <div className="flex items-center gap-2 rounded-xl border-2 border-ink bg-cream px-3">
-            <Icon name="search" size={18} strokeWidth={2.2} />
-            <label htmlFor="ev-search" className="sr-only">
-              Buscar agência ou pacote
-            </label>
-            <input
-              id="ev-search"
-              type="search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Buscar agência, cidade ou pacote"
-              className="min-h-[46px] min-w-0 flex-1 border-0 bg-transparent font-body text-sm text-ink placeholder:text-ink-soft"
+      <div className={s.buybar}>
+        {past ? (
+          <>
+            <span className="mono">Evento encerrado</span>
+            <Link href={photosHref} className="btn btn-primary">
+              Minhas fotos
+            </Link>
+          </>
+        ) : (
+          <>
+            <span className="mono">Venda nas agências parceiras</span>
+            <button type="button" className="btn btn-primary" onClick={() => setBuyOpen(true)}>
+              Comprar ingresso
+            </button>
+          </>
+        )}
+      </div>
+
+      <Sheet open={buyOpen} onClose={() => setBuyOpen(false)} title="Onde comprar">
+        <p>A compra acontece no site do parceiro. A fanzone leva você até lá e guarda o seu brinde.</p>
+        <div className="opts">
+          {vendors.map((v) => (
+            <SheetOption
+              key={v.id}
+              title={v.name}
+              sub={`${v.type} · ${v.priceLabel}`}
+              href={v.url && v.url !== "#" ? v.url : undefined}
+              onClick={v.url && v.url !== "#" ? undefined : () => toast.show("Link do parceiro em breve")}
             />
-          </div>
-          <span aria-live="polite" className="font-label text-xs text-ink-soft">
-            Mostrando {shownVendors.length} de até 1.000 opções
-          </span>
-          <ul className="m-0 flex list-none flex-col gap-3 p-0">
-            {shownVendors.map((v) => (
-              <li key={v.id} className="flex flex-col gap-2.5 rounded-[14px] border-2 border-ink bg-cream p-3.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex min-w-0 flex-col gap-[3px]">
-                    <strong className="font-body text-base font-extrabold">{v.name}</strong>
-                    <span className="text-sm text-ink-soft">{v.type}</span>
-                  </div>
-                  <span
-                    className={`flex-none rounded-md px-2 py-0.5 font-label text-[11px] font-bold ${
-                      v.tag === "Oficial" ? "bg-accent text-accent-fg" : "bg-accent-2 text-ink"
-                    }`}
-                  >
-                    {v.tag}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-label text-[13px] font-bold">{v.priceLabel}</span>
-                  <a
-                    href={v.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex min-h-11 flex-none items-center gap-1.5 rounded-full border-2 border-ink bg-ink px-4 font-label text-xs font-bold text-paper no-underline"
-                  >
-                    Ir comprar
-                    <span className="sr-only"> em {v.name} (abre em nova aba)</span>
-                    <Icon name="external" size={14} strokeWidth={2.6} />
-                  </a>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-
-      {/* Barra fixa de ingressos (só celular), logo acima do menu de baixo. */}
-      <div className="fixed inset-x-0 bottom-[calc(62px+max(10px,env(safe-area-inset-bottom)))] z-20 lg:hidden">
-        <div className="flex items-center justify-between gap-3 border-t-2 border-ink bg-accent-2 px-4 py-2.5 text-ink">
-          <div className="flex min-w-0 flex-col leading-tight">
-            <strong className="font-body text-[15px] font-extrabold">Ingressos e pacotes</strong>
-            <span className="font-label text-xs">Compre e libere brindes</span>
-          </div>
-          <a
-            href="#comprar"
-            className="flex min-h-12 flex-none items-center rounded-full border-2 border-ink bg-ink px-[18px] font-label text-[13px] font-bold text-paper no-underline"
-          >
-            Ver opções
-          </a>
+          ))}
         </div>
-      </div>
+        <button type="button" className="btn btn-outline" data-close>
+          Ficar na fanzone
+        </button>
+      </Sheet>
     </>
   );
 }

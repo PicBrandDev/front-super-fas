@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getArtist, getEvent, getGifts, getVendors } from "@/lib/api";
+import { apiEnabled, getArtist, getEvent, getGifts, getVendors } from "@/lib/api";
+import { eventName } from "@/lib/events";
 import { EventoView } from "./EventoView";
 
 type Params = Promise<{ artista: string; id: string }>;
@@ -10,7 +11,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const [artist, event] = await Promise.all([getArtist(artista), getEvent(artista, id)]);
   if (!artist || !event) return { title: "Evento" };
   return {
-    title: `${artist.name} em ${event.city} · ${event.weekday} ${event.day} ${event.month}`,
+    title: `${eventName(artist.name, event)} · ${event.weekday} ${event.day} ${event.month}`,
     description: `Ingressos, pacotes e brindes do show de ${artist.name} em ${event.city}.`,
   };
 }
@@ -20,5 +21,5 @@ export default async function EventoPage({ params }: { params: Params }) {
   const [artist, event] = await Promise.all([getArtist(artista), getEvent(artista, id)]);
   if (!artist || !event) notFound();
   const [vendors, gifts] = await Promise.all([getVendors(artista, event.id), getGifts(artista, event.id)]);
-  return <EventoView artistName={artist.name} event={event} vendors={vendors} gifts={gifts} />;
+  return <EventoView artistName={artist.name} event={event} vendors={vendors} gifts={gifts} demo={!apiEnabled()} />;
 }

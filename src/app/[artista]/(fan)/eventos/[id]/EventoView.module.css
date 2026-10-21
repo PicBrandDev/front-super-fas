@@ -1,0 +1,195 @@
+/* Página do evento (protótipo: .hd .ehero .etitle dl.info .sect .gift .lineup .buybar). */
+.hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 12px;
+}
+
+/* Cartaz da data: o dia em serifa gigante cortado embaixo à esquerda. */
+.ehero {
+  position: relative;
+  height: 260px;
+  overflow: hidden;
+  background: var(--fc-amber);
+  color: var(--fc-ink);
+  container-type: inline-size;
+}
+.ehero .d {
+  position: absolute;
+  left: -3cqw;
+  bottom: -9cqw;
+  font: 900 70cqw/0.8 var(--fc-font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.ehero .r {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  text-align: right;
+}
+.ehero .m {
+  font: 800 40px/36px var(--fc-font-grotesk);
+  text-transform: uppercase;
+}
+.ehero :global(.mono) {
+  color: var(--fc-ink);
+}
+.ehero :global(.tag) {
+  background: var(--fc-bg);
+}
+.ehero.past {
+  background: var(--fc-raised);
+  color: var(--fc-fg);
+}
+.ehero.past :global(.mono) {
+  color: var(--fc-fg-muted);
+}
+.ehero.past :global(.tag) {
+  background: none;
+}
+
+.etitle {
+  padding: 16px 16px 0;
+}
+.etitle h1 {
+  margin: 0 0 8px;
+  font: 800 32px/32px var(--fc-font-grotesk);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.etitle .where {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin: 16px 16px 0;
+  border-top: 1px solid var(--fc-line);
+}
+.info dt,
+.info dd {
+  margin: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fc-line);
+}
+.info dt {
+  padding-right: 16px;
+}
+.info dd {
+  font-size: 15px;
+  line-height: 22px;
+  text-align: right;
+}
+
+.sect {
+  padding: 24px 16px 0;
+}
+.sect h2 {
+  margin: 0 0 12px;
+  font: 800 20px/22px var(--fc-font-grotesk);
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+.sect p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--fc-fg-muted);
+}
+
+.lineup {
+  display: grid;
+  border-top: 1px solid var(--fc-line);
+}
+.lineup > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fc-line);
+}
+.lineup .h {
+  font: 800 20px/24px var(--fc-font-grotesk);
+  text-transform: uppercase;
+}
+
+.gift {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--fc-line);
+}
+.gift:last-child {
+  border-bottom: 1px solid var(--fc-line);
+}
+.gift h3 {
+  margin: 0;
+  font: 700 13px/16px var(--fc-font-grotesk);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gift p {
+  margin: 4px 0 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--fc-fg-muted);
+}
+.gift ul {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.gift li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 22px;
+}
+.gift form {
+  display: flex;
+  gap: 8px;
+}
+.gift input {
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Barra de compra: no celular gruda acima do deck; no desktop fecha a coluna. */
+.buybar {
+  position: sticky;
+  bottom: var(--navspace);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--fc-line);
+  background: var(--fc-bg);
+}
+.buybar :global(.mono) {
+  max-width: 18ch;
+}
+@media (min-width: 64rem) {
+  .buybar {
+    position: static;
+  }
+}
