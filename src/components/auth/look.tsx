@@ -38,10 +38,8 @@ export function Field({ id, label, hint, children }: { id: string; label: string
 export function FormError({ message }: { message?: string }) {
   const { look } = useAuthLook();
   if (!message) return null;
-  const cls =
-    look === "artist"
-      ? "rounded-xl border-2 border-ink bg-accent-2 px-3 py-2.5 font-body text-sm font-semibold text-ink"
-      : "rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger";
+  // No tema do artista, o erro é só texto na cor de sinal (`.err`), sem caixa.
+  const cls = look === "artist" ? "err" : "rounded-lg bg-[#fbeae7] px-3 py-2.5 text-sm font-semibold text-adm-danger";
   return (
     <p role="alert" className={`m-0 ${cls}`}>
       {message}
