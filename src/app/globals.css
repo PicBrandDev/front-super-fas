@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
 /*
- * Tokens do fã clube (por artista).
+ * Tokens do fã clube (por artista) — sistema "Night" do protótipo fanzone.
  * Os valores reais vêm de src/lib/themes.ts e são aplicados como variáveis
- * CSS (--fc-*) no wrapper de cada ambiente. Assim cada artista tem seu visual
- * sem mudar os componentes.
+ * CSS (--fc-*) no wrapper de cada ambiente (FanShell). Assim cada artista
+ * tem seu visual sem mudar os componentes.
+ *
+ * Uso: bg-night, bg-surface, text-fg, text-fg-muted, bg-amber, text-amber-text,
+ * text-on-amber, bg-sun, text-signal, bg-lagoon-deep, text-chrome,
+ * bg-poster-grey, bg-mist, text-ink, border-line, border-line-strong,
+ * font-display (Playfair), font-grotesk (Archivo), font-mono (DM Mono),
+ * rounded-hair (2px), rounded-field (6px), rounded-device (20px).
  */
 @theme inline {
-  --color-paper: var(--fc-paper);
-  --color-paper-2: var(--fc-paper-2);
-  --color-cream: var(--fc-cream);
+  --color-night: var(--fc-bg);
+  --color-surface: var(--fc-surface);
+  --color-raised: var(--fc-raised);
+  --color-line: var(--fc-line);
+  --color-line-strong: var(--fc-line-strong);
+  --color-fg: var(--fc-fg);
+  --color-fg-muted: var(--fc-fg-muted);
+  --color-amber: var(--fc-amber);
+  --color-amber-text: var(--fc-amber-text);
+  --color-on-amber: var(--fc-on-amber);
+  --color-sun: var(--fc-sun);
+  --color-signal: var(--fc-signal);
+  --color-lagoon: var(--fc-lagoon);
+  --color-lagoon-deep: var(--fc-lagoon-deep);
+  --color-chrome: var(--fc-chrome);
+  --color-poster-grey: var(--fc-poster-grey);
+  --color-mist: var(--fc-mist);
   --color-ink: var(--fc-ink);
-  --color-ink-soft: var(--fc-ink-soft);
-  --color-accent: var(--fc-accent);
-  --color-accent-fg: var(--fc-accent-fg);
-  --color-accent-2: var(--fc-accent-2);
-  --color-accent-3: var(--fc-accent-3);
-  --color-deep: var(--fc-deep);
+  --color-paper: var(--fc-paper);
 
   --font-display: var(--fc-font-display);
-  --font-body: var(--fc-font-body);
-  --font-label: var(--fc-font-label);
+  --font-grotesk: var(--fc-font-grotesk);
+  --font-mono: var(--fc-font-mono);
 
   --font-adm: var(--font-plex-sans), system-ui, sans-serif;
   --font-adm-mono: var(--font-plex-mono), ui-monospace, monospace;
@@ -31,6 +46,14 @@
   --color-adm-blue-dark: var(--pf-brand-dark);
   --color-adm-blue-soft: var(--pf-brand-soft);
   --color-adm-blue-tint: var(--pf-brand-tint);
+}
+
+/* Raios do sistema do fã clube (os painéis seguem os raios padrão). */
+@theme {
+  --radius-hair: 2px;
+  --radius-field: 6px;
+  --radius-device: 20px;
+  --ease-fan: cubic-bezier(0.16, 0.84, 0.24, 1);
 }
 
 /* Cor principal dos painéis e das telas neutras. Os tons derivados saem dela. */
@@ -64,32 +87,9 @@
   --color-adm-danger: #a23a2a;
 }
 
-/* Faixa listrada retrô (4 bandas). */
-@utility stripes {
-  background: linear-gradient(
-    to bottom,
-    var(--fc-accent-2) 0 25%,
-    var(--fc-accent-3) 25% 50%,
-    var(--fc-accent) 50% 75%,
-    var(--fc-deep) 75% 100%
-  );
-}
-
-/* Retícula clara (sobre fundos escuros). */
-@utility halftone-light {
-  background-image: radial-gradient(circle, rgb(242 232 213 / 0.22) 1.2px, transparent 1.6px);
-  background-size: 8px 8px;
-}
-
-/* Retícula escura (sobre fundos claros). */
-@utility halftone-dark {
-  background-image: radial-gradient(circle, rgb(33 27 22 / 0.16) 1.2px, transparent 1.6px);
-  background-size: 8px 8px;
-}
-
-/* Sombra "carimbada" sem desfoque. */
-@utility shadow-hard {
-  box-shadow: 4px 4px 0 var(--fc-ink);
+/* Espaço reservado embaixo para o menu flutuante (deck) no celular. */
+@utility pb-navspace {
+  padding-bottom: var(--navspace);
 }
 
 @utility sr-only-focusable {
@@ -112,4 +112,537 @@ body {
 :focus-visible {
   outline: 3px solid var(--pf-brand);
   outline-offset: 2px;
+}
+
+/*
+ * Componentes do fã clube (vocabulário do protótipo fanzone.html).
+ * Tudo aqui depende das variáveis --fc-* e só vale dentro de `.fan`.
+ */
+@layer components {
+  .fan {
+    --navspace: calc(88px + env(safe-area-inset-bottom, 0px));
+    --ease: cubic-bezier(0.16, 0.84, 0.24, 1);
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--fc-line-strong) transparent;
+  }
+  .fan ::selection {
+    background: var(--fc-amber);
+    color: var(--fc-on-amber);
+  }
+  .fan :focus-visible {
+    outline: 2px solid var(--fc-sun);
+    outline-offset: 2px;
+  }
+  /* Ícones de linha: 1.6 de traço, pontas retas. */
+  .fan .icon {
+    stroke-width: 1.6;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+  }
+
+  /* ---------- vozes tipográficas ---------- */
+  .mono {
+    font: 400 11px/14px var(--fc-font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fc-fg-muted);
+  }
+  .poster {
+    font-family: var(--fc-font-grotesk);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+  .serif {
+    font-family: var(--fc-font-display);
+    font-weight: 900;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- controles ---------- */
+  .btn {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 24px;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    font: 700 13px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--fc-fg);
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 0.15s var(--ease),
+      color 0.15s var(--ease),
+      border-color 0.15s var(--ease);
+  }
+  .btn-primary {
+    background: var(--fc-amber);
+    color: var(--fc-on-amber);
+  }
+  .btn-primary:hover {
+    background: var(--fc-sun);
+  }
+  .btn-primary:active {
+    transform: translateY(1px);
+  }
+  .btn-outline {
+    border-color: var(--fc-fg);
+  }
+  .btn-outline:hover {
+    background: var(--fc-fg);
+    color: var(--fc-bg);
+  }
+  .btn-ghost {
+    padding: 0 4px;
+    color: var(--fc-amber-text);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+  }
+  .btn[disabled],
+  .btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 12px;
+  }
+  .btn-block {
+    width: 100%;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    border: 1px solid var(--fc-line-strong);
+    border-radius: 2px;
+    font: 400 11px/12px var(--fc-font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fc-fg);
+    white-space: nowrap;
+  }
+  .tag-hot {
+    border-color: var(--fc-signal);
+    color: var(--fc-signal);
+  }
+  .tag-key {
+    border-color: var(--fc-sun);
+    background: var(--fc-sun);
+    color: var(--fc-on-amber);
+  }
+  .tag-demo {
+    border-color: var(--fc-line);
+    color: var(--fc-fg-muted);
+  }
+
+  /* Ações do post: curtir, comentar, repostar. */
+  .act {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    min-width: 44px;
+    background: none;
+    border: 0;
+    padding: 0 10px 0 0;
+    color: var(--fc-chrome);
+    font: 400 11px/14px var(--fc-font-mono);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .act:hover {
+    color: var(--fc-fg);
+  }
+  .act[aria-pressed="true"].like {
+    color: var(--fc-signal);
+  }
+  .act[aria-pressed="true"].like svg {
+    fill: var(--fc-signal);
+  }
+  .act[aria-pressed="true"].rp {
+    color: var(--fc-amber-text);
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--fc-line-strong);
+    display: grid;
+    place-items: center;
+    color: var(--fc-fg);
+    flex: none;
+    font: 400 10px/1 var(--fc-font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .verified {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .verified svg {
+    color: var(--fc-fg-muted);
+  }
+
+  .field {
+    width: 100%;
+    background: var(--fc-surface);
+    border: 1px solid var(--fc-line-strong);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--fc-fg);
+    font: 400 16px/24px var(--fc-font-grotesk);
+    caret-color: var(--fc-amber);
+  }
+  .field::placeholder {
+    color: var(--fc-fg-muted);
+  }
+  .field:focus {
+    outline: 2px solid var(--fc-sun);
+    outline-offset: 0;
+    border-color: transparent;
+  }
+  textarea.field {
+    resize: none;
+  }
+
+  /* Link de ação sublinhado em âmbar ("Ver evento →"). */
+  .go {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fc-amber-text);
+    font: 700 13px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .ok {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--fc-amber-text);
+    font: 700 13px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    min-height: 44px;
+  }
+  .err {
+    color: var(--fc-signal);
+    font-size: 13px;
+    line-height: 18px;
+    margin-top: 8px;
+  }
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--fc-fg);
+    font: 700 12px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* ---------- abas ---------- */
+  .tabs {
+    display: flex;
+    gap: 24px;
+    margin: 0 16px;
+    border-bottom: 1px solid var(--fc-line);
+    flex: none;
+  }
+  .tab {
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 6px 0 10px;
+    font: 700 12px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fc-fg-muted);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab:hover {
+    color: var(--fc-fg);
+  }
+  .tab[aria-selected="true"] {
+    color: var(--fc-fg);
+    border-bottom-color: var(--fc-amber);
+  }
+  .tabs .slot {
+    margin-left: auto;
+    align-self: center;
+    padding-bottom: 6px;
+  }
+
+  /* ---------- cabeçalho: a palavra da seção, sempre cortada ---------- */
+  .mast {
+    position: relative;
+    flex: none;
+    height: 104px;
+    overflow: hidden;
+  }
+  .mast-word {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    font: 800 var(--mast-size, 112px) / 0.8 var(--fc-font-grotesk);
+    text-transform: uppercase;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
+    transform: translate(var(--mast-x, 16px), 0.17em);
+    transition: transform 0.55s var(--ease);
+    will-change: transform;
+  }
+
+  /* ---------- menu de baixo: cinco teclas de piano ---------- */
+  .nav {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+  }
+  .deck {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    align-items: end;
+    padding: 8px 7px 8px;
+    background: #1a1210;
+    border: 1px solid var(--fc-line-strong);
+    border-radius: 8px;
+  }
+  .deck::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 3px;
+    height: 1px;
+    background: var(--fc-line);
+  }
+  .key {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 6px;
+    height: 52px;
+    padding: 0 2px;
+    background: #2a201c;
+    border: 0;
+    border-bottom: 4px solid #0b0605;
+    border-radius: 3px;
+    color: var(--fc-fg-muted);
+    font: 700 10px/12px var(--fc-font-grotesk);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      transform 0.12s var(--ease),
+      border-bottom-width 0.12s var(--ease),
+      background-color 0.12s var(--ease),
+      color 0.12s var(--ease);
+  }
+  .key:hover {
+    color: var(--fc-fg);
+  }
+  .key .led {
+    width: 10px;
+    height: 3px;
+    border-radius: 1px;
+    background: #4a3a33;
+    transition: background-color 0.2s var(--ease);
+  }
+  .key[aria-current="page"] {
+    transform: translateY(3px);
+    border-bottom-width: 1px;
+    background: #1f1714;
+    color: var(--fc-amber-text);
+  }
+  .key[aria-current="page"] .led {
+    background: var(--fc-amber);
+  }
+
+  /* ---------- menu lateral (desktop) ---------- */
+  .jump {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--fc-line);
+  }
+  .jump a {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 40px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--fc-line);
+    color: var(--fc-fg-muted);
+    font: 700 12px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .jump a:hover {
+    color: var(--fc-fg);
+  }
+  .jump a[aria-current="page"] {
+    color: var(--fc-amber-text);
+  }
+
+  /* ---------- folhas e avisos ---------- */
+  .scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 9, 7, 0.72);
+    z-index: 50;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .sheet {
+    width: 100%;
+    max-width: 600px;
+    background: var(--fc-surface);
+    color: var(--fc-fg);
+    border-top: 1px solid var(--fc-line-strong);
+    border-radius: 6px 6px 0 0;
+    padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    gap: 16px;
+    animation: fan-up 0.25s var(--ease);
+  }
+  .sheet h2 {
+    margin: 0;
+    font: 900 40px/40px var(--fc-font-display);
+    color: var(--fc-amber-text);
+  }
+  .sheet p {
+    margin: 0;
+    color: var(--fc-fg-muted);
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .sheet .opts {
+    display: grid;
+    border-top: 1px solid var(--fc-line);
+  }
+  .sheet .opt {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--fc-line);
+    text-align: left;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .sheet .opt:hover {
+    color: var(--fc-amber-text);
+  }
+  .sheet .opt strong {
+    display: block;
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .sheet .row {
+    display: grid;
+    gap: 8px;
+  }
+  .toast {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(var(--navspace, 88px) + 8px);
+    z-index: 60;
+    margin: 0 auto;
+    max-width: 568px;
+    background: var(--fc-fg);
+    color: var(--fc-bg);
+    padding: 12px 16px;
+    border-radius: 2px;
+    font: 700 13px/16px var(--fc-font-grotesk);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    animation: fan-up 0.2s var(--ease);
+  }
+  .toast[hidden] {
+    display: none;
+  }
+  .new {
+    animation: fan-drop 0.3s var(--ease);
+  }
+}
+
+@keyframes fan-up {
+  from {
+    transform: translateY(24px);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes fan-drop {
+  from {
+    transform: translateY(-8px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fan *,
+  .fan *::before,
+  .fan *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

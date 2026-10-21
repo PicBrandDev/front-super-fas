@@ -40,7 +40,7 @@ const paths = {
       <circle cx="12" cy="13" r="4" />
     </>
   ),
-  heart: <path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9z" />,
+  heart: <path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.4-7 10-7 10z" />,
   comment: <path d="M4 5h16v11H9l-5 4z" />,
   repost: (
     <>
@@ -56,7 +56,22 @@ const paths = {
       <path d="M5 14v6h14v-6" />
     </>
   ),
-  back: <path d="M15 5l-7 7 7 7" />,
+  back: <path d="M20 12H5M11 6l-6 6 6 6" />,
+  arrow: <path d="M4 12h15M13 6l6 6-6 6" />,
+  pin: (
+    <>
+      <path d="M12 21s-6-6-6-11a6 6 0 0 1 12 0c0 5-6 11-6 11z" />
+      <path d="M12 8v4" />
+    </>
+  ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  play: <path d="M7 5v14l12-7z" />,
+  pause: <path d="M7 5v14M17 5v14" />,
   "chevron-right": <path d="M9 5l7 7-7 7" />,
   "chevron-down": <path d="M6 9l6 6 6-6" />,
   search: (
@@ -137,9 +152,10 @@ type Props = Omit<SVGProps<SVGSVGElement>, "name"> & {
   label?: string;
 };
 
-export function Icon({ name, size = 22, strokeWidth = 2, filled = false, label, ...rest }: Props) {
+export function Icon({ name, size = 22, strokeWidth = 2, filled = false, label, className, ...rest }: Props) {
   return (
     <svg
+      className={className ? `icon ${className}` : "icon"}
       width={size}
       height={size}
       viewBox="0 0 24 24"

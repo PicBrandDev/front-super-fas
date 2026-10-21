@@ -271,7 +271,7 @@ export function PatrocinadorClient({
                   <span
                     aria-hidden="true"
                     className="flex size-14 flex-none items-center justify-center rounded-[14px] text-[26px]"
-                    style={{ background: c.brandColor, color: c.theme.cream, fontFamily: c.theme.fontDisplay }}
+                    style={{ background: c.brandColor, color: c.theme.text, fontFamily: c.theme.fontDisplay }}
                   >
                     {c.initial}
                   </span>

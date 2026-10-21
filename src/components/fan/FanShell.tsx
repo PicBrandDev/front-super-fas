@@ -5,10 +5,11 @@ import { authEnabled } from "@/lib/auth";
 import { ArtistProvider } from "./ArtistContext";
 import { FanFrame } from "./FanFrame";
 import { FanSidebar } from "./FanSidebar";
+import { ToastProvider } from "./Toast";
 
 /**
- * Casca da área do fã: aplica o tema do artista, menu lateral no desktop
- * e, no celular, a faixa de membro + menu de baixo fixos (ver FanFrame).
+ * Casca da área do fã: aplica o tema do artista (variáveis --fc-*), o menu
+ * lateral no desktop e o deck de baixo no celular (ver FanFrame).
  */
 export function FanShell({
   artist,
@@ -27,6 +28,7 @@ export function FanShell({
         slug: artist.slug,
         name: artist.name,
         initial: artist.initial,
+        fanClubName: artist.fanClubName,
         base: `/${artist.slug}`,
         priceLabel: formatBRL(artist.memberPriceCents),
         viewer,
@@ -34,10 +36,12 @@ export function FanShell({
         loggedIn: authEnabled(),
       }}
     >
-      <div style={themeStyle(artist.theme)} className="min-h-dvh bg-paper font-body text-ink lg:flex">
-        <FanSidebar />
-        <FanFrame>{children}</FanFrame>
-      </div>
+      <ToastProvider>
+        <div style={themeStyle(artist.theme)} className="fan min-h-dvh bg-night font-grotesk text-base leading-6 text-fg lg:flex">
+          <FanSidebar />
+          <FanFrame>{children}</FanFrame>
+        </div>
+      </ToastProvider>
     </ArtistProvider>
   );
 }

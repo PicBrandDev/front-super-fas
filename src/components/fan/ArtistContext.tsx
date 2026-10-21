@@ -7,6 +7,7 @@ export type ArtistCtx = {
   slug: string;
   name: string;
   initial: string;
+  fanClubName: string;
   base: string; // ex.: "/vintage-culture"
   priceLabel: string; // ex.: "R$ 16,90"
   viewer: Viewer;

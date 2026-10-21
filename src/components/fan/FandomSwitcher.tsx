@@ -4,10 +4,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { useArtist } from "./ArtistContext";
+import { Mark } from "./Mark";
 
-/** Botão para trocar de fã clube (multifandom). */
+/** Botão para trocar de fã clube (multifandom): marca + nome + seta; abre uma lista plana. */
 export function FandomSwitcher({ wide = false }: { wide?: boolean }) {
-  const { name, initial, otherFandoms } = useArtist();
+  const { name, otherFandoms } = useArtist();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,57 +33,47 @@ export function FandomSwitcher({ wide = false }: { wide?: boolean }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="true"
-        className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-full border-2 border-ink bg-cream py-1 pl-1 pr-3 text-left font-label text-[13px] font-bold text-ink ${
+        className={`flex min-h-11 cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-left font-grotesk text-xs font-bold uppercase tracking-[0.06em] text-fg ${
           wide ? "w-full" : ""
         }`}
       >
-        <span className="flex size-[30px] flex-none items-center justify-center rounded-full bg-accent font-display text-[15px] text-accent-fg">
-          {initial}
-        </span>
+        <Mark size={22} />
         <span className={wide ? "flex-1" : ""}>{name}</span>
-        <Icon name="chevron-down" size={16} strokeWidth={2.4} />
+        <Icon name="chevron-down" size={16} className="icon text-fg-muted" />
         <span className="sr-only">Trocar de fandom</span>
       </button>
 
       {open && (
-        <div className="absolute left-0 top-[calc(100%+8px)] z-40 flex w-[276px] flex-col gap-0.5 rounded-[14px] border-2 border-ink bg-cream p-2 shadow-[5px_5px_0_var(--fc-ink)]">
-          <p className="mx-2 my-1.5 font-label text-[11px] font-bold uppercase tracking-widest text-ink-soft">Seus fandoms</p>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-[10px] bg-paper-2 px-2 py-1.5 text-left font-body text-[15px] font-semibold text-ink"
-          >
-            <span className="flex size-8 items-center justify-center rounded-full bg-accent font-display text-[15px] text-accent-fg">
-              {initial}
-            </span>
-            <span className="flex-1">{name}</span>
-            <Icon name="check" size={18} strokeWidth={2.6} label="Ativo" />
-          </button>
-          {/* A API devolve só os nomes dos outros fandoms; a lista de entrada escolhe o ambiente. */}
-          {otherFandoms.map((f, i) => (
-            <Link
-              key={`${f}-${i}`}
-              href="/"
-              className="flex min-h-12 items-center gap-2.5 rounded-[10px] px-2 py-1.5 font-body text-[15px] font-semibold text-ink no-underline"
+        <div className="absolute left-0 top-[calc(100%+8px)] z-40 grid w-[276px] gap-0 rounded-field border border-line-strong bg-surface p-3 text-fg">
+          <p className="mono m-0 pb-2">Seus fandoms</p>
+          <div className="grid border-t border-line">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex min-h-12 cursor-pointer items-center gap-3 border-0 border-b border-line bg-transparent p-0 text-left text-[15px] font-bold text-fg"
             >
-              <span
-                className={`flex size-8 items-center justify-center rounded-full font-label text-xs font-bold ${
-                  i % 2 ? "bg-accent-2 text-ink" : "bg-ink text-paper"
-                }`}
+              <Mark size={18} />
+              <span className="flex-1">{name}</span>
+              <Icon name="check" size={14} className="icon text-fg-muted" label="Ativo" />
+            </button>
+            {/* A API devolve só os nomes dos outros fandoms; a lista de entrada escolhe o ambiente. */}
+            {otherFandoms.map((f, i) => (
+              <Link
+                key={`${f}-${i}`}
+                href="/"
+                className="flex min-h-12 items-center gap-3 border-b border-line text-[15px] text-fg no-underline hover:text-amber-text"
               >
-                A{i + 2}
-              </span>
-              <span>{f}</span>
+                <span className="avatar" style={{ width: 24, height: 24 }} aria-hidden="true">
+                  {f.replace(/[[\]]/g, "").slice(0, 2)}
+                </span>
+                <span>{f}</span>
+              </Link>
+            ))}
+            <Link href="/" className="go min-h-12 border-b-0">
+              <Icon name="plus" size={14} className="icon" />
+              Entrar em outro fã clube
             </Link>
-          ))}
-          <div className="my-1.5 h-0.5 bg-ink opacity-15" />
-          <Link
-            href="/"
-            className="flex min-h-12 items-center gap-2.5 rounded-[10px] px-2 py-1.5 font-label text-[13px] font-bold text-ink no-underline"
-          >
-            <Icon name="plus" size={20} strokeWidth={2.4} />
-            Entrar em outro fã clube
-          </Link>
+          </div>
         </div>
       )}
     </div>
