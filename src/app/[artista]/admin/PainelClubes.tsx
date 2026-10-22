@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
-import { syncInstagram, type InstagramSync } from "@/app/actions/admin";
+import { useMemo, useState } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { ClubAvatar } from "@/components/admin/ClubAvatar";
 import { AdminEmpty, Badge, btnPrimary, inputClass } from "@/components/admin/ui";
@@ -15,8 +14,6 @@ const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCas
 /** Todos os fã clubes do ambiente (sem limite) em cards: foto, dono e números. Clicar abre o analytics. */
 export function PainelClubes({ artist, artistName, clubs }: { artist: string; artistName: string; clubs: ClubOverview[] }) {
   const [q, setQ] = useState("");
-  const [ig, setIg] = useState<InstagramSync | string | null>(null);
-  const [igBusy, igStart] = useTransition();
   const shown = useMemo(() => {
     const t = norm(q.trim());
     if (!t) return clubs;
@@ -53,36 +50,6 @@ export function PainelClubes({ artist, artistName, clubs }: { artist: string; ar
           </div>
         ))}
       </dl>
-
-      <section aria-labelledby="fs-title" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-adm-line bg-white px-4 py-3">
-        <div className="flex flex-col gap-0.5">
-          <h2 id="fs-title" className="m-0 text-sm font-bold">
-            Ranking Fã Super (Instagram)
-          </h2>
-          <p className="m-0 text-[13px] text-adm-muted" role="status">
-            {typeof ig === "string"
-              ? ig
-              : ig
-                ? ig.enabled
-                  ? `${ig.found} posts da hashtag lidos, ${ig.verified} novos compartilhamentos confirmados${ig.error ? ` (erro: ${ig.error})` : ""}.`
-                  : "A conferência no Instagram não está ligada no servidor (INSTAGRAM_ENABLED)."
-                : "O servidor confere a hashtag sozinho; aqui você força a conferência agora."}
-          </p>
-        </div>
-        <button
-          type="button"
-          disabled={igBusy}
-          onClick={() =>
-            igStart(async () => {
-              const res = await syncInstagram(artist);
-              setIg(res.ok ? res.data : res.error);
-            })
-          }
-          className={btnPrimary}
-        >
-          {igBusy ? "Conferindo…" : "Conferir Instagram agora"}
-        </button>
-      </section>
 
       <div className="flex flex-wrap items-center gap-3">
         <label htmlFor="painel-busca" className="sr-only">

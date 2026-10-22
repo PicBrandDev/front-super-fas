@@ -147,8 +147,8 @@ export function clubNav(slug: string): AdminNavItem[] {
 export function fanClubNav(slug: string, club: string): AdminNavItem[] {
   const base = `/${slug}/clubes/${club}/admin`;
   return [
-    { key: "membros", label: "Membros", href: `${base}/membros`, icon: "users" },
-    { key: "mural", label: "Mural da galera", href: `${base}/mural`, icon: "news" },
+    { key: "visao", label: "Visão geral", href: base, icon: "chart" },
+    { key: "mural", label: "Posts do fã clube", href: `${base}/mural`, icon: "news" },
     { key: "pickap", label: "PicKap", href: `${base}/pickap`, icon: "wheel" },
     { key: "anuncios", label: "Anúncios", href: `${base}/anuncios`, icon: "megaphone" },
     { key: "equipe", label: "Equipe", href: `${base}/equipe`, icon: "user" },

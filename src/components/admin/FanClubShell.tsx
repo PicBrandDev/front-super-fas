@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { AdminShell, fanClubNav } from "@/components/admin/AdminShell";
-import { initialsOf, shellUser } from "@/lib/shell";
+import { ClubAvatar } from "@/components/admin/ClubAvatar";
+import { shellUser } from "@/lib/shell";
+import { themeStyle } from "@/lib/themes";
 import type { Artist, FanClub } from "@/lib/types";
 
-/** Casca do painel de um fã clube (dono e ajudantes). O selo leva a inicial do clube na cor do artista. */
+/** Casca do painel de um fã clube (dono e ajudantes), no visual do artista (Noite) e com a foto do fã clube. */
 export async function FanClubShell({
   artist,
   club,
@@ -17,15 +19,10 @@ export async function FanClubShell({
 }) {
   return (
     <AdminShell
+      className="adm-noite"
+      style={themeStyle(artist.theme)}
       brand={{
-        mark: (
-          <span
-            className="flex size-full items-center justify-center rounded-lg text-lg font-normal"
-            style={{ background: artist.brandColor, color: artist.theme.text, fontFamily: artist.theme.fontDisplay }}
-          >
-            {initialsOf(club.name).charAt(0)}
-          </span>
-        ),
+        mark: <ClubAvatar src={club.avatar} name={club.name} size={34} />,
         markClass: "bg-transparent",
         title: club.name,
         subtitle: `${club.isMaster ? "Fã clube master" : "Fã clube"} · ${artist.name}`,
@@ -33,7 +30,6 @@ export async function FanClubShell({
       passwordHref={`/${artist.slug}/conta/senha`}
       nav={fanClubNav(artist.slug, club.slug)}
       active={active}
-      extraLink={{ label: "Ver página do clube", href: `/${artist.slug}/clubes/${club.slug}` }}
       user={await shellUser({ initials: "EQ", name: "Equipe do fã clube", role: "Equipe do fã clube" })}
     >
       {children}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AnunciosClient } from "@/components/admin/AnunciosClient";
-import { ClubDataForm, ClubMembersClient, ClubPostsClient } from "@/components/admin/ClubPanels";
+import { ClubDataForm } from "@/components/admin/ClubPanels";
 import { FanClubShell } from "@/components/admin/FanClubShell";
 import { ResourceManager, type FieldDef, type Item } from "@/components/admin/ResourceManager";
 import { StaffClient } from "@/components/admin/StaffClient";
@@ -10,18 +10,17 @@ import {
   getClub,
   getClubAdSlots,
   getClubCampaigns,
+  getClubFeed,
   getClubManaged,
-  getClubMembers,
   getClubStaff,
   getSession,
 } from "@/lib/api";
-import type { Post } from "@/lib/types";
+import { ClubFeedAdmin } from "./ClubFeedAdmin";
 
 type Params = Promise<{ artista: string; clube: string; secao: string }>;
 
 const titles: Record<string, string> = {
-  membros: "Membros",
-  mural: "Mural da galera",
+  mural: "Posts do fã clube",
   pickap: "PicKap",
   anuncios: "Anúncios",
   equipe: "Equipe",
@@ -42,6 +41,8 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ClubAdminSection({ params }: { params: Params }) {
   const { artista, clube, secao } = await params;
+  // A antiga lista de membros virou a Visão geral (números e cidades, sem listar pessoas).
+  if (secao === "membros") redirect(`/${artista}/clubes/${clube}/admin`);
   if (!titles[secao]) notFound();
   const [artist, club, session] = await Promise.all([getArtist(artista), getClub(artista, clube), getSession()]);
   if (!artist || !club) notFound();
@@ -50,11 +51,8 @@ export default async function ClubAdminSection({ params }: { params: Params }) {
 
   let body: React.ReactNode;
   switch (secao) {
-    case "membros":
-      body = <ClubMembersClient artist={artist.slug} club={club.slug} clubName={club.name} members={await getClubMembers(artist.slug, club.slug)} />;
-      break;
     case "mural":
-      body = <ClubPostsClient artist={artist.slug} club={club.slug} clubName={club.name} posts={await getClubManaged<Post>(artist.slug, club.slug, "posts")} />;
+      body = <ClubFeedAdmin slug={artist.slug} club={club.slug} clubName={club.name} items={await getClubFeed(artist.slug, club.slug)} />;
       break;
     case "pickap":
       body = (
