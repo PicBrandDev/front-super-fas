@@ -44,7 +44,11 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
     redirect(/^[a-z0-9-]+$/.test(artista) ? `/${artista}/conta/senha?primeiro=1` : "/conta/senha?primeiro=1");
   }
   // Fã que entrou pelo login de um artista volta para o ambiente dele; equipe vai para o painel.
-  const fanHome = res.data.user.role === "fan" && /^[a-z0-9-]+$/.test(artista) ? `/${artista}` : "";
+  const validSlug = /^[a-z0-9-]+$/.test(artista);
+  const u = res.data.user;
+  // Dono de um fã clube (não é da administração do ambiente) entra no "Meu fandom" do ambiente em que fez o login.
+  const ownsHere = u.role === "artist_admin" && validSlug && !u.artists.includes(artista) && u.clubs.some((c) => c.startsWith(`${artista}/`));
+  const fanHome = (u.role === "fan" && validSlug) || ownsHere ? (ownsHere ? `/${artista}/meu-fandom` : `/${artista}`) : "";
   redirect(safeNext(form.get("next")) || fanHome || homeFor(res.data.user));
 }
 

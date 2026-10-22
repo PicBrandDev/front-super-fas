@@ -29,6 +29,7 @@ export function ComunidadeView({
   posts,
   clubs,
   allClubs,
+  ownerView = false,
   initialClub,
   ranking,
   initialTab,
@@ -37,6 +38,7 @@ export function ComunidadeView({
   posts: Post[];
   clubs: FollowedClub[]; // fã clubes que o fã segue
   allClubs: ClubListItem[]; // todos os fã clubes, para entrar em um
+  ownerView?: boolean; // dono/equipe: tudo da tela é só do fã clube dele
   initialClub: string | null;
   ranking: Ranking | null;
   initialTab: Tab;
@@ -79,8 +81,14 @@ export function ComunidadeView({
       )}
       <NewPostFab clubs={clubs.map((c) => ({ slug: c.slug, name: c.name, avatar: c.avatar }))} defaultClub={clube} onPosted={onPosted} />
 
+      {ownerView && (
+        <div className="px-4 pt-3">
+          <AllClubsButton clubs={allClubs.filter((c) => !followed.has(c.slug))} label="Ver outros fã clubes" viewOnly />
+        </div>
+      )}
+
       {tab === "ranking" ? (
-        <RankingView ranking={ranking} />
+        <RankingView ranking={ranking} scope={ownerView ? clubs.map((c) => c.slug) : undefined} />
       ) : (
       <div className="px-4">
         {clubs.length === 0 ? (
@@ -91,8 +99,14 @@ export function ComunidadeView({
           </div>
         ) : (
           <>
+            {ownerView && clubs.length === 1 && (
+              <div className="flex items-center justify-between gap-3 border-b border-line py-3">
+                <h2 className="m-0 font-display text-2xl font-black leading-7">{clubs[0].name}</h2>
+              </div>
+            )}
+
             {/* Feed de cada fã clube que o fã segue. */}
-            <nav aria-label="Feed de cada fã clube que você segue" className="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]">
+            <nav hidden={ownerView && clubs.length === 1} aria-label="Feed de cada fã clube que você segue" className="-mx-4 mb-2 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]">
               <button type="button" className="btn btn-outline btn-sm chip flex-none" aria-pressed={clube === null} onClick={() => setClube(null)}>
                 Todos os que sigo
                 <span className="num opacity-70">{all.length}</span>
@@ -113,14 +127,16 @@ export function ComunidadeView({
               ))}
             </nav>
 
-            <AllClubsButton clubs={allClubs} />
+            {!ownerView && <AllClubsButton clubs={allClubs} />}
 
-            {current && (
+            {current && !(ownerView && clubs.length === 1) && (
               <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
                 <h2 className="m-0 font-display text-2xl font-black leading-7">{current.name}</h2>
-                <Link href={`${base}/clubes/${current.slug}`} className="go min-h-11">
-                  Abrir fã clube
-                </Link>
+                {!ownerView && (
+                  <Link href={`${base}/clubes/${current.slug}`} className="go min-h-11">
+                    Abrir fã clube
+                  </Link>
+                )}
               </div>
             )}
 

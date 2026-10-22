@@ -24,7 +24,17 @@ export type ClubListItem = {
  * Botão "Ver todos os fã clubes": abre a lista de todos os fã clubes do ambiente, cada um com
  * "Entrar" (ou "Seguindo", se o fã já entrou) e o link para abrir a página dele.
  */
-export function AllClubsButton({ clubs, variant = "row" }: { clubs: ClubListItem[]; variant?: "row" | "button" }) {
+export function AllClubsButton({
+  clubs,
+  variant = "row",
+  label = "Ver todos os fã clubes",
+  viewOnly = false,
+}: {
+  clubs: ClubListItem[];
+  variant?: "row" | "button";
+  label?: string;
+  viewOnly?: boolean; // dono de fã clube: só visualiza os outros, não entra neles
+}) {
   const { base, slug } = useArtist();
   const toast = useToast();
   const router = useRouter();
@@ -52,16 +62,16 @@ export function AllClubsButton({ clubs, variant = "row" }: { clubs: ClubListItem
           onClick={() => setOpen(true)}
           className="flex min-h-12 w-full cursor-pointer items-center justify-between border-0 border-y border-solid border-line bg-transparent px-0 py-0 text-left font-grotesk text-[15px] font-semibold uppercase tracking-wide text-fg"
         >
-          Ver todos os fã clubes
+          {label}
           <Icon name="arrow" size={18} />
         </button>
       ) : (
         <button type="button" className="btn btn-primary self-start" onClick={() => setOpen(true)}>
-          Ver todos os fã clubes
+          {label}
         </button>
       )}
-      <Sheet open={open} onClose={() => setOpen(false)} title="Todos os fã clubes">
-        <p>Entre num fã clube para seguir o feed dele na Comunidade e postar nele.</p>
+      <Sheet open={open} onClose={() => setOpen(false)} title={label === "Ver todos os fã clubes" ? "Todos os fã clubes" : "Outros fã clubes"}>
+        <p>{viewOnly ? "Veja os outros fã clubes do ambiente." : "Entre num fã clube para seguir o feed dele na Comunidade e postar nele."}</p>
         {error && (
           <p className="err" role="alert">
             {error}
@@ -86,9 +96,9 @@ export function AllClubsButton({ clubs, variant = "row" }: { clubs: ClubListItem
                     {c.isMaster ? "Fã clube oficial" : c.city || "Fã clube"} · {c.members.toLocaleString("pt-BR")} membros
                   </span>
                 </span>
-                {isIn ? (
+                {isIn || viewOnly ? (
                   <Link href={`${base}/clubes/${c.slug}`} className="btn btn-outline btn-sm flex-none">
-                    Abrir
+                    {viewOnly ? "Ver" : "Abrir"}
                   </Link>
                 ) : (
                   <button type="button" className="btn btn-primary btn-sm flex-none" onClick={() => enter(c)} disabled={busy}>

@@ -118,6 +118,12 @@ export function PostCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <strong className="text-[15px] leading-5">{post.author.name}</strong>
+            {post.author.badge && (
+              <span className="tag tag-key">
+                <Icon name="star" size={11} />
+                {post.author.badge}
+              </span>
+            )}
             {official ? (
               <span className="mono verified">
                 <Icon name="check" size={12} />

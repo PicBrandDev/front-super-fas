@@ -20,9 +20,10 @@ export default async function ComunidadePage({
   const [{ artista }, { clube, aba }] = await Promise.all([params, searchParams]);
   const [artist, posts, clubs, ranking] = await Promise.all([getArtist(artista), getPosts(artista), getClubs(artista), getRanking(artista)]);
   if (!artist) notFound();
-  // Só os fã clubes que o fã segue (entrou) ou que ele administra (equipe).
-  const followed = clubs
-    .filter((c) => c.joined || !!c.myRole)
+  // Dono (ou equipe) de fã clube: a Comunidade é só do fã clube dele. Os outros fãs veem os fã clubes que seguem.
+  const owned = clubs.filter((c) => !!c.myRole);
+  const ownerView = owned.length > 0;
+  const followed = (ownerView ? owned : clubs.filter((c) => c.joined))
     .map((c) => ({ slug: c.slug, name: c.name, avatar: c.avatar ?? null, isMaster: c.isMaster }));
   const everyone = clubs.map((c) => ({
     slug: c.slug,
@@ -38,7 +39,8 @@ export default async function ComunidadePage({
       posts={posts}
       clubs={followed}
       allClubs={everyone}
-      ranking={ranking}
+      ownerView={ownerView}
+      ranking={ownerView && ranking ? { ...ranking, top: [], clubs: ranking.clubs.filter((c) => owned.some((o) => o.slug === c.slug)) } : ranking}
       initialTab={aba === "ranking" ? "ranking" : "feed"}
       initialClub={followed.some((c) => c.slug === clube) ? (clube ?? null) : null}
       demo={!apiEnabled()}

@@ -88,7 +88,7 @@ export type PostKind = "drop" | "galera" | "instagram";
 export type Post = {
   id: string;
   kind: PostKind;
-  author: { name: string; handle: string; initial: string; official?: boolean };
+  author: { name: string; handle: string; initial: string; official?: boolean; badge?: string | null };
   timeLabel: string;
   text: string;
   hasImage?: boolean;

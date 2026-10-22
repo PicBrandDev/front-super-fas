@@ -81,6 +81,17 @@ export default async function PerfilPage({ params }: { params: Promise<{ artista
           </div>
         </div>
 
+        {myClubs.some((c) => c.myRole) && (
+          <Section title="Meu fandom">
+            <p className="m-0 mb-3 text-fg-muted">
+              Você administra {myClubs.filter((c) => c.myRole).map((c) => c.name).join(", ")}. Veja os números e as publicações do seu fã clube.
+            </p>
+            <Link href={`${base}/meu-fandom`} className="btn btn-primary btn-sm no-underline">
+              Abrir o meu fandom
+            </Link>
+          </Section>
+        )}
+
         <Section title="Dados">
           <dl className="m-0">
             <Row label="E-mail" value={profile?.email} />

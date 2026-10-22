@@ -39,16 +39,19 @@ function Person({ row }: { row: Row }) {
  * "Geral" mistura todos os fã clubes; cada fã clube tem o seu ranking, só com os membros dele.
  * Só conta o compartilhamento confirmado (a legenda leva a hashtag e o código do fã).
  */
-export function RankingView({ ranking }: { ranking: Ranking | null }) {
+export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope?: string[] }) {
   const toast = useToast();
-  const [board, setBoard] = useState<string | null>(null); // null = geral
+  // `scope` (dono de fã clube): só os rankings dos fã clubes dele, sem o geral.
+  const scoped = ranking?.clubs.filter((c) => !scope || scope.includes(c.slug)) ?? [];
+  const [board, setBoard] = useState<string | null>(scope ? (scoped[0]?.slug ?? null) : null); // null = geral
 
   if (!ranking) {
     return <p className="mono px-4 py-8">O ranking aparece quando o app está ligado ao servidor.</p>;
   }
-  const club = ranking.clubs.find((c) => c.slug === board) ?? null;
+  const club = scoped.find((c) => c.slug === board) ?? null;
   const rows = club ? club.top : ranking.top;
   const me = club ? club.me : ranking.me;
+  const onlyOne = !!scope && scoped.length <= 1;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(`#${ranking.hashtag} ${ranking.myCode}`);
@@ -65,23 +68,21 @@ export function RankingView({ ranking }: { ranking: Ranking | null }) {
           Fã Super do Vintage
         </h2>
         <p className="mb-0 mt-2 text-fg-muted">
-          Reposte os posts oficiais do Vintage Culture no seu Instagram. Só contabiliza com a <strong className="text-fg">#{ranking.hashtag}</strong>{" "}
-          e o seu código na legenda.
+          {club ? `Estes são os top fãs do ${club.name} com mais contabilização.` : "Estes são os top fãs com mais contabilização."}
         </p>
         <button type="button" className="btn btn-outline btn-sm mt-3" onClick={copy}>
           Copiar #{ranking.hashtag} {ranking.myCode}
         </button>
-        {!ranking.autoVerify && (
-          <p className="mono mb-0 mt-3">A conferência automática no Instagram ainda não está ligada: os compartilhamentos ficam pendentes.</p>
-        )}
       </section>
 
       {/* Geral (todos os fã clubes juntos) ou o ranking de um fã clube. */}
-      <nav aria-label="Qual ranking" className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]">
-        <button type="button" className="btn btn-outline btn-sm chip flex-none" aria-pressed={board === null} onClick={() => setBoard(null)}>
-          Geral
-        </button>
-        {ranking.clubs.map((c) => (
+      <nav hidden={onlyOne} aria-label="Qual ranking" className="-mx-4 flex gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none]">
+        {!scope && (
+          <button type="button" className="btn btn-outline btn-sm chip flex-none" aria-pressed={board === null} onClick={() => setBoard(null)}>
+            Geral
+          </button>
+        )}
+        {scoped.map((c) => (
           <button key={c.slug} type="button" className="btn btn-outline btn-sm chip flex-none" aria-pressed={board === c.slug} onClick={() => setBoard(c.slug)}>
             {c.avatar ? (
               // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube

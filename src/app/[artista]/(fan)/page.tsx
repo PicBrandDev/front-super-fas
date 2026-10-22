@@ -53,6 +53,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
   const drop = tracks[0];
   const picks = products.slice(0, 2);
   const myClubs = clubs.filter((c) => c.joined);
+  const mineStaff = clubs.filter((c) => !!c.myRole); // fã clubes que o fã administra (dono ou equipe)
   const highlight = (myClubs.length ? myClubs : clubs).slice(0, 2);
   const featured = prizes.find((p) => !p.isRetry && /ingresso/i.test(p.label)) ?? prizes.find((p) => !p.isRetry) ?? null;
 
@@ -60,6 +61,15 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
     <>
       <FanTopBar avatar={me?.avatar ?? null} />
 
+      {mineStaff.length > 0 && (
+        <Link href={`${base}/meu-fandom`} className="mx-4 mb-3 flex min-h-12 items-center justify-between gap-3 border border-line-strong px-4 text-fg no-underline">
+          <span className="flex flex-col leading-5">
+            <strong className="text-[15px]">Meu fandom</strong>
+            <span className="mono">{mineStaff.length === 1 ? mineStaff[0].name : `${mineStaff.length} fã clubes`}</span>
+          </span>
+          <Icon name="arrow" size={18} />
+        </Link>
+      )}
       <HomeMuralSwitch base={base} current="inicio" />
       <Masthead word="Início" steps={1} />
 
