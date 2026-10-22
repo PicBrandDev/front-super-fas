@@ -125,7 +125,7 @@ export function NewPostFab({
             reposts: 0,
           };
       onPosted?.(posted);
-      toast.show(`Publicado em ${picked.name}`);
+      toast.show(res.ok && res.data.rewardSpin ? `Publicado em ${picked.name} · você ganhou 1 giro na roleta` : `Publicado em ${picked.name}`);
       setOpen(false);
       setText("");
       setError("");

@@ -79,7 +79,7 @@ export function Compose({
         },
         simulated,
       );
-      toast.show("Publicado na comunidade");
+      toast.show("Publicado na comunidade" + (res.ok && (res.data as { rewardSpin?: boolean } | undefined)?.rewardSpin ? " · você ganhou 1 giro na roleta" : ""));
       if (!simulated) router.refresh();
     });
   };

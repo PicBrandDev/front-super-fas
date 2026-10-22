@@ -95,12 +95,34 @@ export async function uploadMyAvatar(form: FormData): Promise<ApiResult> {
 
 // ---------- Ranking Fã Super ----------
 
+export type ShareClaim = { spinGranted: boolean; already: boolean };
+
+/** "Já postei": rende 1 giro da roleta na hora (o app ainda é de exemplo); o ranking pontua quando o Instagram confirmar. */
+export async function claimInstagramShare(slug: string, shareId: string): Promise<ApiResult<ShareClaim>> {
+  if (!slugOk(slug) || !idOk(shareId)) return bad();
+  const res = await send<ShareClaim>("POST", `/artists/${slug}/shares/${shareId}/claim`);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
 export type ShareInfo = { shareId: string; hashtag: string; code: string; caption: string };
 
 /** O fã vai compartilhar um post oficial ou um Drop no Instagram: registra a intenção e devolve a legenda pronta. */
 export async function startInstagramShare(slug: string, id: string, kind: "post" | "track" = "post"): Promise<ApiResult<ShareInfo>> {
   if (!slugOk(slug) || !idOk(id)) return bad();
   const res = await send<ShareInfo>("POST", `/artists/${slug}/${kind === "track" ? "tracks" : "posts"}/${id}/share`);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+// ---------- Loja ----------
+
+export type CheckoutResult = { items: number; spinsGranted: number };
+
+/** Compra da sacola (simulada): ganha 1 giro da roleta por camiseta. */
+export async function checkoutStore(slug: string, productIds: string[]): Promise<ApiResult<CheckoutResult>> {
+  if (!slugOk(slug) || productIds.length === 0 || !productIds.every(idOk)) return bad();
+  const res = await send<CheckoutResult>("POST", `/artists/${slug}/store/checkout`, { productIds });
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
 }

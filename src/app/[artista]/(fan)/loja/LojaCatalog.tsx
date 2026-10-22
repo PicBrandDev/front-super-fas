@@ -1,6 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { checkoutStore } from "@/app/actions/fan";
+import { useArtist } from "@/components/fan/ArtistContext";
 import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Tabs, type TabItem } from "@/components/fan/Tabs";
@@ -26,9 +29,35 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
   const [tab, setTab] = useState<Tab>("all");
   const [bag, setBag] = useState<Set<string>>(() => new Set());
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"bag" | "done">("bag");
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState("");
+  const [won, setWon] = useState(0);
   const { show: toast } = useToast();
+  const { base, slug } = useArtist();
+  const router = useRouter();
 
   const list = products.filter((p) => tab === "all" || tabOf(p) === tab);
+  const shirts = products.filter((p) => bag.has(p.id) && p.category === "roupas").length;
+
+  const closeBag = () => {
+    setOpen(false);
+    setStep("bag");
+    setError("");
+  };
+
+  async function checkout() {
+    if (paying || bag.size === 0) return;
+    setPaying(true);
+    setError("");
+    const res = await checkoutStore(slug, [...bag]);
+    setPaying(false);
+    // Sem API (modo exemplo, status 0) só avança na tela.
+    if (!res.ok && res.status !== 0) return setError(res.error);
+    setWon(res.ok ? res.data.spinsGranted : shirts);
+    setBag(new Set());
+    setStep("done");
+  }
   const count = bag.size;
 
   const toggle = (id: string) =>
@@ -90,27 +119,66 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
         )}
       </div>
 
-      <Sheet open={open} onClose={() => setOpen(false)} title={count ? `Sacola · ${count} ${count > 1 ? "itens" : "item"}` : "Sacola · Vazia"}>
-        <p>
-          {count
-            ? "O pagamento acontece na loja oficial VINTAGE. A fanzone só monta a sua sacola."
-            : "Adicione peças da loja e elas aparecem aqui."}
-        </p>
-        {count > 0 && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-close
-            data-autofocus
-            onClick={() => toast("A loja oficial abre em breve")}
-          >
-            Ir para a loja oficial
-            <Icon name="external" size={16} />
-          </button>
+      <Sheet
+        open={open}
+        onClose={closeBag}
+        title={step === "done" ? "Compra confirmada" : count ? `Sacola · ${count} ${count > 1 ? "itens" : "item"}` : "Sacola · Vazia"}
+      >
+        {step === "done" ? (
+          <>
+            <p>
+              Pagamento confirmado.
+              {won > 0 ? (
+                <>
+                  {" "}
+                  Você ganhou <strong>{won === 1 ? "1 giro" : `${won} giros`} na roleta</strong> pela {won === 1 ? "camiseta" : "compra das camisetas"}.
+                </>
+              ) : (
+                " Obrigado pela compra!"
+              )}
+            </p>
+            <span className="tag tag-demo self-start">Simulação</span>
+            {won > 0 && (
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                onClick={() => {
+                  closeBag();
+                  router.push(`${base}/pickap`);
+                }}
+                data-autofocus
+              >
+                Tentar
+              </button>
+            )}
+            <button type="button" className="btn btn-outline" data-close>
+              Fechar
+            </button>
+          </>
+        ) : (
+          <>
+            <p>
+              {count
+                ? shirts > 0
+                  ? `Cada camiseta da sacola rende 1 giro na roleta depois do pagamento (${shirts} ${shirts === 1 ? "giro" : "giros"}).`
+                  : "Camisetas rendem 1 giro na roleta depois do pagamento."
+                : "Adicione peças da loja e elas aparecem aqui."}
+            </p>
+            {error && (
+              <p className="err" role="alert">
+                {error}
+              </p>
+            )}
+            {count > 0 && (
+              <button type="button" className="btn btn-primary" onClick={checkout} disabled={paying} aria-busy={paying || undefined} data-autofocus>
+                {paying ? "Confirmando…" : "Comprar e pagar"}
+              </button>
+            )}
+            <button type="button" className="btn btn-outline" data-close>
+              Fechar
+            </button>
+          </>
         )}
-        <button type="button" className="btn btn-outline" data-close>
-          Fechar
-        </button>
       </Sheet>
     </>
   );

@@ -100,6 +100,7 @@ export type Post = {
   comments: number;
   reposts: number;
   views?: number;
+  rewardSpin?: boolean; // esta publicação rendeu 1 giro da roleta (só na resposta da criação)
 };
 
 export type EventStatus = "on_sale" | "last_batches" | "soon";
