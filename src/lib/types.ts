@@ -26,7 +26,7 @@ export type Artist = {
   clubs?: number; // quantos fã clubes o ambiente tem
 };
 
-/** Fã clube dentro do ambiente de um cantor (até 10: 1 master + 9). */
+/** Fã clube dentro do ambiente de um cantor (o master e quantos mais o admin criar). */
 export type FanClub = {
   id: string;
   slug: string;
@@ -36,6 +36,7 @@ export type FanClub = {
   isMaster: boolean;
   status: FanClubStatus;
   members: number;
+  avatar?: string | null; // foto de perfil
   owner: { name: string; handle?: string } | null;
   joined: boolean; // quem está vendo entrou neste fã clube
   myRole: "owner" | "helper" | null; // quem está vendo é da equipe
@@ -98,6 +99,7 @@ export type Post = {
   likes: number;
   comments: number;
   reposts: number;
+  views?: number;
 };
 
 export type EventStatus = "on_sale" | "last_batches" | "soon";
@@ -222,3 +224,68 @@ export type Member = {
 export type ClubAdmin = { id?: string; name: string; email?: string; role: string; pending?: boolean };
 
 export type MemberPerk = { title: string; sub: string };
+
+/** Linha do painel dos fã clubes do ambiente (admin do artista). */
+export type ClubOverview = {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  isMaster: boolean;
+  status: FanClubStatus;
+  avatar: string | null; // foto de perfil (/uploads/...)
+  ownerName: string | null;
+  ownerEmail: string | null;
+  members: number;
+  newMembersMonth: number;
+  posts: number;
+  postsMonth: number;
+  staff: number;
+};
+
+/** Analytics de um fã clube (últimos 30 dias em `series`). */
+export type ClubAnalytics = {
+  club: ClubOverview;
+  subscribers: number;
+  likes: number;
+  comments: number;
+  reposts: number;
+  newMembersPrevMonth: number;
+  activeSlots: number;
+  approvedCampaigns: number;
+  series: { day: string; newMembers: number; posts: number }[];
+  topCities: { city: string; members: number }[];
+  topPosts: { id: string; text: string; author: string; likes: number; comments: number; reposts: number }[];
+  staffNames: string[];
+};
+
+/** Analytics dos assinantes do ambiente (sem listar pessoas). */
+export type SubscribersAnalytics = {
+  fans: number;
+  active: number;
+  pending: number;
+  canceled: number;
+  newSubscribersMonth: number;
+  monthlyRevenueCents: number;
+  withAddress: number; // assinantes ativos com UF informada
+  series: { day: string; newSubscribers: number }[];
+  byState: { place: string; subscribers: number }[];
+  byCity: { place: string; subscribers: number }[];
+};
+
+/** Publicação no feed do admin (Drop News e galera), com as métricas. */
+export type FeedItem = {
+  id: string;
+  kind: PostKind;
+  text: string;
+  image: string | null; // caminho servido pelo próprio front (/uploads/...)
+  author: string;
+  clubName: string | null;
+  timeLabel: string;
+  date: string;
+  likes: number;
+  comments: number;
+  reposts: number;
+  views: number;
+  recentComments: { author: string; text: string; timeLabel: string }[]; // os 3 mais recentes
+};

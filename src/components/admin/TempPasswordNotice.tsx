@@ -6,16 +6,18 @@ import { Icon } from "@/components/icons";
 
 /**
  * Mostra uma única vez a senha provisória de uma conta criada por convite.
- * Ainda não enviamos e-mail: quem convidou copia a senha e passa para a pessoa.
+ * Quando o e-mail do convite não foi enviado (SMTP desligado ou falhou), quem convidou copia a senha e passa para a pessoa.
  * Ao fechar, a senha some e não dá para vê-la de novo.
  */
 export function TempPasswordNotice({
   email,
   password,
+  emailSent = false,
   onClose,
 }: {
   email: string;
   password: string | null;
+  emailSent?: boolean;
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState<"idle" | "ok" | "fail">("idle");
@@ -46,7 +48,7 @@ export function TempPasswordNotice({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <strong className="text-sm">Conta criada para {email}</strong>
+          <strong className="text-sm">{emailSent && !password ? `Convite enviado para ${email}` : `Conta criada para ${email}`}</strong>
           {password ? (
             <span className="text-sm">
               Senha provisória:{" "}
@@ -76,7 +78,9 @@ export function TempPasswordNotice({
         <AdminNotice tone={copied === "fail" ? "error" : "warn"}>
           {copied === "fail"
             ? "Não deu para copiar automaticamente. Selecione a senha acima e copie na mão antes de fechar."
-            : "Esta senha aparece só agora: copie e passe para a pessoa antes de fechar. No primeiro login ela escolhe a própria senha."}
+            : emailSent
+              ? "O convite foi enviado por e-mail. Esta senha aparece só agora; guarde caso a pessoa não receba o e-mail."
+              : "O e-mail não foi enviado. Esta senha aparece só agora: copie e passe para a pessoa antes de fechar. No primeiro login ela escolhe a própria senha."}
         </AdminNotice>
       )}
     </div>

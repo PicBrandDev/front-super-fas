@@ -4,12 +4,13 @@ import { useActionState } from "react";
 import { login } from "@/app/actions/auth";
 import { AuthInput, AuthSubmit, Field, FormError } from "@/components/auth/look";
 
-export function LoginForm({ next }: { next: string }) {
+export function LoginForm({ next, artista = "" }: { next: string; artista?: string }) {
   const [state, action, pending] = useActionState(login, undefined);
 
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="artista" value={artista} />
       <FormError message={state?.error} />
       <Field id="lg-email" label="E-mail">
         <AuthInput

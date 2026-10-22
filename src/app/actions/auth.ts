@@ -1,9 +1,9 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { send } from "@/lib/api";
-import { SESSION_COOKIE, homeFor, type Role } from "@/lib/auth";
+import { SESSION_COOKIE, artistSlugOfPath, homeFor, type Role } from "@/lib/auth";
 
 /** `values` devolve o que a pessoa digitou (o React limpa o formulário depois da ação). */
 export type FormState = { error?: string; values?: Record<string, string> } | undefined;
@@ -39,8 +39,13 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
   if (!res.ok) return { error: res.error, values };
   await startSession(res.data);
 
-  if (res.data.user.mustChangePassword) redirect("/conta/senha?primeiro=1");
-  redirect(safeNext(form.get("next")) || homeFor(res.data.user));
+  const artista = String(form.get("artista") ?? "");
+  if (res.data.user.mustChangePassword) {
+    redirect(/^[a-z0-9-]+$/.test(artista) ? `/${artista}/conta/senha?primeiro=1` : "/conta/senha?primeiro=1");
+  }
+  // Fã que entrou pelo login de um artista volta para o ambiente dele; equipe vai para o painel.
+  const fanHome = res.data.user.role === "fan" && /^[a-z0-9-]+$/.test(artista) ? `/${artista}` : "";
+  redirect(safeNext(form.get("next")) || fanHome || homeFor(res.data.user));
 }
 
 export async function register(_: FormState, form: FormData): Promise<FormState> {
@@ -50,10 +55,34 @@ export async function register(_: FormState, form: FormData): Promise<FormState>
     password: String(form.get("password") ?? ""),
     handle: String(form.get("handle") ?? "").trim(),
     city: String(form.get("city") ?? "").trim(),
+    zipCode: String(form.get("zipCode") ?? "").trim(),
+    street: String(form.get("street") ?? "").trim(),
+    number: String(form.get("number") ?? "").trim(),
+    complement: String(form.get("complement") ?? "").trim(),
+    neighborhood: String(form.get("neighborhood") ?? "").trim(),
+    state: String(form.get("state") ?? "").trim().toUpperCase(),
     artist: String(form.get("artist") ?? "") || null,
   };
-  const values = { name: body.name, email: body.email, handle: body.handle, city: body.city, artist: body.artist ?? "" };
+  const values = {
+    name: body.name,
+    email: body.email,
+    handle: body.handle,
+    city: body.city,
+    zipCode: body.zipCode,
+    street: body.street,
+    number: body.number,
+    complement: body.complement,
+    neighborhood: body.neighborhood,
+    state: body.state,
+    artist: body.artist ?? "",
+  };
+  if (!body.artist) return { error: "Abra o cadastro pelo fã clube do artista.", values };
   if (body.name.length < 2) return { error: "Digite seu nome.", values };
+  if (!/^\d{5}-?\d{3}$/.test(body.zipCode)) return { error: "Digite um CEP válido (8 números).", values };
+  if (!body.street || !body.number || !body.neighborhood || !body.city) {
+    return { error: "Preencha rua, número, bairro e cidade.", values };
+  }
+  if (!/^[A-Z]{2}$/.test(body.state)) return { error: "Escolha o estado.", values };
   if (body.password.length < 8) return { error: "A senha precisa ter pelo menos 8 caracteres.", values };
   if (body.password !== String(form.get("confirm") ?? "")) return { error: "As senhas não conferem.", values };
 
@@ -77,5 +106,12 @@ export async function changePassword(_: FormState, form: FormData): Promise<Form
 
 export async function logout() {
   (await cookies()).delete(SESSION_COOKIE);
-  redirect("/login");
+  // Saiu de dentro do ambiente de um artista: volta para o login dele.
+  const referer = (await headers()).get("referer");
+  let path = "";
+  try {
+    path = referer ? new URL(referer).pathname : "";
+  } catch {}
+  const slug = artistSlugOfPath(path);
+  redirect(slug ? `/${slug}/login` : path.startsWith("/patrocinador") ? "/patrocinador/login" : "/");
 }

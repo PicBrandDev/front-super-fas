@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { logout } from "@/app/actions/auth";
 import { Icon, type IconName } from "@/components/icons";
 import { PlatformBrand } from "@/components/PlatformBrand";
@@ -19,6 +19,9 @@ export function AdminShell({
   active,
   extraLink,
   user,
+  className = "",
+  style,
+  passwordHref = "/conta/senha",
   children,
 }: {
   brand?: { mark: ReactNode; title: string; subtitle: string; markClass?: string };
@@ -27,10 +30,13 @@ export function AdminShell({
   active: string;
   extraLink?: { label: string; href: string };
   user: { initials: string; name: string; role: string };
+  className?: string; // ex.: "adm-noite" para o visual do artista
+  style?: CSSProperties; // variáveis do tema do artista
+  passwordHref?: string; // trocar senha (dentro do ambiente do artista, quando houver)
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-dvh flex-wrap bg-adm-bg font-adm text-adm-ink">
+    <div style={style} className={`flex min-h-dvh flex-wrap bg-adm-bg font-adm text-adm-ink ${className}`}>
       <aside className="flex flex-[1_1_220px] flex-col gap-[22px] bg-adm-side px-3.5 py-5 text-adm-side-text lg:sticky lg:top-0 lg:h-dvh lg:max-w-[260px]">
         <div className="px-1.5">
           {brand ? (
@@ -86,7 +92,7 @@ export function AdminShell({
               <span className="font-adm-mono text-[11px] text-adm-side-muted">{user.role}</span>
             </span>
           </div>
-          {authEnabled() && <AccountLinks />}
+          {authEnabled() && <AccountLinks passwordHref={passwordHref} />}
         </div>
       </aside>
       <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-4 pb-10 pt-7 sm:px-8">{children}</main>
@@ -128,8 +134,9 @@ export const masterNav: AdminNavItem[] = [
 export function clubNav(slug: string): AdminNavItem[] {
   const base = `/${slug}/admin`;
   return [
+    { key: "painel", label: "Painel dos fã clubes", href: base, icon: "star" },
     { key: "membros", label: "Assinantes", href: `${base}/membros`, icon: "users" },
-    { key: "clubes", label: "Fã clubes", href: `${base}/clubes`, icon: "star" },
+    { key: "clubes", label: "Criar e gerenciar fã clubes", href: `${base}/clubes`, icon: "plus" },
     { key: "mural", label: "Drop News e mural", href: `${base}/mural`, icon: "news" },
     { key: "agenda", label: "Agenda e eventos", href: `${base}/agenda`, icon: "calendar" },
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
@@ -154,11 +161,11 @@ export function fanClubNav(slug: string, club: string): AdminNavItem[] {
 }
 
 /** Trocar senha e sair (só quando o login está ligado). */
-function AccountLinks() {
+function AccountLinks({ passwordHref }: { passwordHref: string }) {
   const item = "flex min-h-10 flex-1 items-center justify-center rounded-lg px-2 text-[13px] text-adm-side-text no-underline hover:bg-white/5";
   return (
     <div className="flex gap-1">
-      <Link href="/conta/senha" className={item}>
+      <Link href={passwordHref} className={item}>
         Trocar senha
       </Link>
       <form action={logout} className="flex flex-1">

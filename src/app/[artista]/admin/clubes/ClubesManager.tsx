@@ -10,9 +10,7 @@ import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass, t
 import { Icon } from "@/components/icons";
 import type { FanClub } from "@/lib/types";
 
-const MAX_CLUBS = 10;
-
-/** Os até 10 fã clubes do ambiente: criar, escolher o dono, colocar no ar e apagar. */
+/** Os fã clubes do ambiente (sem limite): criar, convidar o dono por e-mail, colocar no ar e apagar. */
 export function ClubesManager({ artist, artistName, clubs }: { artist: string; artistName: string; clubs: FanClub[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -21,7 +19,6 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
   const [invite, setInvite] = useState<InviteResult | null>(null);
   const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
-  const full = clubs.length >= MAX_CLUBS;
 
   const set = (k: keyof typeof form) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -73,24 +70,24 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
       <AdminPageHeader
         title="Fã clubes"
         headingId="clubes-title"
-        description={`Até ${MAX_CLUBS} fã clubes no ambiente de ${artistName}: o master (de vocês) e mais ${MAX_CLUBS - 1}. Cada um tem um dono, que convida os ajudantes dele.`}
+        description={`Crie quantos fã clubes quiser no ambiente de ${artistName}. Ao informar o e-mail do dono, ele recebe um convite para assumir o fã clube e convidar os ajudantes dele.`}
         actions={
-          <button type="button" onClick={() => setOpen(true)} disabled={full || open} className={btnPrimary}>
+          <button type="button" onClick={() => setOpen(true)} disabled={open} className={btnPrimary}>
             <Icon name="plus" size={18} strokeWidth={2.4} />
-            {full ? `Limite de ${MAX_CLUBS} fã clubes` : "Criar fã clube"}
+            Criar fã clube
           </button>
         }
       />
       <p role="status" aria-live="polite" className="sr-only">
         {announce}
       </p>
-      {invite && <TempPasswordNotice email={invite.email} password={invite.tempPassword} onClose={() => setInvite(null)} />}
+      {invite && <TempPasswordNotice email={invite.email} password={invite.tempPassword} emailSent={invite.emailSent} onClose={() => setInvite(null)} />}
       {error && !open && <AdminNotice tone="error">{error}</AdminNotice>}
       <p className="m-0 flex flex-wrap items-center gap-2 text-sm text-adm-muted">
         <span className="font-adm-mono text-[13px] font-semibold text-adm-ink">
-          {clubs.length}/{MAX_CLUBS}
+          {clubs.length}
         </span>
-        fã clubes criados{full ? " (limite atingido)" : ""}.
+        fã clubes criados.
       </p>
 
       {open && (
@@ -129,7 +126,7 @@ export function ClubesManager({ artist, artistName, clubs }: { artist: string; a
                 className={inputClass}
               />
               <span id="nc-owner-hint" className="text-xs text-adm-muted">
-                Cria a conta do dono com senha provisória. Pode deixar para depois.
+                O dono recebe um e-mail com o convite e o acesso. Pode deixar para depois.
               </span>
             </div>
             <div className="flex flex-col gap-1.5">

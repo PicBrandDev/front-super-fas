@@ -87,6 +87,61 @@
   --color-adm-danger: #a23a2a;
 }
 
+/* Admin do ambiente do artista no visual Noite: religa os tokens neutros `adm-*`
+   aos `--fc-*` do tema do artista (definidos pelo `themeStyle` no wrapper).
+   Só o ClubAdminShell usa; os demais painéis seguem neutros (white label). */
+.adm-noite {
+  --font-adm: var(--fc-font-grotesk);
+  --font-adm-mono: var(--fc-font-mono);
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --color-white: var(--fc-surface);
+  --color-adm-bg: var(--fc-bg);
+  --color-adm-surface: var(--fc-surface);
+  --color-adm-line: var(--fc-line);
+  --color-adm-line-soft: var(--fc-line);
+  --color-adm-input: var(--fc-line-strong);
+  --color-adm-ink: var(--fc-fg);
+  --color-adm-muted: var(--fc-fg-muted);
+  --color-adm-disabled: var(--fc-line-strong);
+  --color-adm-side: var(--fc-bg);
+  --color-adm-side-line: var(--fc-line);
+  --color-adm-side-muted: var(--fc-fg-muted);
+  --color-adm-side-text: var(--fc-fg);
+  --color-adm-ok-bg: color-mix(in srgb, var(--fc-lagoon) 18%, var(--fc-bg));
+  --color-adm-ok: var(--fc-lagoon);
+  --color-adm-warn-bg: color-mix(in srgb, var(--fc-sun) 16%, var(--fc-bg));
+  --color-adm-warn: var(--fc-sun);
+  --color-adm-off-bg: var(--fc-raised);
+  --color-adm-off: var(--fc-fg-muted);
+  --color-adm-danger: var(--fc-signal);
+  --color-adm-blue: var(--fc-amber);
+  --color-adm-blue-dark: color-mix(in srgb, var(--fc-amber) 80%, #000);
+  --color-adm-blue-soft: color-mix(in srgb, var(--fc-amber) 14%, var(--fc-bg));
+  --color-adm-blue-tint: color-mix(in srgb, var(--fc-amber) 8%, var(--fc-bg));
+  color-scheme: dark;
+}
+.adm-noite h1 {
+  font-family: var(--fc-font-display);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+.adm-noite aside {
+  border-right: 1px solid var(--fc-line);
+}
+/* Fundo da página inteira (overscroll, áreas além do conteúdo): o canvas do navegador é branco por padrão. */
+.adm-noite::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--fc-bg);
+}
+html:has(.adm-noite) {
+  color-scheme: dark;
+}
+
 /* Espaço reservado embaixo para o menu flutuante (deck) no celular. */
 @utility pb-navspace {
   padding-bottom: var(--navspace);

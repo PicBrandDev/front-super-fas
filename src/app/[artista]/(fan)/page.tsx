@@ -66,7 +66,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
       <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-3.5 lg:hidden">
         <FandomSwitcher />
         {authEnabled() && (
-          <Link href={`/conta?artista=${artist.slug}`} className="mono flex min-h-11 items-center text-fg no-underline">
+          <Link href={`/${artist.slug}/conta`} className="mono flex min-h-11 items-center text-fg no-underline">
             Minha conta
           </Link>
         )}

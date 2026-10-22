@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { trackView } from "@/app/actions/views";
 import { Icon } from "@/components/icons";
 import { postImage } from "@/lib/media";
 import { formatShort, initialsOf } from "@/lib/format";
@@ -42,6 +43,30 @@ export function PostCard({
   const image = postImage(slug, post, index);
   const replyId = `reply-${post.id}`;
 
+  // Uma visualização por post e sessão, quando mais da metade do card aparece.
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const key = `viu:${post.id}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+    } catch {}
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        try {
+          sessionStorage.setItem(key, "1");
+        } catch {}
+        void trackView(slug, post.id);
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [slug, post.id]);
+
   const sendReply = (e: FormEvent) => {
     e.preventDefault();
     const v = draft.trim();
@@ -57,7 +82,7 @@ export function PostCard({
   };
 
   return (
-    <article className={`border-b border-line py-4 ${fresh ? "new" : ""}`}>
+    <article ref={ref} className={`border-b border-line py-4 ${fresh ? "new" : ""}`}>
       <div className="flex items-start gap-3">
         {official ? (
           <div className="avatar" aria-hidden="true">

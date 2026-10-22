@@ -12,7 +12,10 @@ import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import type {
   ClubMemberRow,
+  ClubAnalytics,
+  ClubOverview,
   FanClub,
+  FeedItem,
   StaffMember,
   StaffPosition,
   AdSlot,
@@ -28,6 +31,7 @@ import type {
   Product,
   ShowEvent,
   Sponsor,
+  SubscribersAnalytics,
   Track,
   Vendor,
   Viewer,
@@ -197,6 +201,43 @@ export const getMySponsor = () =>
 
 /** GET /artists/{slug}/clubs */
 export const getClubs = (slug: string) => get<FanClub[]>(`/artists/${slug}/clubs`, () => mock.fanClubs);
+
+/** GET /artists/{slug}/manage/feed: publicações de uma aba, com curtidas, comentários e visualizações. */
+export const getFeed = (slug: string, kind: "drop" | "galera") =>
+  get<FeedItem[]>(`/artists/${slug}/manage/feed?kind=${kind}`, () => [] as FeedItem[]);
+
+/** GET /artists/{slug}/clubs/{club}/feed: todas as publicações de um fã clube, com os números. */
+export const getClubFeed = (slug: string, club: string) =>
+  get<FeedItem[]>(`/artists/${slug}/clubs/${club}/feed`, () => [] as FeedItem[]);
+
+/** GET /artists/{slug}/subscribers-analytics */
+export const getSubscribersAnalytics = (slug: string) =>
+  get<SubscribersAnalytics | null>(`/artists/${slug}/subscribers-analytics`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/clubs-overview: todos os fã clubes do ambiente, com o dono e os números. */
+export const getClubsOverview = (slug: string) =>
+  get<ClubOverview[]>(`/artists/${slug}/clubs-overview`, () =>
+    mock.fanClubs.map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      city: c.city,
+      isMaster: c.isMaster,
+      status: c.status,
+      avatar: c.avatar ?? null,
+      ownerName: c.owner?.name ?? null,
+      ownerEmail: null,
+      members: c.members,
+      newMembersMonth: 0,
+      posts: 0,
+      postsMonth: 0,
+      staff: 1,
+    })),
+  );
+
+/** GET /artists/{slug}/clubs/{club}/analytics */
+export const getClubAnalytics = (slug: string, club: string) =>
+  get<ClubAnalytics | null>(`/artists/${slug}/clubs/${club}/analytics`, () => null, { notFound: null });
 
 /** GET /artists/{slug}/clubs/{club} */
 export const getClub = (slug: string, club: string) =>

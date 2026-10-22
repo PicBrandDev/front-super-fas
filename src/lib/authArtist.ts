@@ -6,10 +6,10 @@
  * essas telas usam o tema do artista. Fora disso, usam o visual neutro da plataforma.
  */
 import { getArtist } from "./api";
+import { RESERVED_SEGMENTS } from "./auth";
 import type { Artist } from "./types";
 
-/** Primeiros segmentos de URL que não são ambientes de artista. */
-const RESERVED = new Set(["admin", "patrocinador", "painel", "conta", "login", "cadastro", "api", "_next"]);
+const RESERVED = new Set(RESERVED_SEGMENTS);
 
 const slugOk = (s: string) => /^[a-z0-9-]+$/.test(s);
 

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { formatBRL, getArtist, getMemberPerks } from "@/lib/api";
-import { withArtist } from "@/lib/authArtist";
 import { MembroView } from "./MembroView";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
@@ -19,7 +18,7 @@ export default async function MembroPage({ params }: { params: Promise<{ artista
       artistName={artist.name}
       priceLabel={formatBRL(artist.memberPriceCents)}
       perks={perks}
-      accountHref={withArtist("/conta", artist.slug)}
+      accountHref={`/${artist.slug}/conta`}
     />
   );
 }

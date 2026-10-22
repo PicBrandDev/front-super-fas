@@ -55,7 +55,7 @@ export async function memberAction(slug: string, memberId: string, action: "char
   return send("POST", `/artists/${slug}/members/${memberId}/${action}`);
 }
 
-export type InviteResult = { email: string; tempPassword: string | null };
+export type InviteResult = { email: string; tempPassword: string | null; emailSent?: boolean };
 
 // ---------- fã clubes do ambiente ----------
 
@@ -147,6 +147,24 @@ export type SponsorInvited = { sponsor: { id: string; email: string }; tempPassw
 
 export async function inviteSponsor(data: { email: string; brand?: string }): Promise<Res<SponsorInvited>> {
   return send<SponsorInvited>("POST", "/admin/sponsors/invite", data);
+}
+
+/** Troca a foto de perfil de um fã clube (JPG, PNG ou WebP, até 5 MB). */
+export async function setClubAvatar(slug: string, club: string, form: FormData): Promise<Res> {
+  if (!slugOk(slug) || !slugOk(club)) return bad("Pedido inválido.");
+  const res = await send("POST", `/artists/${slug}/clubs/${club}/avatar`, form);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+// ---------- Drop News ----------
+
+/** Publica um Drop News (legenda + foto opcional) como oficial do artista. */
+export async function publishDrop(slug: string, form: FormData): Promise<Res> {
+  if (!slugOk(slug)) return bad("Pedido inválido.");
+  const res = await send("POST", `/artists/${slug}/manage/drops`, form);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
 }
 
 // ---------- patrocinador ----------

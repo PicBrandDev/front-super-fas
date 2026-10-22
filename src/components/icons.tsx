@@ -42,6 +42,12 @@ const paths = {
   ),
   heart: <path d="M12 20s-7-4.6-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.4-7 10-7 10z" />,
   comment: <path d="M4 5h16v11H9l-5 4z" />,
+  eye: (
+    <>
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
   repost: (
     <>
       <path d="M17 2l3 3-3 3" />

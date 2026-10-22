@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { ResourceManager, type Item } from "@/components/admin/ResourceManager";
 import { AdminNotice } from "@/components/admin/ui";
-import { apiEnabled, getArtist, getManaged } from "@/lib/api";
+import { apiEnabled, getArtist, getFeed, getManaged } from "@/lib/api";
+import { MuralAdmin } from "./MuralAdmin";
 import { eventFields, giftFields, sections, vendorFields } from "./sections";
 
 type Params = Promise<{ artista: string; secao: string }>;
@@ -26,6 +27,16 @@ export default async function ClubContentPage({
   if (!section) notFound();
   const artist = await getArtist(artista);
   if (!artist) notFound();
+
+  if (secao === "mural") {
+    const [drops, galera] = await Promise.all([getFeed(artist.slug, "drop"), getFeed(artist.slug, "galera")]);
+    return (
+      <ClubAdminShell artist={artist} active="mural">
+        {!apiEnabled() && <AdminNotice tone="info">Modo exemplo: ligue o front à API (API_URL) para publicar e ver as métricas.</AdminNotice>}
+        <MuralAdmin slug={artist.slug} artistName={artist.name} drops={drops} galera={galera} />
+      </ClubAdminShell>
+    );
+  }
 
   const items = await getManaged<Item>(artist.slug, section.resource);
   const { evento } = await searchParams;

@@ -24,7 +24,7 @@ export function MembroView({
   artistName: string;
   priceLabel: string; // "R$ 16,90"
   perks: MemberPerk[];
-  accountHref: string; // "Minha conta" com o tema do artista (withArtist no servidor)
+  accountHref: string; // "Minha conta" no ambiente do artista
 }) {
   const { viewer, slug } = useArtist();
   const router = useRouter();

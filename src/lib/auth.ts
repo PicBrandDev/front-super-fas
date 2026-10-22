@@ -86,7 +86,23 @@ export function homeFor(s: Pick<Session, "role" | "artists"> & { clubs?: string[
 }
 
 /** Caminhos que não pedem login. */
-export const PUBLIC_PATHS = ["/login", "/cadastro"];
+export const PUBLIC_PATHS = ["/login", "/cadastro", "/patrocinador/login"];
+
+/** Primeiros segmentos de URL que não são ambientes de artista. */
+export const RESERVED_SEGMENTS = ["admin", "patrocinador", "painel", "conta", "login", "cadastro", "api", "_next", "uploads"];
+
+/** Slug do artista quando o caminho é uma tela de entrada dele (`/{artista}/login` ou `/{artista}/cadastro`). */
+export function artistLoginSlug(pathname: string): string | null {
+  const parts = pathname.split("/").filter(Boolean);
+  const entry = parts.length === 2 && (parts[1] === "login" || parts[1] === "cadastro");
+  return entry && !RESERVED_SEGMENTS.includes(parts[0]) ? parts[0] : null;
+}
+
+/** Slug do artista cujo ambiente o caminho acessa (`/{artista}/...`), se houver. */
+export function artistSlugOfPath(pathname: string): string | null {
+  const first = pathname.split("/").filter(Boolean)[0];
+  return first && /^[a-z0-9-]+$/.test(first) && !RESERVED_SEGMENTS.includes(first) ? first : null;
+}
 
 /**
  * Regras de acesso por caminho. Devolve null quando pode entrar,

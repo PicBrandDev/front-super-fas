@@ -30,6 +30,7 @@ export async function FanClubShell({
         title: club.name,
         subtitle: `${club.isMaster ? "Fã clube master" : "Fã clube"} · ${artist.name}`,
       }}
+      passwordHref={`/${artist.slug}/conta/senha`}
       nav={fanClubNav(artist.slug, club.slug)}
       active={active}
       extraLink={{ label: "Ver página do clube", href: `/${artist.slug}/clubes/${club.slug}` }}
