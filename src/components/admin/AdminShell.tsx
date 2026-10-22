@@ -140,9 +140,6 @@ export function clubNav(slug: string): AdminNavItem[] {
     { key: "agenda", label: "Agenda e eventos", href: `${base}/agenda`, icon: "calendar" },
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
     { key: "drops", label: "Drops Hits", href: `${base}/drops`, icon: "music" },
-    { key: "beneficios", label: "Benefícios de membro", href: `${base}/beneficios`, icon: "gift" },
-    { key: "anuncios", label: "Anúncios do ambiente", href: `${base}/anuncios`, icon: "megaphone" },
-    { key: "master", label: "Fã clube master", href: `/${slug}/clubes/oficial/admin`, icon: "settings" },
   ];
 }
 

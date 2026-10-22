@@ -146,6 +146,17 @@ sudo docker compose up -d --build
 sudo docker compose logs api   # mostra as contas de teste criadas na primeira subida
 ```
 
+Para **atualizar** um servidor que já está no ar (o banco e as fotos ficam nos volumes do Docker; as tabelas e colunas novas são criadas sozinhas na subida da API):
+
+```bash
+cd back-super-fas  && git pull
+cd ../front-super-fas && git pull
+sudo docker compose up -d --build
+sudo docker compose logs -f api   # confira que subiu sem erro
+```
+
+Os recursos de e-mail, Photo Finder (AWS) e ranking do Instagram vêm desligados; veja as variáveis opcionais no `.env.example`.
+
 A documentação da API fica em `https://fa-clube.picbrand.com.br/api/docs`.
 
 ## Conteúdo de exemplo

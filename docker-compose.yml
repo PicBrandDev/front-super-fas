@@ -27,6 +27,20 @@ services:
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
       SEED_PASSWORD: ${SEED_PASSWORD:-}
       ROOT_PATH: /api
+      # Opcionais (desligados por padrão): e-mail de convite, Photo Finder (AWS Rekognition) e ranking do Instagram.
+      APP_URL: ${APP_URL:-https://fa-clube.picbrand.com.br}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      REKOGNITION_ENABLED: ${REKOGNITION_ENABLED:-false}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      INSTAGRAM_ENABLED: ${INSTAGRAM_ENABLED:-false}
+      INSTAGRAM_USER_ID: ${INSTAGRAM_USER_ID:-}
+      INSTAGRAM_ACCESS_TOKEN: ${INSTAGRAM_ACCESS_TOKEN:-}
     volumes:
       - uploads:/data/uploads
     expose:
