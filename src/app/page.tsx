@@ -11,15 +11,24 @@ import { authEnabled } from "@/lib/auth";
 /** Entrada da plataforma: login do admin master (quem define os fã clubes de todos os artistas). */
 export default async function PlatformHome({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const [artists, session] = await Promise.all([listArtists(), getSession()]);
-  if (authEnabled() && !session) {
+  // Com o login ligado, a raiz é sempre a entrada do admin master: quem já é master vai para o painel; qualquer
+  // outra pessoa (logada ou não) vê o login do admin master.
+  if (authEnabled()) {
+    if (session?.role === "master") redirect("/admin/fas-clubes");
     const { next } = await searchParams;
     return (
-      <AuthShell title="Admin master" description="Entrada de quem gerencia os fã clubes e os artistas da plataforma.">
+      <AuthShell
+        title="Admin master"
+        description={
+          session
+            ? `Você está conectado como ${session.name}. Entre com a conta de admin master para continuar.`
+            : "Entrada de quem gerencia os fã clubes e os artistas da plataforma."
+        }
+      >
         <LoginForm next={next ?? ""} />
       </AuthShell>
     );
   }
-  if (session?.role === "master") redirect("/admin/fas-clubes");
   // Sem login (modo exemplo) mostra todos os painéis; logado, só os da pessoa.
   const role = session?.role;
   const panels: { href: string; label: string }[] = [];
