@@ -1,24 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
-import { AdCard } from "@/components/fan/AdCard";
 import { ClubCard } from "@/components/fan/ClubCard";
-import { FandomSwitcher } from "@/components/fan/FandomSwitcher";
 import { Mark } from "@/components/fan/Mark";
+import { FanTopBar } from "@/components/fan/FanTopBar";
+import { HomeMuralSwitch } from "@/components/fan/HomeMuralSwitch";
+import { HomeNextEvent } from "@/components/fan/HomeNextEvent";
 import { Masthead } from "@/components/fan/Masthead";
 import { EmptyState } from "@/components/fan/states";
 import { Vinyl } from "@/components/fan/Vinyl";
 import { Icon } from "@/components/icons";
-import { apiEnabled, getArtist, getClubs, getEvents, getHomeAd, getPrizes, getProducts, getTracks, getViewer } from "@/lib/api";
-import { authEnabled } from "@/lib/auth";
+import { apiEnabled, getArtist, getClubs, getEvents, getMe, getPackages, getPrizes, getProducts, getTracks, getViewer } from "@/lib/api";
+import { isPastEvent } from "@/lib/events";
 import { mediaFor, productImage } from "@/lib/media";
-import type { ShowEvent } from "@/lib/types";
-
-const statusTag: Record<ShowEvent["status"], { label: string; cls: string }> = {
-  on_sale: { label: "Ingressos à venda", cls: "tag" },
-  last_batches: { label: "Últimos lotes", cls: "tag tag-hot" },
-  soon: { label: "Em breve", cls: "tag tag-demo" },
-};
 
 /** Título de bloco do Início (`.sect h3` do protótipo). */
 function Block({ title, children, flush = false }: { title: string; children: ReactNode; flush?: boolean }) {
@@ -37,15 +31,15 @@ function Block({ title, children, flush = false }: { title: string; children: Re
  */
 export default async function HomePage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
-  const [artist, viewer, events, ad, clubs, tracks, products, prizes] = await Promise.all([
+  const [artist, viewer, events, clubs, tracks, products, prizes, me] = await Promise.all([
     getArtist(artista),
     getViewer(artista),
     getEvents(artista),
-    getHomeAd(artista),
     getClubs(artista),
     getTracks(artista),
     getProducts(artista),
     getPrizes(artista),
+    getMe(),
   ]);
   if (!artist) notFound();
 
@@ -53,7 +47,9 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
   const demo = !apiEnabled();
   const hero = mediaFor(artist.slug)?.hero ?? null;
   const first = viewer.name.split(" ")[0];
-  const next = events[0];
+  // O próximo evento é o primeiro que ainda não aconteceu (os passados ficam em Meus ingressos).
+  const next = events.find((e) => !isPastEvent(e));
+  const nextPackages = next ? await getPackages(artista, next.id) : [];
   const drop = tracks[0];
   const picks = products.slice(0, 2);
   const myClubs = clubs.filter((c) => c.joined);
@@ -62,16 +58,9 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
 
   return (
     <>
-      {/* Topo do celular: trocar de fandom e a conta (no desktop o menu lateral faz isso). */}
-      <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-3.5 lg:hidden">
-        <FandomSwitcher />
-        {authEnabled() && (
-          <Link href={`/${artist.slug}/conta`} className="mono flex min-h-11 items-center text-fg no-underline">
-            Minha conta
-          </Link>
-        )}
-      </header>
+      <FanTopBar avatar={me?.avatar ?? null} />
 
+      <HomeMuralSwitch base={base} current="inicio" />
       <Masthead word="Início" steps={1} />
 
       {/* Cartaz de abertura: campo cinza, foto em multiply sangrando à direita, manchete cortada embaixo. */}
@@ -139,35 +128,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
 
       <Block title="Próximo evento" flush>
         {next ? (
-          <Link
-            href={`${base}/eventos/${next.id}`}
-            className="group grid grid-cols-[92px_1fr] border-y border-line text-fg no-underline"
-          >
-            <span className="grid content-center justify-items-center bg-amber py-4 text-on-amber">
-              <span className="serif num text-[52px] leading-[46px]">{next.day}</span>
-              <span className="mono mt-1.5 text-on-amber">{next.month}</span>
-            </span>
-            <span className="grid gap-2 p-4 transition-colors group-hover:bg-surface">
-              <span className="font-display text-2xl font-bold leading-7">{next.city}</span>
-              <span className="mono flex items-center gap-1.5">
-                <Icon name="pin" size={13} />
-                {next.venue} · {next.time}
-                {demo && <span className="tag tag-demo ml-auto">Exemplo</span>}
-              </span>
-              <span className="flex flex-wrap gap-2">
-                <span className={statusTag[next.status].cls}>{statusTag[next.status].label}</span>
-                {next.giftsCount > 0 && (
-                  <span className="tag">
-                    <Icon name="gift" size={11} /> Brinde antes e depois
-                  </span>
-                )}
-              </span>
-              <span className="go">
-                Ver evento
-                <Icon name="arrow" size={16} />
-              </span>
-            </span>
-          </Link>
+          <HomeNextEvent event={next} packages={nextPackages} demo={demo} />
         ) : (
           <div className="px-4">
             <EmptyState title="Nenhum evento marcado" text="Quando a equipe anunciar uma data, ela aparece aqui." />
@@ -267,12 +228,6 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
           <EmptyState title="Nenhum fã clube por enquanto" text={`Os fã clubes de ${artist.name} ainda estão sendo montados.`} />
         )}
       </Block>
-
-      {ad && (
-        <section className="border-t border-line px-4">
-          <AdCard ad={ad} />
-        </section>
-      )}
     </>
   );
 }

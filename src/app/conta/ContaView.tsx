@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { logout } from "@/app/actions/auth";
 import { AuthShell, authLook } from "@/components/auth/AuthShell";
 import { authEnabled, homeFor, roleLabel } from "@/lib/auth";
-import { getSession, listArtists } from "@/lib/api";
+import { getMe, getSession, listArtists } from "@/lib/api";
+import { MyAvatar } from "./MyAvatar";
 
 /** Minha conta. Com `slug`, é a conta dentro do ambiente de um artista (`/{artista}/conta`). */
 export async function ContaView({ slug }: { slug: string | null }) {
@@ -18,7 +19,7 @@ export async function ContaView({ slug }: { slug: string | null }) {
       </AuthShell>
     );
   }
-  const artists = await listArtists();
+  const [artists, me] = await Promise.all([listArtists(), getMe()]);
   const artist = artists.find((a) => a.slug === slug) ?? null;
   const ui = authLook(artist);
   const item = `${ui.secondary} justify-start no-underline`;
@@ -26,6 +27,9 @@ export async function ContaView({ slug }: { slug: string | null }) {
 
   return (
     <AuthShell artist={artist} title={session.name} description={roleLabel[session.role]}>
+      <div className="mb-4">
+        <MyAvatar avatar={me?.avatar ?? null} name={session.name} />
+      </div>
       <nav aria-label="Atalhos da conta" className="flex flex-col gap-2">
         {artist && (
           <Link href={`/${artist.slug}`} className={item}>

@@ -34,6 +34,8 @@ import type {
   Prize,
   Product,
   ShowEvent,
+  Profile,
+  Ranking,
   Sponsor,
   SpinCredit,
   SubscribersAnalytics,
@@ -244,6 +246,15 @@ export const getSubscribersAnalytics = (slug: string) =>
 /** GET /artists/{slug}/manage/events/{id}/photos: fotos oficiais do show. */
 export const getEventPhotos = (slug: string, eventId: string) =>
   get<EventPhoto[]>(`/artists/${slug}/manage/events/${eventId}/photos`, () => [] as EventPhoto[]);
+
+/** GET /auth/profile: tudo do perfil de quem está logado. */
+export const getProfile = () => get<Profile | null>("/auth/profile", () => null);
+
+/** GET /auth/me: dados de quem está logado (foto de perfil). */
+export const getMe = () => get<{ avatar?: string | null } | null>("/auth/me", () => null);
+
+/** GET /artists/{slug}/ranking: ranking Fã Super do Vintage. */
+export const getRanking = (slug: string) => get<Ranking | null>(`/artists/${slug}/ranking`, () => null);
 
 /** GET /artists/{slug}/me/tickets: os ingressos que o fã comprou. */
 export const getMyTickets = (slug: string) => get<MyTicket[]>(`/artists/${slug}/me/tickets`, () => [] as MyTicket[]);

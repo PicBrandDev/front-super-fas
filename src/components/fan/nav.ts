@@ -4,11 +4,13 @@ export type NavItem = { href: string; label: string; icon: IconName; match?: str
 
 /**
  * Teclas do menu de baixo (celular): cinco, como no protótipo.
- * `href` é relativo ao ambiente do artista. O Início fica na marca do
- * cabeçalho e no menu lateral; os fã clubes ficam dentro de Comunidade.
+ * `href` é relativo ao ambiente do artista. O Início e o Mural são uma área só:
+ * a tecla Início fica acesa nos dois e leva de volta ao Início; a chave
+ * "Início | Mural" no topo das duas telas troca entre elas.
+ * Os fã clubes ficam dentro de Comunidade.
  */
 export const deckNav: NavItem[] = [
-  { href: "/mural", label: "Mural", icon: "news", match: ["/drops"] },
+  { href: "", label: "Início", icon: "home", match: ["/mural", "/drops"] },
   { href: "/comunidade", label: "Comunidade", icon: "comment", match: ["/clubes"] },
   { href: "/pickap", label: "PicKap", icon: "wheel" },
   { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos", "/photo-finder"] },
@@ -28,7 +30,8 @@ export const sideNav: NavItem[] = [
 ];
 
 export function isActive(pathname: string, base: string, item: NavItem) {
-  if (item.href === "") return pathname === base || pathname === `${base}/`;
-  const prefixes = [item.href, ...(item.match ?? [])].map((p) => base + p);
+  if (item.href === "" && !item.match) return pathname === base || pathname === `${base}/`;
+  if (item.href === "" && (pathname === base || pathname === `${base}/`)) return true;
+  const prefixes = (item.href === "" ? (item.match ?? []) : [item.href, ...(item.match ?? [])]).map((p) => base + p);
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }

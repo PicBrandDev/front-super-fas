@@ -258,6 +258,11 @@ body {
     background: var(--fc-fg);
     color: var(--fc-bg);
   }
+  /* Filtro escolhido (ex.: feed de um fã clube na Comunidade): fica branco, como no clique. */
+  .btn.chip[aria-pressed="true"] {
+    background: var(--fc-fg);
+    color: var(--fc-bg);
+  }
   .btn-ghost {
     padding: 0 4px;
     color: var(--fc-amber-text);

@@ -66,8 +66,8 @@ export function FanSidebar() {
       </div>
       {loggedIn && (
         <div className="-mt-3 flex gap-2">
-          <Link href={`/${slug}/conta`} className="btn btn-outline btn-sm flex-1">
-            Minha conta
+          <Link href={`/${slug}/perfil`} className="btn btn-outline btn-sm flex-1">
+            Meu perfil
           </Link>
           <form action={logout} className="flex flex-1">
             <button type="submit" className="btn btn-ghost btn-sm flex-1">

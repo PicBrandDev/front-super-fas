@@ -8,6 +8,8 @@ export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
 
 export type Poster = {
   id: string;
+  /** Id do Drop News de origem (só nos cartazes de post oficial; é o que dá para compartilhar no Instagram). */
+  postId?: string;
   kind: PosterKind;
   /** Nome curto do cartaz (aria-label, "Drop novo", "PicKap"...). */
   cap: string;
@@ -88,6 +90,7 @@ export function buildPosters({
     const kind = molds[i % molds.length];
     out.push({
       id: `drop-${p.id}`,
+      postId: p.id,
       kind,
       cap: "Drop novo",
       by: p.author.name || artistName,

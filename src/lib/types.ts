@@ -94,7 +94,7 @@ export type Post = {
   hasImage?: boolean;
   image?: MediaImage | null; // foto do post (a API ainda não manda; ver lib/media.ts)
   quote?: string; // repost de um Drop News
-  club?: { slug: string; name: string } | null; // fã clube do post (vazio = oficial)
+  club?: { slug: string; name: string; avatar?: string | null } | null; // fã clube do post (vazio = oficial)
   url?: string | null; // link do post do Instagram
   likes: number;
   comments: number;
@@ -350,3 +350,34 @@ export type MyTicket = {
 
 /** Foto oficial de um show (Photo Finder). */
 export type EventPhoto = { id: string; src: string; indexed: boolean; faces: number };
+
+/** Ranking "Fã Super do Vintage" (compartilhamentos no Instagram com a hashtag). */
+type RankRow = { position: number; name: string; handle: string; avatar?: string | null; shares: number; me: boolean };
+type MyRank = { position: number | null; shares: number; pending: number };
+
+export type Ranking = {
+  hashtag: string;
+  myCode: string;
+  autoVerify: boolean; // a conferência no Instagram está ligada no servidor
+  me: MyRank;
+  top: RankRow[]; // geral: todos os fã clubes juntos
+  clubs: { slug: string; name: string; avatar?: string | null; ranked: number; me: MyRank | null; top: RankRow[] }[]; // um ranking por fã clube
+};
+
+/** Perfil de quem está logado (tela Perfil). */
+export type Profile = {
+  id: string;
+  name: string;
+  email: string;
+  handle: string;
+  role: string;
+  avatar: string | null;
+  city: string;
+  zipCode: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  state: string;
+  since: string;
+};

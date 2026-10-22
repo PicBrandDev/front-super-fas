@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fetchJson, send, type ApiResult } from "@/lib/api";
-import type { MyTicket, Prize, SpinCredit, Viewer } from "@/lib/types";
+import type { MyTicket, Post, Prize, SpinCredit, Viewer } from "@/lib/types";
 
 /*
  * Ações do fã. Sem API (modo exemplo) elas devolvem status 0 e as telas simulam o resultado.
@@ -76,4 +76,31 @@ export async function getFinderStatus(slug: string, eventId: string): Promise<Ap
 export async function searchMyPhotos(slug: string, eventId: string, form: FormData): Promise<ApiResult<FinderResult>> {
   if (!slugOk(slug) || !idOk(eventId)) return bad();
   return send<FinderResult>("POST", `/artists/${slug}/events/${eventId}/photo-finder/search`, form);
+}
+
+/** Post só com texto ou texto com foto no mural de um fã clube (JPG, PNG ou WebP, até 5 MB). */
+export async function fanPostMedia(slug: string, club: string, form: FormData): Promise<ApiResult<Post>> {
+  if (!slugOk(slug) || !slugOk(club)) return bad();
+  const res = await send<Post>("POST", `/artists/${slug}/clubs/${club}/posts/media`, form);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+/** Troca a foto de perfil de quem está logado (aparece no ranking e nos posts). */
+export async function uploadMyAvatar(form: FormData): Promise<ApiResult> {
+  const res = await send("POST", "/auth/avatar", form);
+  if (res.ok) revalidatePath("/", "layout");
+  return res;
+}
+
+// ---------- Ranking Fã Super ----------
+
+export type ShareInfo = { shareId: string; hashtag: string; code: string; caption: string };
+
+/** O fã vai compartilhar um post oficial ou um Drop no Instagram: registra a intenção e devolve a legenda pronta. */
+export async function startInstagramShare(slug: string, id: string, kind: "post" | "track" = "post"): Promise<ApiResult<ShareInfo>> {
+  if (!slugOk(slug) || !idOk(id)) return bad();
+  const res = await send<ShareInfo>("POST", `/artists/${slug}/${kind === "track" ? "tracks" : "posts"}/${id}/share`);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
 }

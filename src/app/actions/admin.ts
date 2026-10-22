@@ -196,3 +196,12 @@ export async function publishDrop(slug: string, form: FormData): Promise<Res> {
 export async function createCampaign(form: FormData): Promise<Res> {
   return send("POST", "/sponsor/campaigns", form);
 }
+
+// ---------- Ranking Fã Super: conferir o Instagram ----------
+
+export type InstagramSync = { enabled: boolean; found: number; verified: number; error: string | null };
+
+export async function syncInstagram(slug: string): Promise<Res<InstagramSync>> {
+  if (!slugOk(slug)) return bad("Pedido inválido.");
+  return send<InstagramSync>("POST", `/artists/${slug}/manage/instagram/sync`);
+}

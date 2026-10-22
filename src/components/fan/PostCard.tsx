@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { trackView } from "@/app/actions/views";
 import { Icon } from "@/components/icons";
@@ -8,6 +9,7 @@ import { formatShort, initialsOf } from "@/lib/format";
 import type { Post, PostKind } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
 import { Mark } from "./Mark";
+import { ShareInstagram } from "./ShareInstagram";
 import { useToast } from "./Toast";
 
 const kindLabel: Record<PostKind, string> = { drop: "Mural", galera: "Comunidade", instagram: "Instagram" };
@@ -31,7 +33,7 @@ export function PostCard({
   showClub?: boolean; // mostra de qual fã clube é o post
   fresh?: boolean; // acabou de ser publicado (entra com a animação `.new`)
 }) {
-  const { slug } = useArtist();
+  const { slug, base } = useArtist();
   const toast = useToast();
   const [liked, setLiked] = useState(false);
   const [reposted, setReposted] = useState(false);
@@ -83,6 +85,26 @@ export function PostCard({
 
   return (
     <article ref={ref} className={`border-b border-line py-4 ${fresh ? "new" : ""}`}>
+      {/* Flag do fã clube de onde veio o post (sem fã clube = oficial do artista). */}
+      {showClub &&
+        (post.club ? (
+          <Link href={`${base}/clubes/${post.club.slug}`} className="tag mb-3 inline-flex items-center gap-1.5 no-underline" aria-label={`Fã clube ${post.club.name}`}>
+            {post.club.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube
+              <img src={post.club.avatar} alt="" width={16} height={16} className="size-4 rounded-full object-cover" />
+            ) : (
+              <span aria-hidden="true" className="flex size-4 items-center justify-center rounded-full bg-raised text-[9px] font-black">
+                {initialsOf(post.club.name).charAt(0)}
+              </span>
+            )}
+            {post.club.name}
+          </Link>
+        ) : (
+          <span className="tag tag-key mb-3 inline-flex items-center gap-1.5">
+            <Mark size={12} />
+            Oficial
+          </span>
+        ))}
       <div className="flex items-start gap-3">
         {official ? (
           <div className="avatar" aria-hidden="true">
@@ -101,8 +123,6 @@ export function PostCard({
                 <Icon name="check" size={12} />
                 Oficial
               </span>
-            ) : post.club && showClub ? (
-              <span className="mono">{post.club.name}</span>
             ) : (
               <span className="mono">{post.author.handle}</span>
             )}
@@ -153,6 +173,7 @@ export function PostCard({
           <Icon name="comment" size={20} />
           <span className="num">{formatShort(post.comments + replies.length)}</span>
         </button>
+        {official && <ShareInstagram post={post} />}
         <button type="button" className="act rp" aria-pressed={reposted} aria-label="Repostar" onClick={repost}>
           <Icon name="repost" size={20} />
           <span className="num">{formatShort(post.reposts + (reposted ? 1 : 0))}</span>

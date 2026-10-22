@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
+import { FanTopBar } from "@/components/fan/FanTopBar";
+import { HomeMuralSwitch } from "@/components/fan/HomeMuralSwitch";
 import { Masthead } from "@/components/fan/Masthead";
+import { ShareInstagram } from "@/components/fan/ShareInstagram";
 import { Sheet, SheetOption } from "@/components/fan/Sheet";
 import { Tabs } from "@/components/fan/Tabs";
 import { useToast } from "@/components/fan/Toast";
@@ -35,11 +38,13 @@ export function MuralView({
   posters,
   tracks,
   demo,
+  avatar = null,
   initialTab = "wall",
 }: {
   posters: Poster[];
   tracks: Track[];
   demo: boolean;
+  avatar?: string | null; // foto de perfil no topo
   initialTab?: MuralTab;
 }) {
   const { base } = useArtist();
@@ -115,6 +120,8 @@ export function MuralView({
 
   return (
     <div className={s.screen}>
+      <FanTopBar avatar={avatar} />
+      <HomeMuralSwitch base={base} current="mural" />
       <Masthead word="Mural" steps={2} index={tab === "wall" ? 0 : 1} />
       <Tabs
         tabs={tabs}
@@ -159,6 +166,7 @@ export function MuralView({
                 <p>{p.text}</p>
                 <div className={s.bar}>
                   {acts(p.id, p.likes, p.comments, p.reposts)}
+                  {p.postId && <ShareInstagram post={{ id: p.postId, text: p.text, image: p.image }} />}
                   {p.cta && (
                     <button type="button" className="btn btn-primary btn-sm" onClick={() => onCta(p)}>
                       {p.cta.label}
@@ -204,6 +212,7 @@ export function MuralView({
                     <button type="button" className="go" onClick={() => setSheet(true)}>
                       Streaming <Icon name="external" size={14} />
                     </button>
+                    <ShareInstagram post={{ id: t.id, text: `${t.title}${t.meta ? ` · ${t.meta}` : ""}` }} kind="track" />
                     <button
                       type="button"
                       className="act like"
