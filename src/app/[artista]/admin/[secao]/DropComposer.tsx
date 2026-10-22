@@ -56,15 +56,12 @@ export function DropComposer({
     };
   }, [onClose, pending]);
 
+  // Solta a prévia da foto ao trocar ou sair.
   useEffect(() => {
-    if (!file) {
-      setPreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const pick = (f: File | undefined) => {
     if (!f) return;
@@ -72,6 +69,7 @@ export function DropComposer({
     if (f.size > MAX_BYTES) return setError("A foto pode ter no máximo 5 MB.");
     setError("");
     setFile(f);
+    setPreview(URL.createObjectURL(f));
   };
 
   const next = () => {
@@ -149,7 +147,10 @@ export function DropComposer({
                 </label>
                 <input id="drop-file" type="file" accept={TYPES.join(",")} className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
                 {file && (
-                  <button type="button" onClick={() => setFile(null)} className={`${btnSecondary} self-start`}>
+                  <button type="button" onClick={() => {
+                      setFile(null);
+                      setPreview(null);
+                    }} className={`${btnSecondary} self-start`}>
                     Tirar a foto
                   </button>
                 )}

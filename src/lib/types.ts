@@ -120,6 +120,8 @@ export type ShowEvent = {
   lineup: string;
   giftsCount: number;
   status: EventStatus;
+  ticketingName?: string; // ticketeira oficial (ex.: Sympla)
+  ticketingUrl?: string; // link de compra na ticketeira
 };
 
 export type Vendor = {
@@ -280,6 +282,7 @@ export type FeedItem = {
   text: string;
   image: string | null; // caminho servido pelo próprio front (/uploads/...)
   author: string;
+  handle: string; // @ do autor (vazio para o artista)
   clubName: string | null;
   timeLabel: string;
   date: string;
@@ -289,3 +292,61 @@ export type FeedItem = {
   views: number;
   recentComments: { author: string; text: string; timeLabel: string }[]; // os 3 mais recentes
 };
+
+/** Item de um pacote: um tipo de ingresso (com preço) ou uma opção de transfer. */
+export type PackageItem = { kind: "ticket" | "transfer" | "seal" | "photo"; label: string; priceCents: number; soldOut: boolean };
+
+/** Pacote de uma agência para um show, como o fã vê. */
+export type EventPackage = {
+  id: string;
+  name: string;
+  description: string;
+  agencyName: string;
+  agencyContact: string;
+  agencyUrl: string;
+  url: string; // link de venda do pacote
+  transferDetails: string;
+  hasTransfer: boolean;
+  fromPriceCents: number | null; // menor preço disponível
+  items: PackageItem[];
+};
+
+/** Agência parceira e pacote, como o admin gerencia. */
+export type AgencyAdmin = { id: string; name: string; contact: string; url: string; active: boolean };
+export type PackageAdmin = {
+  id: string;
+  eventId: string;
+  agencyId: string;
+  name: string;
+  description: string;
+  transferDetails: string;
+  url: string;
+  items: PackageItem[];
+  active: boolean;
+  position: number;
+};
+
+/** Tipo de ingresso avulso do show (ticketeira), com o preço. */
+export type EventTicket = { id: string; label: string; description: string; priceCents: number; soldOut: boolean };
+
+/** Um giro da roleta do fã e o motivo de ele existir (compra de ingresso, boas-vindas...). */
+export type SpinCredit = { id: string; reason: string; used: boolean; prizeLabel: string | null; date: string };
+
+/** Ingresso que o fã comprou (Meus ingressos na Agenda). */
+export type MyTicket = {
+  id: string;
+  eventId: string;
+  event: ShowEvent;
+  packageName: string;
+  agencyName: string;
+  label: string;
+  kind: "ticket" | "transfer" | "seal" | "photo";
+  priceCents: number;
+  includesTransfer: boolean;
+  includesSeal: boolean;
+  includesPhotoFinder: boolean;
+  bought: string;
+};
+
+/** Foto oficial de um show (Photo Finder). */
+export type EventPhoto = { id: string; src: string; indexed: boolean; faces: number };

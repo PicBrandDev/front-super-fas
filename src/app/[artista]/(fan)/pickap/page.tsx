@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { apiEnabled, getArtist, getClubPrizes, getClubs, getViewer } from "@/lib/api";
+import { apiEnabled, getArtist, getClubPrizes, getClubs, getSpinCredits, getViewer } from "@/lib/api";
 import { PicKapWheel } from "./PicKapWheel";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
@@ -18,7 +18,7 @@ export default async function PicKapPage({
 }) {
   const { artista } = await params;
   const { clube } = await searchParams;
-  const [viewer, clubs] = await Promise.all([getViewer(artista), getClubs(artista)]);
+  const [viewer, clubs, credits] = await Promise.all([getViewer(artista), getClubs(artista), getSpinCredits(artista)]);
   const mine = clubs.filter((c) => c.joined);
   const current = mine.find((c) => c.slug === clube) ?? mine[0] ?? null;
   const prizes = current ? await getClubPrizes(artista, current.slug) : [];
@@ -28,6 +28,7 @@ export default async function PicKapPage({
       key={current?.slug ?? "none"}
       prizes={prizes}
       initialSpins={viewer.spins}
+      initialCredits={credits}
       club={current ? { slug: current.slug, name: current.name } : null}
       clubs={mine.map((c) => ({ slug: c.slug, name: c.name }))}
       notJoined={clube && !mine.some((c) => c.slug === clube) ? (clubs.find((c) => c.slug === clube)?.name ?? null) : null}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { apiEnabled, getArtist, getEvents } from "@/lib/api";
+import { apiEnabled, getArtist, getEvents, getMyTickets } from "@/lib/api";
 import { AgendaView } from "./AgendaView";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ artista: 
 
 export default async function AgendaPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
-  const [artist, events] = await Promise.all([getArtist(artista), getEvents(artista)]);
+  const [artist, events, tickets] = await Promise.all([getArtist(artista), getEvents(artista), getMyTickets(artista)]);
   if (!artist) notFound();
-  return <AgendaView events={events} demo={!apiEnabled()} />;
+  return <AgendaView events={events} tickets={tickets} demo={!apiEnabled()} />;
 }

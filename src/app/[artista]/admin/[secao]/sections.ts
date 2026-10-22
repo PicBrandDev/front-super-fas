@@ -30,6 +30,23 @@ export const eventFields: FieldDef[] = [
   { name: "doorsOpen", label: "Abertura dos portões", type: "text", placeholder: "21h" },
   { name: "ageRating", label: "Classificação", type: "text", placeholder: "18+" },
   { name: "lineup", label: "Line-up", type: "text", full: true },
+  { name: "ticketingName", label: "Ticketeira", type: "text", placeholder: "Sympla, Ingresso.com…" },
+  { name: "ticketingUrl", label: "Link da ticketeira", type: "text", placeholder: "https://…", full: true },
+];
+
+export const ticketFields: FieldDef[] = [
+  { name: "label", label: "Tipo de ingresso", type: "text", required: true, column: true, placeholder: "Pista, Camarote, VIP…" },
+  { name: "priceCents", label: "Preço (R$)", type: "money", required: true, column: true },
+  { name: "description", label: "Descrição", type: "text", column: true, placeholder: "O que está incluído" },
+  { name: "soldOut", label: "Esgotado", type: "checkbox", column: true },
+  { name: "position", label: "Ordem", type: "number", hint: "Menor aparece primeiro." },
+];
+
+export const agencyFields: FieldDef[] = [
+  { name: "name", label: "Agência", type: "text", required: true, column: true },
+  { name: "contact", label: "Contato (WhatsApp ou e-mail)", type: "text", column: true },
+  { name: "url", label: "Site", type: "text", placeholder: "https://…", column: true },
+  { name: "active", label: "Agência ativa (aparece para os fãs)", type: "checkbox", column: true },
 ];
 
 export const vendorFields: FieldDef[] = [

@@ -62,10 +62,17 @@ export function ShowStub({
             </span>
           )}
         </span>
-        <span className="go">
-          {past ? "Encontrar minhas fotos" : "Ver evento"}
-          <Icon name="arrow" size={16} />
-        </span>
+        {past ? (
+          <span className="btn btn-primary btn-sm" style={{ justifySelf: "start" }}>
+            <Icon name="camera" size={16} />
+            Photo Finder
+          </span>
+        ) : (
+          <span className="go">
+            Ver evento
+            <Icon name="arrow" size={16} />
+          </span>
+        )}
       </span>
     </Link>
   );

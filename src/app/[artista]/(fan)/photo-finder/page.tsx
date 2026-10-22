@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { apiEnabled, getArtist, getEvents } from "@/lib/api";
 import { eventName } from "@/lib/events";
 import { eventPhoto } from "@/lib/media";
+import { LivePhotoFinder } from "./LivePhotoFinder";
 import { PhotoFinderFlow, type FinderEvent } from "./PhotoFinderFlow";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
@@ -28,6 +29,10 @@ export default async function PhotoFinderPage({
   }));
   // Fotos "do evento" (por enquanto as de imprensa do artista, ver lib/media.ts).
   const photos = Array.from({ length: 6 }, (_, i) => eventPhoto(artista, i)).filter((p) => p !== null);
+
+  const initial = evento && shows.some((s) => s.id === evento) ? evento : undefined;
+  // Com a API ligada a busca é de verdade (AWS Rekognition); sem API, a simulação de exemplo.
+  if (apiEnabled()) return <LivePhotoFinder shows={shows} initial={initial} />;
 
   return (
     <PhotoFinderFlow

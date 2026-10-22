@@ -35,7 +35,7 @@ export function PainelClubes({ artist, artistName, clubs }: { artist: string; ar
         headingId="painel-title"
         description={`Todos os fã clubes do ambiente de ${artistName}. Abra um para ver o analytics dele.`}
         actions={
-          <Link href={`/${artist}/admin/clubes`} className={`${btnPrimary} no-underline`}>
+          <Link href={`/${artist}/admin/clubes/novo`} className={`${btnPrimary} no-underline`}>
             <Icon name="plus" size={18} strokeWidth={2.4} />
             Criar fã clube
           </Link>
@@ -66,6 +66,9 @@ export function PainelClubes({ artist, artistName, clubs }: { artist: string; ar
         <span role="status" aria-live="polite" className="font-adm-mono text-[13px] text-adm-muted">
           {shown.length} de {clubs.length}
         </span>
+        <Link href={`/${artist}/admin/clubes`} className="ml-auto text-[13px] font-semibold text-adm-blue-dark">
+          Colocar no ar ou apagar fã clubes
+        </Link>
       </div>
 
       {shown.length === 0 ? (

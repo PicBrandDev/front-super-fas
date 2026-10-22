@@ -135,6 +135,34 @@
   line-height: 20px;
   opacity: 0.78;
 }
+.giros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.giro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--fc-ink);
+}
+.why {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.why strong {
+  font: 700 15px/20px var(--fc-font-grotesk);
+}
+.giro :global(.btn) {
+  flex: none;
+  border-color: var(--fc-ink);
+  color: var(--fc-ink);
+}
 .won {
   display: flex;
   justify-content: space-between;

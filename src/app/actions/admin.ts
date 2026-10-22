@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { send, type ApiResult } from "@/lib/api";
+import type { EventPhoto } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -11,7 +12,7 @@ import { send, type ApiResult } from "@/lib/api";
 
 type Res<T = unknown> = ApiResult<T>;
 
-const RESOURCES = new Set(["events", "vendors", "gifts", "posts", "products", "tracks", "perks"]);
+const RESOURCES = new Set(["events", "vendors", "gifts", "tickets", "agencies", "packages", "posts", "products", "tracks", "perks"]);
 const CLUB_RESOURCES = new Set(["prizes", "posts"]);
 const slugOk = (s: string) => /^[a-z0-9-]+$/.test(s);
 const idOk = (s: string) => /^[A-Za-z0-9_-]+$/.test(s);
@@ -153,6 +154,29 @@ export async function inviteSponsor(data: { email: string; brand?: string }): Pr
 export async function setClubAvatar(slug: string, club: string, form: FormData): Promise<Res> {
   if (!slugOk(slug) || !slugOk(club)) return bad("Pedido inválido.");
   const res = await send("POST", `/artists/${slug}/clubs/${club}/avatar`, form);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+// ---------- Photo Finder: fotos do show ----------
+
+export async function uploadEventPhotos(slug: string, eventId: string, form: FormData): Promise<Res<EventPhoto[]>> {
+  if (!slugOk(slug) || !idOk(eventId)) return bad("Pedido inválido.");
+  const res = await send<EventPhoto[]>("POST", `/artists/${slug}/manage/events/${eventId}/photos`, form);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+export async function indexEventPhotos(slug: string, eventId: string): Promise<Res<EventPhoto[]>> {
+  if (!slugOk(slug) || !idOk(eventId)) return bad("Pedido inválido.");
+  const res = await send<EventPhoto[]>("POST", `/artists/${slug}/manage/events/${eventId}/photos/index`);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+export async function deleteEventPhoto(slug: string, eventId: string, photoId: string): Promise<Res> {
+  if (!slugOk(slug) || !idOk(eventId) || !idOk(photoId)) return bad("Pedido inválido.");
+  const res = await send("DELETE", `/artists/${slug}/manage/events/${eventId}/photos/${photoId}`);
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
 }

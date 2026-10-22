@@ -8,7 +8,7 @@ import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
 import { useToast } from "@/components/fan/Toast";
-import type { Prize } from "@/lib/types";
+import type { Prize, SpinCredit } from "@/lib/types";
 import s from "./PicKap.module.css";
 
 const PFX = "dk";
@@ -30,6 +30,7 @@ function featuredIndex(prizes: Prize[]) {
 export function PicKapWheel({
   prizes,
   initialSpins,
+  initialCredits,
   club,
   clubs,
   notJoined,
@@ -37,6 +38,7 @@ export function PicKapWheel({
 }: {
   prizes: Prize[];
   initialSpins: number;
+  initialCredits: SpinCredit[]; // cada giro com o motivo
   club: ClubRef | null; // roleta de qual fã clube
   clubs: ClubRef[]; // fã clubes em que o fã entrou
   notJoined: string | null; // pediu a roleta de um clube em que não entrou
@@ -57,6 +59,12 @@ export function PicKapWheel({
   const [spinning, setSpinning] = useState(false);
   const [spun, setSpun] = useState(false);
   const [spins, setSpins] = useState(initialSpins);
+  // Sem API (modo exemplo) a lista nasce dos giros que o fã tem.
+  const [credits, setCredits] = useState<SpinCredit[]>(() =>
+    initialCredits.length > 0
+      ? initialCredits
+      : Array.from({ length: initialSpins }, (_, i) => ({ id: `demo-${i}`, reason: "Bônus de boas-vindas", used: false, prizeLabel: null, date: "" })),
+  );
   const [error, setError] = useState("");
   const [won, setWon] = useState<Won[]>([]);
   const [result, setResult] = useState<Prize | null>(null);
@@ -113,7 +121,7 @@ export function PicKapWheel({
 
   const cantSpin = spinning || spins <= 0 || n === 0 || !club;
 
-  async function spin() {
+  async function spin(creditId?: string) {
     if (cantSpin || !club) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setSpinning(true);
@@ -137,11 +145,12 @@ export function PicKapWheel({
     const started = Date.now();
 
     // O servidor sorteia o prêmio e desconta o giro; sem API (modo exemplo) sorteia aqui.
-    const res = await spinPickap(slug, club.slug);
+    const res = await spinPickap(slug, club.slug, creditId && !creditId.startsWith("demo-") ? creditId : undefined);
     let idx: number;
     if (res.ok) {
       idx = prizes.findIndex((p) => p.id === res.data.prize.id);
       setSpins(res.data.spinsLeft);
+      setCredits(res.data.credits);
       if (idx < 0) {
         settle();
         setError("A roleta mudou. Recarregue a página.");
@@ -150,6 +159,11 @@ export function PicKapWheel({
     } else if (res.status === 0) {
       idx = Math.floor(Math.random() * n);
       setSpins((v) => v - 1);
+      const label = prizes[idx].label;
+      setCredits((list) => {
+        const at = creditId ? list.findIndex((c) => c.id === creditId) : list.findIndex((c) => !c.used);
+        return list.map((c, i) => (i === at ? { ...c, used: true, prizeLabel: label } : c));
+      });
     } else {
       settle();
       setError(res.error);
@@ -247,7 +261,7 @@ export function PicKapWheel({
           playing={playing}
         />
 
-        <button type="button" className={s.startkey} onClick={spin} disabled={cantSpin} aria-busy={spinning || undefined}>
+        <button type="button" className={s.startkey} onClick={() => spin()} disabled={cantSpin} aria-busy={spinning || undefined}>
           <i className={s.led} aria-hidden="true" />
           <span>{keyLabel}</span>
         </button>
@@ -262,6 +276,31 @@ export function PicKapWheel({
             {demo ? "Prêmios de exemplo. " : ""}O resultado é definido no servidor; ninguém ganha garantido.
           </p>
         )}
+
+        <section className={s.mine} aria-labelledby="girosH">
+          <h3 id="girosH">Seus giros</h3>
+          {credits.length === 0 ? (
+            <p className={s.empty}>Nenhum giro por enquanto. Comprando um ingresso, você ganha uma tentativa.</p>
+          ) : (
+            <ul className={s.giros}>
+              {credits.map((c) => (
+                <li key={c.id} className={s.giro}>
+                  <span className={s.why}>
+                    <strong>{c.reason}</strong>
+                    {c.date && <span className="mono">{c.date}</span>}
+                  </span>
+                  {c.used ? (
+                    <span className="tag">{c.prizeLabel ? `Saiu: ${c.prizeLabel}` : "Usado"}</span>
+                  ) : (
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => spin(c.id)} disabled={cantSpin}>
+                      Girar roleta
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <section ref={mineRef} className={s.mine} aria-labelledby="mineH" tabIndex={-1}>
           <h3 id="mineH">Seus brindes</h3>

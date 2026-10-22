@@ -14,8 +14,12 @@ import type {
   ClubMemberRow,
   ClubAnalytics,
   ClubOverview,
+  EventPackage,
+  EventPhoto,
+  EventTicket,
   FanClub,
   FeedItem,
+  MyTicket,
   StaffMember,
   StaffPosition,
   AdSlot,
@@ -31,6 +35,7 @@ import type {
   Product,
   ShowEvent,
   Sponsor,
+  SpinCredit,
   SubscribersAnalytics,
   Track,
   Vendor,
@@ -73,6 +78,20 @@ async function get<T>(path: string, fallback: () => T, opts: { notFound?: T } = 
 export type ApiResult<T = unknown> = { ok: true; data: T } | { ok: false; error: string; status: number };
 
 /** Escrita na API (usado pelas server actions). Devolve a mensagem de erro da API, pronta para mostrar. */
+/** GET numa server action (o `get` do arquivo só roda em páginas e redireciona no 401). */
+export async function fetchJson<T = unknown>(path: string): Promise<ApiResult<T>> {
+  if (!API_URL) return { ok: false, error: "O front não está ligado à API (API_URL).", status: 0 };
+  let res: Response;
+  try {
+    res = await request(path);
+  } catch {
+    return { ok: false, error: "Não foi possível falar com o servidor.", status: 0 };
+  }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) return { ok: false, error: errorMessage(data, res.status), status: res.status };
+  return { ok: true, data: data as T };
+}
+
 export async function send<T = unknown>(
   method: "POST" | "PATCH" | "DELETE",
   path: string,
@@ -150,6 +169,14 @@ export const getEvent = (slug: string, id: string) =>
     notFound: null,
   });
 
+/** GET /artists/{slug}/events/{id}/tickets: tipos de ingresso avulsos, cada um com o preço. */
+export const getTickets = (slug: string, eventId: string) =>
+  get<EventTicket[]>(`/artists/${slug}/events/${eventId}/tickets`, () => [] as EventTicket[]);
+
+/** GET /artists/{slug}/events/{id}/packages: pacotes das agências (ingressos de vários tipos e transfer). */
+export const getPackages = (slug: string, eventId: string) =>
+  get<EventPackage[]>(`/artists/${slug}/events/${eventId}/packages`, () => [] as EventPackage[]);
+
 /** GET /artists/{slug}/events/{id}/vendors */
 export const getVendors = (slug: string, eventId: string) =>
   get<Vendor[]>(`/artists/${slug}/events/${eventId}/vendors`, () => mock.vendors);
@@ -213,6 +240,16 @@ export const getClubFeed = (slug: string, club: string) =>
 /** GET /artists/{slug}/subscribers-analytics */
 export const getSubscribersAnalytics = (slug: string) =>
   get<SubscribersAnalytics | null>(`/artists/${slug}/subscribers-analytics`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/manage/events/{id}/photos: fotos oficiais do show. */
+export const getEventPhotos = (slug: string, eventId: string) =>
+  get<EventPhoto[]>(`/artists/${slug}/manage/events/${eventId}/photos`, () => [] as EventPhoto[]);
+
+/** GET /artists/{slug}/me/tickets: os ingressos que o fã comprou. */
+export const getMyTickets = (slug: string) => get<MyTicket[]>(`/artists/${slug}/me/tickets`, () => [] as MyTicket[]);
+
+/** GET /artists/{slug}/pickap/spins: os giros do fã, cada um com o motivo. */
+export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickap/spins`, () => [] as SpinCredit[]);
 
 /** GET /artists/{slug}/clubs-overview: todos os fã clubes do ambiente, com o dono e os números. */
 export const getClubsOverview = (slug: string) =>
