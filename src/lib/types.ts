@@ -201,6 +201,11 @@ export type Campaign = {
   cta?: string;
   url?: string;
   artUrl?: string | null;
+  targetCity?: string; // cidade do raio de alcance (vazio = qualquer lugar)
+  targetRadiusKm?: number; // 0 = país todo
+  goalViews?: number;
+  goalClicks?: number;
+  budgetCents?: number; // valor calculado ao anunciar
 };
 
 export type Sponsor = {
@@ -381,4 +386,21 @@ export type Profile = {
   neighborhood: string;
   state: string;
   since: string;
+};
+
+/** Vitrine alugada por um patrocinador (admin do ambiente). */
+export type Rental = {
+  slotName: string;
+  where: string;
+  diagramTop: number; // posição da vitrine no desenho do celular
+  diagramHeight: number;
+  fanClub: string | null; // null = vitrine do ambiente
+  sponsor: string;
+  title: string;
+  start: string | null; // AAAA-MM-DD
+  end: string | null;
+  days: number | null;
+  status: "live" | "scheduled" | "ended";
+  priceCentsPerWeek: number | null;
+  estimatedTotalCents: number | null;
 };

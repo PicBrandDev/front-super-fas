@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
 import { createFanClub, updateFanClub, type InviteResult } from "@/app/actions/admin";
 import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
@@ -60,23 +60,11 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-const initialsOf = (name: string) =>
-  name.includes("@")
-    ? "@"
-    : name
-        .split(" ")
-        .filter(Boolean)
-        .map((w) => w.charAt(0))
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-
 export function FasClubesClient({ initialClubs, exampleMode = false }: { initialClubs: ClubRow[]; exampleMode?: boolean }) {
   const [created, setCreated] = useState<ClubRow[]>([]);
   const [filter, setFilter] = useState<Filter>("todos");
   const [q, setQ] = useState("");
   const [selId, setSelId] = useState<string | null>(initialClubs[0]?.id ?? null);
-  const [extraInv, setExtraInv] = useState<Record<string, number>>({});
   const [mods, setMods] = useState<Record<string, Record<string, boolean>>>({});
   const [createOpen, setCreateOpen] = useState(false);
   const [announce, setAnnounce] = useState("");
@@ -95,7 +83,6 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
     .filter((c) => filter === "todos" || (filter === "ativos" ? c.status === "active" : c.status !== "active"))
     .filter((c) => !query || `${c.name} ${c.slug}`.toLowerCase().includes(query));
 
-  const usedOf = (c: ClubRow) => Math.min(MAX_ADMINS, c.team.length + (extraInv[c.id] ?? 0));
   const selClub = clubs.find((c) => c.id === selId) ?? null;
 
   const closeCreate = () => {
@@ -200,7 +187,7 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
     <>
       <AdminPageHeader
         title="Fã clubes"
-        description="Cada cantor ganha um ambiente próprio, com design próprio e até 10 fã clubes: o master (do admin master do cantor) e mais 9, cada um com seu dono."
+        description="Cada cantor ganha um ambiente próprio, com design próprio e quantos fã clubes quiser: o master (do admin master do cantor) e os outros, cada um com seu dono."
         actions={
           <button ref={openBtnRef} type="button" onClick={() => setCreateOpen(true)} className={btnPrimary}>
             <Icon name="plus" size={18} strokeWidth={2.4} />
@@ -248,7 +235,6 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
           <tbody>
             {rows.map((c) => {
               const selected = c.id === selId;
-              const used = usedOf(c);
               const active = c.status === "active";
               return (
                 <tr key={c.id} className={selected ? "bg-adm-blue-tint" : "bg-white"}>
@@ -271,14 +257,9 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
                     <Badge tone={active ? "ok" : "warn"}>{active ? "Ativo" : "Em configuração"}</Badge>
                   </td>
                   <td className={tdClass}>
-                    <div className="flex items-center gap-2.5">
-                      <span aria-hidden="true" className="h-1.5 w-20 overflow-hidden rounded-[3px] bg-adm-line-soft">
-                        <span className="block h-1.5 bg-adm-blue" style={{ width: `${used * 10}%` }} />
-                      </span>
-                      <span className="font-adm-mono text-[13px] font-semibold">
-                        {used}/{MAX_ADMINS}
-                      </span>
-                    </div>
+                    <span className="font-adm-mono text-[13px] font-semibold">
+                      {c.team.length} {c.team.length === 1 ? "fã clube" : "fã clubes"}
+                    </span>
                   </td>
                   <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.members}</td>
                   <td className={tdClass}>{c.ads}</td>
@@ -317,15 +298,31 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
                           </Link>
                         </>
                       )}
+                      {c.local ? (
+                        <span
+                          aria-disabled="true"
+                          title="Disponível depois que o ambiente for configurado"
+                          className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-disabled"
+                        >
+                          Gerenciar
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/${c.slug}/admin`}
+                          className="inline-flex min-h-10 items-center rounded-lg bg-adm-blue px-3 text-[13px] font-semibold text-white no-underline"
+                        >
+                          Gerenciar<span className="sr-only"> {c.name}</span>
+                        </Link>
+                      )}
                       <button
                         type="button"
-                        onClick={() => setSelId(c.id)}
+                        onClick={() => setSelId(selected ? "" : c.id)}
                         aria-pressed={selected}
                         className={`inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-blue px-3 text-[13px] font-semibold ${
                           selected ? "bg-adm-blue text-white" : "bg-white text-adm-blue"
                         }`}
                       >
-                        Gerenciar<span className="sr-only"> {c.name}</span>
+                        Módulos<span className="sr-only"> de {c.name}</span>
                       </button>
                     </div>
                   </td>
@@ -354,70 +351,7 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
       </div>
 
       {selClub && (
-        <section aria-label={`Gerenciar ${selClub.name}`} className="flex flex-wrap items-start gap-5">
-          <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-3.5 rounded-xl border border-adm-line bg-white p-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <h2 className="m-0 text-lg font-bold">Fã clubes · {selClub.name}</h2>
-              <span className="font-adm-mono text-[13px] font-semibold text-adm-muted">
-                {usedOf(selClub)} de {MAX_ADMINS}
-              </span>
-            </div>
-            <ul className="m-0 grid list-none gap-2 p-0 [grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))]">
-              {Array.from({ length: MAX_ADMINS }, (_, i) => {
-                const person = selClub.team[i];
-                const inv = extraInv[selClub.id] ?? 0;
-                if (person) {
-                  return (
-                    <AdminSlot
-                    key={i}
-                    initials={initialsOf(person.name)}
-                    name={person.name}
-                    role={person.pending ? `${person.role} · senha provisória` : person.role}
-                    avatar="bg-adm-ink text-white"
-                  />
-                  );
-                }
-                if (i < selClub.team.length + inv) {
-                  return (
-                    <AdminSlot
-                      key={i}
-                      initials="…"
-                      name="Convite enviado"
-                      role="Aguardando aceite"
-                      avatar="bg-adm-blue-soft text-adm-blue-dark"
-                      box="bg-adm-bg"
-                    />
-                  );
-                }
-                return (
-                  <AdminSlot
-                    key={i}
-                    initials="+"
-                    name="Vaga livre"
-                    role={`Fã clube ${i + 1}`}
-                    avatar="bg-adm-bg text-adm-muted"
-                    box="border-dashed bg-white"
-                    action={
-                      selClub.local ? (
-                        <button
-                          type="button"
-                          onClick={() => setExtraInv((cur) => ({ ...cur, [selClub.id]: (cur[selClub.id] ?? 0) + 1 }))}
-                          className={btnOutlineBlue}
-                        >
-                          Convidar<span className="sr-only"> para a vaga {i + 1}</span>
-                        </button>
-                      ) : (
-                        <Link href={`/${selClub.slug}/admin/clubes`} className={`${btnOutlineBlue} no-underline`}>
-                          Criar<span className="sr-only"> fã clube na vaga {i + 1}</span>
-                        </Link>
-                      )
-                    }
-                  />
-                );
-              })}
-            </ul>
-          </div>
-
+        <section aria-label={`Módulos de ${selClub.name}`} className="flex flex-wrap items-start gap-5">
           <div className="flex min-w-0 flex-[2_1_300px] flex-col gap-1.5 rounded-xl border border-adm-line bg-white p-5">
             <h2 className="m-0 mb-2 text-lg font-bold">Módulos do ambiente</h2>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-adm-bg px-3 py-2.5">
@@ -468,38 +402,6 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
 
       {createOpen && <CreateDialog onClose={closeCreate} onCreate={handleCreate} templateFrom={templateFrom} />}
     </>
-  );
-}
-
-function AdminSlot({
-  initials,
-  name,
-  role,
-  avatar,
-  box = "bg-white",
-  action,
-}: {
-  initials: string;
-  name: string;
-  role: string;
-  avatar: string;
-  box?: string;
-  action?: ReactNode;
-}) {
-  return (
-    <li className={`flex min-h-14 items-center gap-2.5 rounded-[10px] border border-adm-line px-3 py-2 ${box}`}>
-      <span
-        aria-hidden="true"
-        className={`flex size-8 flex-none items-center justify-center rounded-full text-xs font-bold ${avatar}`}
-      >
-        {initials}
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <strong className="truncate text-sm font-semibold">{name}</strong>
-        <span className="text-xs text-adm-muted">{role}</span>
-      </span>
-      {action}
-    </li>
   );
 }
 

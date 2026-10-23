@@ -36,6 +36,7 @@ import type {
   ShowEvent,
   Profile,
   Ranking,
+  Rental,
   Sponsor,
   SpinCredit,
   SubscribersAnalytics,
@@ -320,6 +321,9 @@ export const getClubStaff = (slug: string, club: string) =>
 /** GET /artists/{slug}/clubs/{club}/campaigns (equipe do clube) */
 export const getClubCampaigns = (slug: string, club: string) =>
   get<Campaign[]>(`/artists/${slug}/clubs/${club}/campaigns`, () => []);
+
+/** GET /artists/{slug}/rentals: vitrines alugadas (ambiente e fã clubes), com o patrocinador e o período. */
+export const getRentals = (slug: string) => get<Rental[]>(`/artists/${slug}/rentals`, () => [] as Rental[]);
 
 /** GET /artists/{slug}/campaigns (administração do ambiente) */
 export const getEnvCampaigns = (slug: string) => get<Campaign[]>(`/artists/${slug}/campaigns`, () => mock.campaigns);

@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition, type ChangeEvent, type ReactNode, type Ref } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type ChangeEvent, type ReactNode, type Ref } from "react";
 import { createCampaign } from "@/app/actions/admin";
 import { occupiedLabel, slotPrice } from "@/app/admin/midia/slots";
 import { AdminEmpty, AdminNotice, SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
-import { AdCard } from "@/components/fan/AdCard";
+import { AdPhonePreview } from "@/components/sponsor/AdPhonePreview";
+import { PriceCalculator, RadiusPicker, type Targeting } from "@/components/sponsor/AdTargeting";
 import { Icon } from "@/components/icons";
+import { adPrice, weeksBetween } from "@/lib/ad-pricing";
+import { formatBRL } from "@/lib/format";
 import { themeStyle, type ArtistTheme } from "@/lib/themes";
 import type { AdSlot } from "@/lib/types";
 
@@ -32,6 +35,7 @@ type AdForm = {
 };
 
 const emptyForm: AdForm = { brand: "", cta: "", title: "", text: "", link: "", start: "", end: "" };
+const emptyTargeting: Targeting = { city: "São Paulo, SP", radiusKm: 100, views: 40000, clicks: 1200 };
 
 const stepLabels = ["Fã clube", "Vitrine", "Anúncio", "Revisão"] as const;
 
@@ -44,6 +48,9 @@ const formatDate = (iso: string) => {
 };
 
 export function PatrocinadorClient({
+  initialForm = emptyForm,
+  initialTargeting = emptyTargeting,
+  defaultArtUrl,
   clubs,
   slotsByClub,
   placesByClub,
@@ -56,18 +63,40 @@ export function PatrocinadorClient({
   placesByClub: Record<string, { slug: string; name: string }[]>;
   /** Sem API: os preços e datas são placeholders do mock. */
   exampleMode?: boolean;
+  /** Anúncio já preenchido ao abrir (e ao começar outra campanha). */
+  initialForm?: AdForm;
+  initialTargeting?: Targeting;
+  /** Arte já anexada ao abrir (ex.: o anúncio de exemplo). */
+  defaultArtUrl?: string;
 }) {
   const [step, setStep] = useState<Step>(1);
   const [sent, setSent] = useState(false);
   const [clubSlug, setClubSlug] = useState<string | null>(null);
   const [slotId, setSlotId] = useState<string | null>(null);
-  const [form, setForm] = useState<AdForm>(emptyForm);
+  const [form, setForm] = useState<AdForm>(initialForm);
   const [art, setArt] = useState<File | null>(null);
+  const [target, setTarget] = useState<Targeting>(initialTargeting);
   const [artError, setArtError] = useState("");
   const [agree, setAgree] = useState(false);
   const [sendError, setSendError] = useState("");
   const [sending, start] = useTransition();
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Anexa a arte de exemplo ao abrir (se o patrocinador ainda não escolheu outra).
+  useEffect(() => {
+    if (!defaultArtUrl) return;
+    let alive = true;
+    fetch(defaultArtUrl)
+      .then((r) => r.blob())
+      .then((b) => alive && setArt((cur) => cur ?? new File([b], defaultArtUrl.split("/").pop() ?? "arte.png", { type: b.type || "image/png" })))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [defaultArtUrl]);
+
+  const artSrc = useMemo(() => (art ? URL.createObjectURL(art) : null), [art]);
+  useEffect(() => () => void (artSrc && URL.revokeObjectURL(artSrc)), [artSrc]);
   const moveFocus = useRef(false);
 
   // Leva o foco para o título da etapa nova (só depois de uma ação do usuário).
@@ -107,6 +136,11 @@ export function PatrocinadorClient({
       fd.set("club", clubSlug);
       fd.set("slot", slotId);
       for (const [k, v] of Object.entries(form)) fd.set(k, v.trim());
+      fd.set("city", target.city);
+      fd.set("radius_km", String(target.radiusKm));
+      fd.set("goal_views", String(target.views));
+      fd.set("goal_clicks", String(target.clicks));
+      fd.set("budget_cents", String(price.total));
       if (art) fd.set("art", art);
       start(async () => {
         const res = await createCampaign(fd);
@@ -137,7 +171,8 @@ export function PatrocinadorClient({
     setAgree(false);
     setArt(null);
     setArtError("");
-    setForm(emptyForm);
+    setForm(initialForm);
+    setTarget(initialTargeting);
   };
 
   const pickClub = (slug: string) => {
@@ -168,13 +203,19 @@ export function PatrocinadorClient({
     url: form.link.trim() || "#",
   };
 
+  const weeks = weeksBetween(form.start, form.end);
+  const price = adPrice({ weeklyCents: slot?.priceCents, weeks, radiusKm: target.radiusKm, views: target.views, clicks: target.clicks });
+
   const period = `${form.start ? formatDate(form.start) : "[início]"} a ${form.end ? formatDate(form.end) : "[fim]"}`;
   const review = [
     { k: "Cantor", v: clubName },
     { k: "Onde", v: place ? `Fã clube ${placeName}` : `Ambiente de ${clubName} (todos os fãs)` },
     { k: "Vitrine", v: slotName },
     { k: "Período", v: period },
-    { k: "Valor", v: slot ? slotPrice(slot, exampleMode) : "—" },
+    { k: "Vitrine por semana", v: slot ? slotPrice(slot, exampleMode) : "—" },
+    { k: "Região", v: target.radiusKm > 0 ? `${target.radiusKm} km ao redor de ${target.city}` : "País todo" },
+    { k: "Metas", v: `${target.views.toLocaleString("pt-BR")} visualizações · ${target.clicks.toLocaleString("pt-BR")} cliques` },
+    { k: "Valor da campanha", v: formatBRL(price.total) },
     { k: "Título", v: preview.title },
     { k: "Link", v: form.link.trim() || "—" },
   ];
@@ -228,7 +269,7 @@ export function PatrocinadorClient({
             <div className="w-full max-w-[560px] text-left">
               <AdminNotice tone="ok">
                 Seu anúncio em “{slotName}” {whereLabel} está na fila de aprovação. Acompanhe o status em{" "}
-                <Link href="/patrocinador/campanhas" className="font-semibold text-adm-blue underline">
+                <Link href="/patrocinador" className="font-semibold text-adm-blue underline">
                   Minhas campanhas
                 </Link>
                 .
@@ -452,18 +493,24 @@ export function PatrocinadorClient({
                 </span>
               )}
             </div>
+            <div className="flex flex-col gap-3 border-t border-adm-line pt-4">
+              <h3 className="m-0 text-base font-bold">Onde o anúncio aparece</h3>
+              <RadiusPicker value={target} onChange={setTarget} />
+            </div>
+            <div className="flex flex-col gap-3 border-t border-adm-line pt-4">
+              <h3 className="m-0 text-base font-bold">Quanto custa</h3>
+              <PriceCalculator value={target} onChange={setTarget} weeklyCents={slot?.priceCents} weeks={weeks} />
+            </div>
           </div>
 
-          <div className="flex min-w-0 flex-[2_1_320px] flex-col gap-2.5">
+          <div className="sticky top-4 flex min-w-0 flex-[2_1_320px] flex-col gap-2.5 self-start">
             <span className="font-adm-mono text-xs font-semibold uppercase text-adm-muted">Prévia · {slotName}</span>
-            <div
-              style={club ? themeStyle(club.theme) : undefined}
-              className="fan rounded-device border border-adm-line bg-night px-4 py-[18px] font-grotesk text-fg"
-              onClickCapture={(e) => e.preventDefault()}
-            >
-              <AdCard ad={preview} />
-            </div>
-            <span className="text-xs text-adm-muted">É assim que os fãs veem seu anúncio {whereLabel}.</span>
+            <AdPhonePreview
+              slotId={slotId}
+              slotName={slotName}
+              themeStyle={club ? themeStyle(club.theme) : undefined}
+              ad={{ sponsor: preview.sponsor, title: preview.title, text: preview.text, cta: preview.cta, art: artSrc }}
+            />
           </div>
         </section>
       )}

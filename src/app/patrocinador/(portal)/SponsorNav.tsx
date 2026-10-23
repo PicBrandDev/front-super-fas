@@ -4,8 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/patrocinador/campanhas", label: "Minhas campanhas" },
-  { href: "/patrocinador", label: "Nova campanha" },
+  { href: "/patrocinador", label: "Minhas campanhas" },
+  { href: "/patrocinador/nova", label: "Nova campanha" },
 ];
 
 export function SponsorNav() {
