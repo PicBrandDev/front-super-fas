@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { spinPickap } from "@/app/actions/fan";
+import { AdModal } from "@/components/fan/AdModal";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
 import { useToast } from "@/components/fan/Toast";
+import { markSeen, seenWithin } from "@/lib/adFrequency";
+import { PICKAP_VIDEO_PERIOD_HOURS, type InAppAd } from "@/lib/ads";
 import type { Prize, SpinCredit } from "@/lib/types";
 import s from "./PicKap.module.css";
+import { PicKapVideoAd } from "./PicKapVideoAd";
 
 const PFX = "dk";
 const SPIN_MS = 4200; // transição do disco (Turntable.module.css)
@@ -35,6 +39,8 @@ export function PicKapWheel({
   clubs,
   notJoined,
   demo,
+  videoAd = null,
+  claimAd = null,
 }: {
   prizes: Prize[];
   initialSpins: number;
@@ -43,6 +49,8 @@ export function PicKapWheel({
   clubs: ClubRef[]; // fã clubes em que o fã entrou
   notJoined: string | null; // pediu a roleta de um clube em que não entrou
   demo: boolean; // prêmios de exemplo (sem API)
+  videoAd?: InAppAd | null; // vídeo obrigatório antes do primeiro giro do período
+  claimAd?: InAppAd | null; // anúncio ao guardar o brinde ganho
 }) {
   const { base, slug } = useArtist();
   const { show: toast } = useToast();
@@ -70,6 +78,10 @@ export function PicKapWheel({
   const [result, setResult] = useState<Prize | null>(null);
   const [mastShift, setMastShift] = useState(0);
   const [mastMs, setMastMs] = useState<number | undefined>(undefined);
+  // Giro esperando o vídeo patrocinado (guarda o crédito escolhido).
+  const [pendingSpin, setPendingSpin] = useState<{ creditId?: string } | null>(null);
+  const [claimOpen, setClaimOpen] = useState(false);
+  const focusMine = useRef(false);
 
   const mastBox = useRef<HTMLDivElement>(null);
   const mineRef = useRef<HTMLElement>(null);
@@ -198,6 +210,45 @@ export function PicKapWheel({
     }, wait);
   }
 
+  const videoKey = `pickap-video-${slug}`;
+
+  /** Antes de girar: se o fã não viu o vídeo no período, mostra o vídeo e gira no "Girar agora". */
+  function requestSpin(creditId?: string) {
+    if (cantSpin || !club) return;
+    if (videoAd && !seenWithin(videoKey, PICKAP_VIDEO_PERIOD_HOURS)) {
+      setPendingSpin({ creditId });
+      return;
+    }
+    void spin(creditId);
+  }
+
+  const videoDone = () => {
+    const creditId = pendingSpin?.creditId;
+    markSeen(videoKey);
+    setPendingSpin(null);
+    void spin(creditId);
+  };
+  // Saiu antes do fim: não conta como visto, o próximo giro mostra o vídeo de novo.
+  const videoDismiss = useCallback((watched: boolean) => {
+    if (watched) markSeen(videoKey);
+    setPendingSpin(null);
+  }, [videoKey]);
+
+  /** Fecha o resultado; se foi brinde, o anúncio de resgate entra depois (não trava o brinde). */
+  const closeResult = useCallback(() => {
+    if (result && !result.isRetry && claimAd) setClaimOpen(true);
+    setResult(null);
+  }, [result, claimAd]);
+  const closeClaim = useCallback(() => {
+    setClaimOpen(false);
+    if (focusMine.current) {
+      focusMine.current = false;
+      toast("Guardado em Seus brindes");
+      // Depois de o modal devolver o foco, leva o fã até "Seus brindes".
+      setTimeout(() => mineRef.current?.focus(), 0);
+    }
+  }, [toast]);
+
   const keyLabel = spinning ? "Tocando" : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : "Girar o disco";
   const lose = !!result?.isRetry;
 
@@ -261,7 +312,7 @@ export function PicKapWheel({
           playing={playing}
         />
 
-        <button type="button" className={s.startkey} onClick={() => spin()} disabled={cantSpin} aria-busy={spinning || undefined}>
+        <button type="button" className={s.startkey} onClick={() => requestSpin()} disabled={cantSpin} aria-busy={spinning || undefined}>
           <i className={s.led} aria-hidden="true" />
           <span>{keyLabel}</span>
         </button>
@@ -292,7 +343,7 @@ export function PicKapWheel({
                   {c.used ? (
                     <span className="tag">{c.prizeLabel ? `Saiu: ${c.prizeLabel}` : "Usado"}</span>
                   ) : (
-                    <button type="button" className="btn btn-outline btn-sm" onClick={() => spin(c.id)} disabled={cantSpin}>
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => requestSpin(c.id)} disabled={cantSpin}>
                       Girar roleta
                     </button>
                   )}
@@ -319,7 +370,7 @@ export function PicKapWheel({
         </section>
       </div>
 
-      <Sheet open={!!result} onClose={() => setResult(null)} title={result ? (lose ? "Quase" : result.label) : ""}>
+      <Sheet open={!!result} onClose={closeResult} title={result ? (lose ? "Quase" : result.label) : ""}>
         {lose ? (
           <>
             <p>A agulha parou em “tente de novo”. A roleta abre de novo na próxima rodada da fanzone.</p>
@@ -338,8 +389,10 @@ export function PicKapWheel({
                 data-close
                 data-autofocus
                 onClick={() => {
-                  toast("Guardado em Seus brindes");
+                  // Com anúncio de resgate, o aviso sai depois que ele fecha (senão fica por cima do título).
+                  if (!claimAd) toast("Guardado em Seus brindes");
                   mineRef.current?.focus();
+                  focusMine.current = true;
                 }}
               >
                 Ver meu brinde
@@ -351,6 +404,11 @@ export function PicKapWheel({
           </>
         )}
       </Sheet>
+
+      {videoAd && pendingSpin && <PicKapVideoAd ad={videoAd} onDone={videoDone} onDismiss={videoDismiss} />}
+      {claimAd && (
+        <AdModal ad={claimAd} open={claimOpen} onClose={closeClaim} lockSeconds={claimAd.minSeconds ?? 0} closeLabel="Fechar anúncio" />
+      )}
     </div>
   );
 }

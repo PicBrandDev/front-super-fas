@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition, type ChangeEvent, type ReactNode, type Ref } from "react";
 import { createCampaign } from "@/app/actions/admin";
-import { occupiedLabel, slotPrice } from "@/app/admin/midia/slots";
+import { VIDEO_SLOTS, occupiedLabel, slotKey, slotPrice } from "@/app/admin/midia/slots";
 import { AdminEmpty, AdminNotice, SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { AdPhonePreview } from "@/components/sponsor/AdPhonePreview";
 import { PriceCalculator, RadiusPicker, type Targeting } from "@/components/sponsor/AdTargeting";
@@ -40,6 +40,18 @@ const emptyTargeting: Targeting = { city: "São Paulo, SP", radiusKm: 100, views
 const stepLabels = ["Fã clube", "Vitrine", "Anúncio", "Revisão"] as const;
 
 const ACCEPTED_ART = ["image/jpeg", "image/png"];
+const ACCEPTED_VIDEO = ["video/mp4", "video/webm"];
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+
+/** Link de vídeo aceito pela API: http ou https. */
+const isHttpUrl = (v: string) => {
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
 
 /** "2026-10-20" → "20/10/2026" */
 const formatDate = (iso: string) => {
@@ -77,6 +89,9 @@ export function PatrocinadorClient({
   const [art, setArt] = useState<File | null>(null);
   const [target, setTarget] = useState<Targeting>(initialTargeting);
   const [artError, setArtError] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [video, setVideo] = useState<File | null>(null);
+  const [videoError, setVideoError] = useState("");
   const [agree, setAgree] = useState(false);
   const [sendError, setSendError] = useState("");
   const [sending, start] = useTransition();
@@ -97,6 +112,8 @@ export function PatrocinadorClient({
 
   const artSrc = useMemo(() => (art ? URL.createObjectURL(art) : null), [art]);
   useEffect(() => () => void (artSrc && URL.revokeObjectURL(artSrc)), [artSrc]);
+  const videoFileSrc = useMemo(() => (video ? URL.createObjectURL(video) : null), [video]);
+  useEffect(() => () => void (videoFileSrc && URL.revokeObjectURL(videoFileSrc)), [videoFileSrc]);
   const moveFocus = useRef(false);
 
   // Leva o foco para o título da etapa nova (só depois de uma ação do usuário).
@@ -115,13 +132,19 @@ export function PatrocinadorClient({
   const slot = slots.find((s) => s.id === slotId) ?? null;
   const slotName = slot?.name ?? "[vitrine]";
   const clubName = club?.name ?? "[cantor]";
+  const needsVideo = VIDEO_SLOTS.has(slotKey(slotId));
+  const videoLink = videoUrl.trim();
+  const videoLinkOk = !videoLink || isHttpUrl(videoLink);
+  const hasVideo = !!video || (!!videoLink && videoLinkOk);
   const whereLabel = place ? `no fã clube ${placeName}` : `no ambiente de ${clubName}`;
 
   const set = (k: keyof AdForm) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const canNext =
-    step === 1 ? !!club : step === 2 ? !!slot : step === 3 ? !!(form.title.trim() && form.link.trim()) : agree;
+    step === 1 ? !!club : step === 2 ? !!slot : step === 3
+          ? !!(form.title.trim() && form.link.trim()) && videoLinkOk && (!needsVideo || hasVideo)
+          : agree;
 
   const goTo = (s: Step) => {
     moveFocus.current = true;
@@ -142,6 +165,10 @@ export function PatrocinadorClient({
       fd.set("goal_clicks", String(target.clicks));
       fd.set("budget_cents", String(price.total));
       if (art) fd.set("art", art);
+      if (needsVideo) {
+        if (videoLink) fd.set("video_url", videoLink);
+        if (video) fd.set("video", video);
+      }
       start(async () => {
         const res = await createCampaign(fd);
         // status 0 = sem API (modo exemplo): segue como se tivesse enviado.
@@ -171,6 +198,9 @@ export function PatrocinadorClient({
     setAgree(false);
     setArt(null);
     setArtError("");
+    setVideoUrl("");
+    setVideo(null);
+    setVideoError("");
     setForm(initialForm);
     setTarget(initialTargeting);
   };
@@ -193,6 +223,23 @@ export function PatrocinadorClient({
     }
     setArtError("");
     setArt(file);
+  };
+
+  const onVideo = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ACCEPTED_VIDEO.includes(file.type)) {
+      setVideoError("Envie um vídeo MP4 ou WebM.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_VIDEO_BYTES) {
+      setVideoError("O vídeo passa de 50 MB. Envie um arquivo menor ou use um link.");
+      e.target.value = "";
+      return;
+    }
+    setVideoError("");
+    setVideo(file);
   };
 
   const preview = {
@@ -218,6 +265,7 @@ export function PatrocinadorClient({
     { k: "Valor da campanha", v: formatBRL(price.total) },
     { k: "Título", v: preview.title },
     { k: "Link", v: form.link.trim() || "—" },
+    ...(needsVideo ? [{ k: "Vídeo", v: video ? video.name : videoLink || "—" }] : []),
   ];
 
   const freeCount = (slug: string) => (slotsByClub[slug] ?? []).filter((s) => s.active && !s.occupied).length;
@@ -493,6 +541,64 @@ export function PatrocinadorClient({
                 </span>
               )}
             </div>
+            {needsVideo && (
+              <div className="flex flex-col gap-3 border-t border-adm-line pt-4">
+                <h3 className="m-0 text-base font-bold">
+                  Vídeo <span className="text-[13px] font-semibold text-adm-danger">obrigatório</span>
+                </h3>
+                <p id="ad-video-hint" className="m-0 text-xs text-adm-muted">
+                  30 s mínimos, o fã é obrigado a assistir antes de girar. Cole um link ou envie o arquivo.
+                </p>
+                <Field id="ad-video-url" label="Link do vídeo">
+                  <input
+                    id="ad-video-url"
+                    type="url"
+                    inputMode="url"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    required={!video}
+                    aria-invalid={!videoLinkOk || undefined}
+                    aria-describedby="ad-video-hint"
+                    placeholder="https://"
+                    className={`${inputClass} font-adm-mono`}
+                  />
+                </Field>
+                {!videoLinkOk && (
+                  <span role="alert" className="text-xs font-semibold text-adm-danger">
+                    Use um link que comece com http:// ou https://.
+                  </span>
+                )}
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-adm-blue bg-adm-blue-tint px-4 text-sm font-semibold text-adm-blue-dark focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-adm-blue">
+                    <Icon name="upload" size={18} strokeWidth={2.2} />
+                    {video ? "Trocar vídeo" : "Enviar vídeo"}
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      onChange={onVideo}
+                      aria-describedby="ad-video-file-hint"
+                      className="sr-only"
+                    />
+                  </label>
+                  <span id="ad-video-file-hint" className="text-xs text-adm-muted">
+                    {video ? video.name : "MP4 ou WebM, até 50 MB (opcional se colar o link)"}
+                  </span>
+                  {video && (
+                    <button type="button" onClick={() => setVideo(null)} className="cursor-pointer text-xs font-semibold text-adm-blue underline">
+                      Remover arquivo
+                    </button>
+                  )}
+                  {videoError && (
+                    <span role="alert" className="basis-full text-xs font-semibold text-adm-danger">
+                      {videoError}
+                    </span>
+                  )}
+                </div>
+                {!hasVideo && (
+                  <span className="text-xs font-semibold text-adm-muted">Adicione o vídeo para continuar.</span>
+                )}
+              </div>
+            )}
             <div className="flex flex-col gap-3 border-t border-adm-line pt-4">
               <h3 className="m-0 text-base font-bold">Onde o anúncio aparece</h3>
               <RadiusPicker value={target} onChange={setTarget} />
@@ -509,7 +615,14 @@ export function PatrocinadorClient({
               slotId={slotId}
               slotName={slotName}
               themeStyle={club ? themeStyle(club.theme) : undefined}
-              ad={{ sponsor: preview.sponsor, title: preview.title, text: preview.text, cta: preview.cta, art: artSrc }}
+              ad={{
+                sponsor: preview.sponsor,
+                title: preview.title,
+                text: preview.text,
+                cta: preview.cta,
+                art: artSrc,
+                video: needsVideo ? (videoFileSrc ?? (videoLink && videoLinkOk ? videoLink : null)) : null,
+              }}
             />
           </div>
         </section>

@@ -1,0 +1,97 @@
+/* Vídeo patrocinado antes do giro: tela cheia, Noite (fios de 1px, sem sombra/gradiente). */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55; /* acima da folha (.scrim 50), abaixo do toast (60) */
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  background: var(--fc-bg);
+  color: var(--fc-fg);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  outline: none;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: calc(6px + env(safe-area-inset-top, 0px)) 16px 6px;
+  border-bottom: 1px solid var(--fc-line);
+}
+
+.progress {
+  height: 2px;
+  background: var(--fc-line);
+}
+.progress i {
+  display: block;
+  height: 100%;
+  background: var(--fc-amber);
+}
+
+.media {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fc-bg);
+  overflow: hidden;
+}
+.media video,
+.media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.resume {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  background: var(--fc-bg);
+  gap: 8px;
+}
+
+.body {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px 16px 24px;
+  border-top: 1px solid var(--fc-line);
+}
+.title {
+  margin: 0;
+  font: 900 24px/28px var(--fc-font-display);
+}
+.text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--fc-fg-muted);
+}
+
+/* Com vídeo: menos texto embaixo para o vídeo vertical ganhar altura. */
+.pair {
+  display: grid;
+  gap: 12px;
+}
+.compact {
+  gap: 8px;
+  padding-top: 12px;
+}
+.compact .pair {
+  grid-template-columns: 1fr auto;
+}
+.compact .title {
+  font-size: 19px;
+  line-height: 24px;
+}
+.compact .text {
+  display: none;
+}

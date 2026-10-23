@@ -23,3 +23,9 @@ export const campaignWhere = (c: Pick<Campaign, "club" | "fanClub">) => ({
   place: c.fanClub ? c.fanClub : "Ambiente do cantor",
   artist: c.club ?? null,
 });
+
+/** Chave da vitrine: "oficial.pickap_video" ou "pickap_video" → "pickap_video". */
+export const slotKey = (slotId: string | null | undefined) => (slotId ?? "").split(".").pop() ?? "";
+
+/** Vitrines que exigem vídeo (o fã assiste antes de girar a roleta). */
+export const VIDEO_SLOTS = new Set(["pickap_video"]);

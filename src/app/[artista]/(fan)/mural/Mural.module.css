@@ -47,6 +47,12 @@
 .slide:last-child {
   height: 100%;
 }
+/* Post patrocinado: uma linha baixa entre dois cartazes. Encaixa pela borda de baixo,
+   então o cartaz anterior continua quase inteiro na tela; sem snap-stop, passa direto no gesto. */
+.feedAd {
+  flex: none;
+  scroll-snap-align: end;
+}
 .pst {
   position: relative;
   flex: 0 1 125cqw;
