@@ -36,8 +36,6 @@ export function PicKapWheel({
   initialSpins,
   initialCredits,
   club,
-  clubs,
-  notJoined,
   demo,
   videoAd = null,
   claimAd = null,
@@ -46,8 +44,6 @@ export function PicKapWheel({
   initialSpins: number;
   initialCredits: SpinCredit[]; // cada giro com o motivo
   club: ClubRef | null; // roleta de qual fã clube
-  clubs: ClubRef[]; // fã clubes em que o fã entrou
-  notJoined: string | null; // pediu a roleta de um clube em que não entrou
   demo: boolean; // prêmios de exemplo (sem API)
   videoAd?: InAppAd | null; // vídeo obrigatório antes do primeiro giro do período
   claimAd?: InAppAd | null; // anúncio ao guardar o brinde ganho
@@ -270,34 +266,15 @@ export function PicKapWheel({
           )}
         </div>
 
-        {clubs.length > 1 && (
-          <nav aria-label="Roleta de qual fã clube" className={s.clubs}>
-            {clubs.map((c) => (
-              <Link key={c.slug} href={`${base}/pickap?clube=${c.slug}`} aria-current={c.slug === club?.slug ? "page" : undefined}>
-                {c.name}
-              </Link>
-            ))}
-          </nav>
-        )}
-
-        {notJoined && (
+        {!club && (
           <p className={s.note}>
-            Entre no {notJoined} para girar a roleta dele.{" "}
+            Para girar a roleta, entre em um fã clube.{" "}
             <Link href={`${base}/clubes`} className="font-bold text-ink">
               Ver fã clubes
             </Link>
           </p>
         )}
-        {!club && (
-          <p className={s.note}>
-            Cada fã clube tem a sua roleta.{" "}
-            <Link href={`${base}/clubes`} className="font-bold text-ink">
-              Entre em um
-            </Link>{" "}
-            para girar.
-          </p>
-        )}
-        {club && n === 0 && <p className={s.note}>A roleta do {club.name} ainda não tem prêmios. Volte mais tarde.</p>}
+        {club && n === 0 && <p className={s.note}>A roleta ainda não tem prêmios. Volte mais tarde.</p>}
 
         <Turntable
           prizes={labels}

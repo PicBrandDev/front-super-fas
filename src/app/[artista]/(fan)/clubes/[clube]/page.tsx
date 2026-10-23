@@ -57,7 +57,7 @@ export default async function ClubPage({ params }: { params: Params }) {
         {club.description && <p className="mb-0 mt-3 text-[15px] leading-[22px] text-fg-muted">{club.description}</p>}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <JoinButton club={club} />
-          <Link href={`${base}/pickap?clube=${club.slug}`} className="go min-h-11">
+          <Link href={`${base}/pickap`} className="go min-h-11">
             PicKap do clube
             <Icon name="arrow" size={16} />
           </Link>
