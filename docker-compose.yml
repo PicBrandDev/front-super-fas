@@ -39,6 +39,7 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       # Fotos já indexadas fora do Super Fãs (coleção do Rekognition + bucket do S3): a busca devolve links temporários.
+      DEMO_PHOTO_TICKET: ${DEMO_PHOTO_TICKET:-false}
       REKOGNITION_COLLECTION_ID: ${REKOGNITION_COLLECTION_ID:-}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_PHOTO_PREFIX: ${S3_PHOTO_PREFIX:-photos/original/}
