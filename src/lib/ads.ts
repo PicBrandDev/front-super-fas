@@ -71,7 +71,7 @@ export const exampleInAppAds = (slug: string): InAppAds => ({
   feed: {
     id: "demo-feed",
     sponsor: "Von Dutch Loves",
-    title: "Trucker Vintage Culture",
+    title: "Camiseta VNTG 77",
     text: "Edição limitada da collab.",
     cta: "Comprar",
     url: "https://www.vondutch.com",

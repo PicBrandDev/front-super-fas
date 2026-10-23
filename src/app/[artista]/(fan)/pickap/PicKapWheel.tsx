@@ -243,10 +243,11 @@ export function PicKapWheel({
     setClaimOpen(false);
     if (focusMine.current) {
       focusMine.current = false;
+      toast("Guardado em Seus brindes");
       // Depois de o modal devolver o foco, leva o fã até "Seus brindes".
       setTimeout(() => mineRef.current?.focus(), 0);
     }
-  }, []);
+  }, [toast]);
 
   const keyLabel = spinning ? "Tocando" : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : "Girar o disco";
   const lose = !!result?.isRetry;
@@ -388,7 +389,8 @@ export function PicKapWheel({
                 data-close
                 data-autofocus
                 onClick={() => {
-                  toast("Guardado em Seus brindes");
+                  // Com anúncio de resgate, o aviso sai depois que ele fecha (senão fica por cima do título).
+                  if (!claimAd) toast("Guardado em Seus brindes");
                   mineRef.current?.focus();
                   focusMine.current = true;
                 }}

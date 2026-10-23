@@ -14,9 +14,9 @@ export function FeedAd({ ad, className = "" }: { ad: InAppAd; className?: string
         <img src={ad.imageUrl} alt="" loading="lazy" className="size-16 flex-none rounded-hair bg-surface object-cover" />
       )}
       <div className="grid min-w-0 flex-1 gap-1">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <span className="tag tag-demo flex-none">Patrocinado</span>
-          <span className="mono truncate">{ad.sponsor}</span>
+          <span className="mono">{ad.sponsor}</span>
         </div>
         <strong className="truncate text-sm font-semibold leading-5 text-fg">{ad.title}</strong>
       </div>
