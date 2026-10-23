@@ -26,7 +26,7 @@ export function PhoneFeed({ clubName, avatar, items }: { clubName: string; avata
           role="feed"
           tabIndex={0}
           aria-label={`Feed do fã clube ${clubName}`}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin]"
+          className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-width:thin]"
         >
           {items.length === 0 ? (
             <p className="m-0 p-6 text-center text-sm text-adm-muted">Nenhuma publicação ainda.</p>

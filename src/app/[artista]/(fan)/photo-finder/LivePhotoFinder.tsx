@@ -7,6 +7,7 @@ import { useArtist } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
 import { Masthead } from "@/components/fan/Masthead";
 import { Icon } from "@/components/icons";
+import { FaceCamera } from "./FaceCamera";
 import type { FinderEvent } from "./PhotoFinderFlow";
 import s from "./PhotoFinderFlow.module.css";
 
@@ -28,6 +29,7 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [camera, setCamera] = useState(false);
 
   // Solta a prévia da selfie ao trocar ou sair.
   useEffect(() => {
@@ -62,6 +64,13 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
     if (!f) return;
     if (!["image/jpeg", "image/png"].includes(f.type)) return setError("Envie a selfie em JPG ou PNG.");
     if (f.size > 5 * 1024 * 1024) return setError("A selfie pode ter no máximo 5 MB.");
+    setError("");
+    setSelfie(f);
+    setPreview(URL.createObjectURL(f));
+  }
+
+  function onShot(f: File) {
+    setCamera(false);
     setError("");
     setSelfie(f);
     setPreview(URL.createObjectURL(f));
@@ -125,6 +134,8 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
         )}
       </div>
 
+      {camera && <FaceCamera onCapture={onShot} onClose={() => setCamera(false)} />}
+
       <div className={s.finder} aria-live="polite">
         {status && !status.eligible && (
           <p className={s.hint} role="status">
@@ -134,7 +145,7 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
 
         {(stage === "idle" || searching) && status?.eligible && (
           <form onSubmit={search} className="grid gap-4">
-            <div className={`${s.frame} ${searching ? s.scanning : ""}`}>
+            <div className={`${s.frame} ${s.oval} ${searching ? s.scanning : ""}`}>
               <i />
               <i />
               <i />
@@ -148,11 +159,14 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
               <span className={s.scanline} />
             </div>
             <div className={s.ctas}>
-              <label className="btn btn-outline btn-block" htmlFor="selfie" aria-disabled={searching || undefined}>
+              <button type="button" className="btn btn-outline btn-block" onClick={() => setCamera(true)} disabled={searching}>
                 <Icon name="camera" size={18} />
-                {selfie ? "Trocar selfie" : "Enviar selfie"}
+                {selfie ? "Tirar outra selfie" : "Abrir a câmera"}
+              </button>
+              <label className="btn btn-ghost btn-block" htmlFor="selfie" aria-disabled={searching || undefined}>
+                Enviar uma foto da galeria
               </label>
-              <input id="selfie" className="sr-only" type="file" accept="image/jpeg,image/png" capture="user" disabled={searching} onChange={onFile} />
+              <input id="selfie" className="sr-only" type="file" accept="image/jpeg,image/png" disabled={searching} onChange={onFile} />
               <label className="flex items-start gap-2 text-[14px] leading-5 text-fg-muted">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1" />
                 <span>
