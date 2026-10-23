@@ -11,7 +11,7 @@ export function FeedAd({ ad, className = "" }: { ad: InAppAd; className?: string
     <aside aria-label={`Anúncio patrocinado: ${ad.title}`} className={`flex items-center gap-3 border-y border-line px-4 py-3 ${className}`}>
       {ad.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={ad.imageUrl} alt="" loading="lazy" className="size-16 flex-none rounded-hair bg-surface object-cover" />
+        <img src={ad.imageUrl} alt="" loading="lazy" className="h-[60px] w-24 flex-none rounded-hair bg-surface object-cover" />
       )}
       <div className="grid min-w-0 flex-1 gap-1">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">

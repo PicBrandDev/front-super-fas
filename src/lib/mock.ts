@@ -183,11 +183,14 @@ export const memberPerks: MemberPerk[] = [
 
 export const adSlots: AdSlot[] = [
   { id: "home", name: "Card da Home", where: "Início · logo acima do Drop News", format: "Arte + título + texto + link", priceLabel: "R$ [PREÇO] / semana", occupied: true, active: true, diagram: { top: 20, height: 16 } },
-  { id: "mural", name: "Post patrocinado no Mural", where: "Mural · aba Galera, a cada [n] posts", format: "Post com imagem + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 28, height: 24 } },
+  { id: "mural", name: "Post patrocinado no Mural", where: "Mural · post pequeno entre os cartazes, a cada 4", format: "Miniatura + título + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 28, height: 24 } },
   { id: "evento", name: "Patrocínio de evento", where: "Tela do evento · faixa acima de Onde comprar", format: "Logo + texto + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 58, height: 12 } },
   { id: "pickap", name: "Prêmio patrocinado no PicKap", where: "Roleta · uma fatia com a marca e o prêmio", format: "Logo + prêmio ou cupom", priceLabel: "R$ [PREÇO] / semana", occupied: true, active: true, diagram: { top: 18, height: 44 } },
   { id: "loja", name: "Banner da Loja", where: "Loja Vintage · topo da página", format: "Banner 16:9 + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 16, height: 20 } },
   { id: "drops", name: "“Apresenta” no Drops Hits", where: "Player de prévias · “[Marca] apresenta”", format: "Logo", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 22, height: 10 } },
+  { id: "entrada", name: "Anúncio de entrada", where: "Ao abrir o app · janela depois do login", format: "Arte + título + texto + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 50, height: 34 } },
+  { id: "pickap_video", name: "Vídeo antes do giro", where: "PicKap · vídeo de 30 s antes de girar a roleta", format: "Vídeo 30 s + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 4, height: 84 } },
+  { id: "pickap_resgate", name: "Anúncio no resgate do prêmio", where: "PicKap · janela depois de ganhar na roleta", format: "Arte + título + texto + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 50, height: 34 } },
 ];
 
 export const campaigns: Campaign[] = [

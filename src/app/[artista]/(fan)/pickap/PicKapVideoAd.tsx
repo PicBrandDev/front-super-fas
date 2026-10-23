@@ -99,6 +99,12 @@ export function PicKapVideoAd({
   }, [locked]);
 
   const paused = hasVideo && !videoPlaying && locked;
+  // Com vídeo (quase sempre vertical) a parte de baixo fica compacta: "Agora não" vai ao lado da marca.
+  const skip = (
+    <button type="button" className="btn btn-ghost btn-block" onClick={() => onDismiss(!locked)}>
+      Agora não
+    </button>
+  );
 
   return (
     <div
@@ -175,17 +181,20 @@ export function PicKapVideoAd({
         ) : null}
       </div>
 
-      <div className={v.body}>
+      <div className={`${v.body} ${hasVideo ? v.compact : ""}`}>
         <h2 id="pickap-ad-title" className={v.title}>
           {ad.title}
         </h2>
         <p id="pickap-ad-text" className={v.text}>
           {ad.text}
         </p>
-        <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" className="btn btn-outline btn-block">
-          {ad.cta}
-          <Icon name="external" size={16} className="icon" />
-        </a>
+        <div className={v.pair}>
+          <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" className="btn btn-outline btn-block">
+            {ad.cta}
+            <Icon name="external" size={16} className="icon" />
+          </a>
+          {hasVideo && skip}
+        </div>
         <button
           ref={goBtn}
           type="button"
@@ -201,9 +210,7 @@ export function PicKapVideoAd({
             "Girar agora"
           )}
         </button>
-        <button type="button" className="btn btn-ghost btn-block" onClick={() => onDismiss(!locked)}>
-          Agora não
-        </button>
+        {!hasVideo && skip}
         <p className="sr-only" role="status" aria-live="polite">
           {locked ? `O giro libera depois de ${total} segundos de anúncio.` : "Giro liberado."}
         </p>

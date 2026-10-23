@@ -22,7 +22,7 @@ export type InAppAd = {
   /** Só no `pickapVideo`. Sem vídeo, o front mostra a arte com contagem regressiva. */
   videoUrl?: string | null;
   /** Tempo mínimo de exibição antes de liberar (vídeo: 30s). */
-  minSeconds?: number;
+  minSeconds?: number | null;
 };
 
 export type InAppAds = Partial<Record<AdPlacement, InAppAd | null>>;
@@ -34,47 +34,47 @@ export const PICKAP_VIDEO_MIN_SECONDS = 30;
 export const FEED_AD_EVERY = 4;
 
 /**
- * Criativos de exemplo (enquanto o back não tem GET /artists/{slug}/ads/in-app).
- * Marcas que já trabalharam com o Vintage Culture (Von Dutch Loves, Beatport, Pacha);
- * são só exemplos de layout, não campanhas contratadas.
+ * Criativos de exemplo (enquanto o back não manda GET /artists/{slug}/ads/in-app).
+ * As vitrines são vendidas para marcas de fora, que pagam para ocupar o espaço:
+ * marcas de fora com arte e vídeo em /public/ads (nada da loja ou do artista).
  */
-export const exampleInAppAds = (slug: string): InAppAds => ({
+export const exampleInAppAds = (): InAppAds => ({
   entry: {
     id: "demo-entry",
-    sponsor: "Von Dutch Loves",
-    title: "Von Dutch Loves × Vintage Culture",
-    text: "A coleção cápsula criada pelo Lukas: bonés trucker e oversized para a pista.",
-    cta: "Ver a coleção",
-    url: "https://www.vondutch.com",
-    imageUrl: `/media/${slug}/press-4.webp`,
+    sponsor: "Festival Maré",
+    title: "Lote 1 do Festival Maré no ar",
+    text: "3 dias de praia e pista. Fã clube tem pré-venda com 15% off.",
+    cta: "Garantir ingresso",
+    url: "https://example.com/mare",
+    imageUrl: "/ads/exemplo-mare.svg",
   },
   pickapVideo: {
     id: "demo-pickap-video",
-    sponsor: "Beatport",
-    title: "Os sets do Vintage Culture no Beatport",
-    text: "Faixas, remixes e charts do artista para baixar em alta qualidade.",
-    cta: "Ouvir no Beatport",
-    url: "https://www.beatport.com/artist/vintage-culture/541419",
-    imageUrl: `/media/${slug}/press-1.webp`,
-    videoUrl: null,
+    sponsor: "DJ Mag",
+    title: "Vote no Vintage Culture no Top 100 DJs",
+    text: "A votação da DJ Mag está aberta. Assista e libere o seu giro.",
+    cta: "Votar agora",
+    url: "https://top100djsvote.djmag.com",
+    imageUrl: "/ads/djmag-top100.jpg",
+    videoUrl: "/ads/djmag-top100.mp4",
     minSeconds: PICKAP_VIDEO_MIN_SECONDS,
   },
   pickapClaim: {
     id: "demo-pickap-claim",
-    sponsor: "Pacha",
-    title: "Vintage Culture na Pacha",
-    text: "Datas da residência e ingressos direto com a casa.",
-    cta: "Ver datas",
-    url: "https://www.pacha.com",
-    imageUrl: `/media/${slug}/press-3.jpg`,
+    sponsor: "Onda",
+    title: "Ganhou? Guarde o prêmio na Onda",
+    text: "Conta digital com cartão sem anuidade, Pix na hora e cashback em ingressos.",
+    cta: "Abrir minha conta",
+    url: "https://example.com/onda",
+    imageUrl: "/ads/exemplo-onda.svg",
   },
   feed: {
     id: "demo-feed",
-    sponsor: "Von Dutch Loves",
-    title: "Camiseta VNTG 77",
-    text: "Edição limitada da collab.",
-    cta: "Comprar",
-    url: "https://www.vondutch.com",
-    imageUrl: `/media/${slug}/tee-vntg77.jpg`,
+    sponsor: "Spotify",
+    title: "Vintage Culture no Spotify",
+    text: "Os sets e lançamentos no seu app de música.",
+    cta: "Ouvir",
+    url: "https://open.spotify.com/search/Vintage%20Culture",
+    imageUrl: "/ads/spotify.jpg",
   },
 });

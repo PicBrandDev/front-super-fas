@@ -211,12 +211,12 @@ export const getHomeAd = (slug: string) => get<HomeAd | null>(`/artists/${slug}/
  */
 export async function getInAppAds(slug: string): Promise<InAppAds> {
   try {
-    return await get<InAppAds>(`/artists/${slug}/ads/in-app`, () => exampleInAppAds(slug), {
-      notFound: exampleInAppAds(slug),
+    return await get<InAppAds>(`/artists/${slug}/ads/in-app`, () => exampleInAppAds(), {
+      notFound: exampleInAppAds(),
     });
   } catch (e) {
     unstable_rethrow(e); // o redirect do 401 continua valendo
-    return exampleInAppAds(slug);
+    return exampleInAppAds();
   }
 }
 

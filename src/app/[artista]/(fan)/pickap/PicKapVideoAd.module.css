@@ -75,3 +75,23 @@
   line-height: 20px;
   color: var(--fc-fg-muted);
 }
+
+/* Com vídeo: menos texto embaixo para o vídeo vertical ganhar altura. */
+.pair {
+  display: grid;
+  gap: 12px;
+}
+.compact {
+  gap: 8px;
+  padding-top: 12px;
+}
+.compact .pair {
+  grid-template-columns: 1fr auto;
+}
+.compact .title {
+  font-size: 19px;
+  line-height: 24px;
+}
+.compact .text {
+  display: none;
+}

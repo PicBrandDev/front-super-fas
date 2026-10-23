@@ -201,6 +201,7 @@ export type Campaign = {
   cta?: string;
   url?: string;
   artUrl?: string | null;
+  videoUrl?: string | null; // vitrine "pickap_video": vídeo obrigatório antes do giro
   targetCity?: string; // cidade do raio de alcance (vazio = qualquer lugar)
   targetRadiusKm?: number; // 0 = país todo
   goalViews?: number;
