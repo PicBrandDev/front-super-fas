@@ -24,12 +24,16 @@ export function AdModal({
 }) {
   const box = useRef<HTMLDivElement>(null);
   const [left, setLeft] = useState(lockSeconds);
+  const [wasOpen, setWasOpen] = useState(open);
+  // Reabriu: a contagem recomeça (ajuste no render, sem efeito em cascata).
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setLeft(lockSeconds);
+  }
   const locked = left > 0;
 
   useEffect(() => {
-    if (!open) return;
-    setLeft(lockSeconds);
-    if (lockSeconds <= 0) return;
+    if (!open || lockSeconds <= 0) return;
     const t = setInterval(() => setLeft((s) => (s <= 1 ? (clearInterval(t), 0) : s - 1)), 1000);
     return () => clearInterval(t);
   }, [open, lockSeconds]);

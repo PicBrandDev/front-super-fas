@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { FanShell } from "@/components/fan/FanShell";
-import { getArtist, getOtherFandoms, getViewer } from "@/lib/api";
+import { getArtist, getInAppAds, getOtherFandoms, getViewer } from "@/lib/api";
+import { ENTRY_AD_COOKIE } from "@/lib/entryAdCookie";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
   const { artista } = await params;
@@ -17,10 +19,17 @@ export default async function FanLayout({
   params: Promise<{ artista: string }>;
 }) {
   const { artista } = await params;
-  const [artist, viewer, otherFandoms] = await Promise.all([getArtist(artista), getViewer(artista), getOtherFandoms(artista)]);
+  const [artist, viewer, otherFandoms, ads, jar] = await Promise.all([
+    getArtist(artista),
+    getViewer(artista),
+    getOtherFandoms(artista),
+    getInAppAds(artista),
+    cookies(),
+  ]);
   if (!artist) notFound();
+  const freshLogin = jar.get(ENTRY_AD_COOKIE)?.value === artist.slug;
   return (
-    <FanShell artist={artist} viewer={viewer} otherFandoms={otherFandoms}>
+    <FanShell artist={artist} viewer={viewer} otherFandoms={otherFandoms} entryAd={ads.entry ?? null} freshLogin={freshLogin}>
       {children}
     </FanShell>
   );

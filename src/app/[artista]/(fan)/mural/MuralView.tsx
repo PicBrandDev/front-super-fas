@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
 import { FanTopBar } from "@/components/fan/FanTopBar";
+import { FeedAd } from "@/components/fan/FeedAd";
 import { HomeMuralSwitch } from "@/components/fan/HomeMuralSwitch";
 import { Masthead } from "@/components/fan/Masthead";
 import { ShareInstagram } from "@/components/fan/ShareInstagram";
@@ -16,6 +17,7 @@ import { PRIZES, Turntable, TT, recAngleFor } from "@/components/fan/Turntable";
 import { Vinyl } from "@/components/fan/Vinyl";
 import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
+import { FEED_AD_EVERY, type InAppAd } from "@/lib/ads";
 import type { Track } from "@/lib/types";
 import s from "./Mural.module.css";
 import { fmtShort, type Poster } from "./posters";
@@ -33,6 +35,10 @@ const longest = (words: string[]) => Math.max(1, ...words.map((w) => w.length));
 const fit = (max: number, perChar: number, words: string[]) => `${Math.min(max, perChar / longest(words)).toFixed(1)}cqw`;
 
 const PICK_ON = 4; // "Ingresso" sob a agulha, como no protótipo
+const FEED_AD_MAX = 2;
+
+/** Post patrocinado depois do cartaz `i`? A cada FEED_AD_EVERY cartazes, nunca em primeiro, no máximo FEED_AD_MAX. */
+const adAfter = (i: number) => (i + 1) % FEED_AD_EVERY === 0 && (i + 1) / FEED_AD_EVERY <= FEED_AD_MAX;
 
 export function MuralView({
   posters,
@@ -40,12 +46,14 @@ export function MuralView({
   demo,
   avatar = null,
   initialTab = "wall",
+  feedAd = null,
 }: {
   posters: Poster[];
   tracks: Track[];
   demo: boolean;
   avatar?: string | null; // foto de perfil no topo
   initialTab?: MuralTab;
+  feedAd?: InAppAd | null; // post patrocinado entre os cartazes (posição `feed`)
 }) {
   const { base } = useArtist();
   const router = useRouter();
@@ -145,36 +153,39 @@ export function MuralView({
             <EmptyState className="px-4" title="Nenhum cartaz ainda" text="Quando o artista publicar um Drop News, ele vira cartaz aqui." />
           )}
           {posters.map((p, i) => (
-            <article key={p.id} className={s.slide} data-i={i} aria-label={`Cartaz ${i + 1} de ${posters.length}: ${p.cap}`}>
-              <Plate p={p} />
-              <div className={s.meta}>
-                <div className={s.who}>
-                  <div className="avatar" style={{ width: 24, height: 24 }}>
-                    <Mark size={14} />
-                  </div>
-                  <strong>{p.by}</strong>
-                  <span className="mono verified">
-                    <Icon name="check" size={12} />
-                    Oficial
-                  </span>
-                  {demo && (
-                    <span className="tag tag-demo" style={{ marginLeft: "auto" }}>
-                      Exemplo
+            <Fragment key={p.id}>
+              <article className={s.slide} data-i={i} aria-label={`Cartaz ${i + 1} de ${posters.length}: ${p.cap}`}>
+                <Plate p={p} />
+                <div className={s.meta}>
+                  <div className={s.who}>
+                    <div className="avatar" style={{ width: 24, height: 24 }}>
+                      <Mark size={14} />
+                    </div>
+                    <strong>{p.by}</strong>
+                    <span className="mono verified">
+                      <Icon name="check" size={12} />
+                      Oficial
                     </span>
-                  )}
+                    {demo && (
+                      <span className="tag tag-demo" style={{ marginLeft: "auto" }}>
+                        Exemplo
+                      </span>
+                    )}
+                  </div>
+                  <p>{p.text}</p>
+                  <div className={s.bar}>
+                    {acts(p.id, p.likes, p.comments, p.reposts)}
+                    {p.postId && <ShareInstagram post={{ id: p.postId, text: p.text, image: p.image }} />}
+                    {p.cta && (
+                      <button type="button" className="btn btn-primary btn-sm" onClick={() => onCta(p)}>
+                        {p.cta.label}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <p>{p.text}</p>
-                <div className={s.bar}>
-                  {acts(p.id, p.likes, p.comments, p.reposts)}
-                  {p.postId && <ShareInstagram post={{ id: p.postId, text: p.text, image: p.image }} />}
-                  {p.cta && (
-                    <button type="button" className="btn btn-primary btn-sm" onClick={() => onCta(p)}>
-                      {p.cta.label}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </article>
+              </article>
+              {feedAd && adAfter(i) && <FeedAd ad={feedAd} className={s.feedAd} />}
+            </Fragment>
           ))}
         </div>
       )}

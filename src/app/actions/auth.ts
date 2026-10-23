@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { send } from "@/lib/api";
 import { SESSION_COOKIE, artistSlugOfPath, homeFor, type Role } from "@/lib/auth";
+import { ENTRY_AD_COOKIE, ENTRY_AD_COOKIE_MAX_AGE } from "@/lib/entryAdCookie";
 
 /** `values` devolve o que a pessoa digitou (o React limpa o formulário depois da ação). */
 export type FormState = { error?: string; values?: Record<string, string> } | undefined;
@@ -12,6 +13,16 @@ type TokenOut = {
   token: string;
   user: { role: Role; artists: string[]; clubs: string[]; mustChangePassword: boolean };
 };
+
+/** Marca "acabou de entrar" para o anúncio de entrada da área do fã (ver lib/entryAdCookie). */
+async function flagEntryAd(slug: string) {
+  (await cookies()).set(ENTRY_AD_COOKIE, slug, {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: ENTRY_AD_COOKIE_MAX_AGE,
+  });
+}
 
 async function startSession(out: TokenOut) {
   (await cookies()).set(SESSION_COOKIE, out.token, {
@@ -49,6 +60,7 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
   // Dono de um fã clube (não é da administração do ambiente) entra no "Meu fandom" do ambiente em que fez o login.
   const ownsHere = u.role === "artist_admin" && validSlug && !u.artists.includes(artista) && u.clubs.some((c) => c.startsWith(`${artista}/`));
   const fanHome = (u.role === "fan" && validSlug) || ownsHere ? (ownsHere ? `/${artista}/meu-fandom` : `/${artista}`) : "";
+  if (fanHome) await flagEntryAd(artista);
   redirect(safeNext(form.get("next")) || fanHome || homeFor(res.data.user));
 }
 
@@ -93,6 +105,7 @@ export async function register(_: FormState, form: FormData): Promise<FormState>
   const res = await send<TokenOut>("POST", "/auth/register", body);
   if (!res.ok) return { error: res.error, values };
   await startSession(res.data);
+  if (/^[a-z0-9-]+$/.test(body.artist)) await flagEntryAd(body.artist);
   redirect(body.artist ? `/${body.artist}` : "/");
 }
 
