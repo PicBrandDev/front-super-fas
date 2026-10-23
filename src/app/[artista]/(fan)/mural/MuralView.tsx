@@ -37,7 +37,7 @@ const fit = (max: number, perChar: number, words: string[]) => `${Math.min(max, 
 const PICK_ON = 4; // "Ingresso" sob a agulha, como no protótipo
 const FEED_AD_MAX = 2;
 
-/** Post patrocinado depois do cartaz `i`? A cada FEED_AD_EVERY cartazes, nunca em primeiro, no máximo FEED_AD_MAX. */
+/** Post patrocinado depois do cartaz `i`? A cada FEED_AD_EVERY cartazes, nunca em primeiro nem depois do último, no máximo FEED_AD_MAX. */
 const adAfter = (i: number) => (i + 1) % FEED_AD_EVERY === 0 && (i + 1) / FEED_AD_EVERY <= FEED_AD_MAX;
 
 export function MuralView({
@@ -184,7 +184,7 @@ export function MuralView({
                   </div>
                 </div>
               </article>
-              {feedAd && adAfter(i) && <FeedAd ad={feedAd} className={s.feedAd} />}
+              {feedAd && adAfter(i) && i < posters.length - 1 && <FeedAd ad={feedAd} className={s.feedAd} />}
             </Fragment>
           ))}
         </div>

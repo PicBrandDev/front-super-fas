@@ -7,7 +7,7 @@
  */
 import { cookies } from "next/headers";
 import { normalizeTheme } from "./themes";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import { exampleInAppAds, type InAppAds } from "./ads";
@@ -214,7 +214,8 @@ export async function getInAppAds(slug: string): Promise<InAppAds> {
     return await get<InAppAds>(`/artists/${slug}/ads/in-app`, () => exampleInAppAds(slug), {
       notFound: exampleInAppAds(slug),
     });
-  } catch {
+  } catch (e) {
+    unstable_rethrow(e); // o redirect do 401 continua valendo
     return exampleInAppAds(slug);
   }
 }

@@ -38,22 +38,46 @@ export function AdModal({
     return () => clearInterval(t);
   }, [open, lockSeconds]);
 
+  // Foco entra no diálogo ao abrir e volta para onde estava ao fechar (só depende de `open`).
   useEffect(() => {
     if (!open) return;
     const last = document.activeElement as HTMLElement | null;
-    box.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !locked && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      last?.focus?.();
+    box.current?.focus();
+    return () => last?.focus?.();
+  }, [open]);
+
+  // Liberou o fechar: o foco vai para ele.
+  useEffect(() => {
+    if (open && !locked) box.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+  }, [open, locked]);
+
+  // Esc fecha (se liberado) e o Tab fica preso dentro do diálogo.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return void (!locked && onClose());
+      if (e.key !== "Tab" || !box.current) return;
+      const items = Array.from(box.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"));
+      const first = items[0];
+      const end = items[items.length - 1];
+      const active = document.activeElement;
+      if (!first) return e.preventDefault();
+      if (e.shiftKey && (active === first || active === box.current)) {
+        e.preventDefault();
+        end.focus();
+      } else if (!e.shiftKey && active === end) {
+        e.preventDefault();
+        first.focus();
+      }
     };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, locked, onClose]);
 
   if (!open) return null;
   return (
     <div className="scrim" onClick={(e) => e.target === e.currentTarget && !locked && onClose()}>
-      <div ref={box} className="sheet" role="dialog" aria-modal="true" aria-labelledby="ad-title">
+      <div ref={box} className="sheet outline-none" role="dialog" aria-modal="true" aria-labelledby="ad-title" tabIndex={-1}>
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
             <span className="tag tag-demo">Patrocinado</span>
@@ -64,7 +88,7 @@ export function AdModal({
             data-autofocus
             onClick={onClose}
             disabled={locked}
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm min-h-11 min-w-11"
             aria-label={locked ? `Fechar em ${left} segundos` : closeLabel}
           >
             {locked ? <span className="num">{left}s</span> : <Icon name="close" size={18} className="icon" />}

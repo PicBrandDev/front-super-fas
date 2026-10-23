@@ -12,7 +12,7 @@ const TICK_MS = 250;
  * O "Girar agora" só libera depois de `minSeconds` de exibição real: a contagem
  * para com a aba escondida (`document.hidden`) e, havendo vídeo, enquanto ele não toca.
  * Sem `videoUrl` (ou se o vídeo falhar) mostra a arte parada com a mesma contagem.
- * Esc não fecha enquanto trava; depois de liberado, Esc fecha sem girar.
+ * "Agora não" fecha sem girar a qualquer momento; Esc só depois de liberado.
  */
 export function PicKapVideoAd({
   ad,
@@ -21,7 +21,7 @@ export function PicKapVideoAd({
 }: {
   ad: InAppAd;
   onDone: () => void; // "Girar agora"
-  onDismiss: () => void; // Esc depois de liberado: fecha sem girar
+  onDismiss: (watched: boolean) => void; // "Agora não" ou Esc depois de liberado: fecha sem girar (não gasta o giro)
 }) {
   const total = Math.max(1, Math.round(ad.minSeconds ?? PICKAP_VIDEO_MIN_SECONDS));
   const box = useRef<HTMLDivElement>(null);
@@ -42,7 +42,8 @@ export function PicKapVideoAd({
     let last = Date.now();
     const t = setInterval(() => {
       const now = Date.now();
-      const dt = now - last;
+      // Teto por tick: app em segundo plano (timer congelado) não conta o tempo fora.
+      const dt = Math.min(now - last, TICK_MS * 2);
       last = now;
       if (!document.hidden) setElapsedMs((ms) => Math.min(total * 1000, ms + dt));
     }, TICK_MS);
@@ -65,7 +66,7 @@ export function PicKapVideoAd({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
-        if (!locked) onDismiss();
+        if (!locked) onDismiss(true);
         return;
       }
       if (e.key !== "Tab" || !box.current) return;
@@ -117,7 +118,7 @@ export function PicKapVideoAd({
         {hasVideo && (
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm min-h-11"
             aria-pressed={!muted}
             onClick={() => {
               const next = !muted;
@@ -199,6 +200,9 @@ export function PicKapVideoAd({
           ) : (
             "Girar agora"
           )}
+        </button>
+        <button type="button" className="btn btn-ghost btn-block" onClick={() => onDismiss(!locked)}>
+          Agora não
         </button>
         <p className="sr-only" role="status" aria-live="polite">
           {locked ? `O giro libera depois de ${total} segundos de anúncio.` : "Giro liberado."}

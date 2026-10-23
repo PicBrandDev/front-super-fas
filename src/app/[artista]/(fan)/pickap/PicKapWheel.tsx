@@ -228,8 +228,9 @@ export function PicKapWheel({
     setPendingSpin(null);
     void spin(creditId);
   };
-  const videoDismiss = useCallback(() => {
-    markSeen(videoKey);
+  // Saiu antes do fim: não conta como visto, o próximo giro mostra o vídeo de novo.
+  const videoDismiss = useCallback((watched: boolean) => {
+    if (watched) markSeen(videoKey);
     setPendingSpin(null);
   }, [videoKey]);
 
