@@ -168,7 +168,7 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
                 {error}
               </p>
             )}
-            <p className={`mono ${s.note}`}>{status.photos} fotos neste show</p>
+            {status.photos > 0 && <p className={`mono ${s.note}`}>{status.photos} fotos neste show</p>}
           </form>
         )}
 

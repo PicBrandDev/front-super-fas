@@ -50,7 +50,6 @@ export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope
   }
   const club = scoped.find((c) => c.slug === board) ?? null;
   const rows = club ? club.top : ranking.top;
-  const me = club ? club.me : ranking.me;
   const onlyOne = !!scope && scoped.length <= 1;
   const copy = async () => {
     try {
@@ -70,8 +69,11 @@ export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope
         <p className="mb-0 mt-2 text-fg-muted">
           {club ? `Estes são os top fãs do ${club.name} com mais contabilização.` : "Estes são os top fãs com mais contabilização."}
         </p>
-        <button type="button" className="btn btn-outline btn-sm mt-3" onClick={copy}>
-          Copiar #{ranking.hashtag} {ranking.myCode}
+        <p className="mb-0 mt-3">
+          Publique postagens no seu Instagram com a <strong>#{ranking.hashtag}</strong> e entre no ranking.
+        </p>
+        <button type="button" className="btn btn-outline btn-sm mt-3 !h-auto max-w-full !whitespace-normal break-words py-2 text-left" onClick={copy}>
+          Copiar #{ranking.hashtag} <span className="whitespace-nowrap">{ranking.myCode}</span>
         </button>
       </section>
 
@@ -96,26 +98,6 @@ export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope
           </button>
         ))}
       </nav>
-
-      <section aria-labelledby="rk-me" className="grid grid-cols-3 gap-3 border-y border-line py-4">
-        <h3 id="rk-me" className="sr-only">
-          Você neste ranking
-        </h3>
-        {me ? (
-          [
-            { label: "Sua posição", value: me.position ? `${me.position}º` : "—" },
-            { label: "Confirmados", value: String(me.shares) },
-            { label: "Pendentes", value: String(me.pending) },
-          ].map((x) => (
-            <div key={x.label} className="flex flex-col gap-1">
-              <span className="mono">{x.label}</span>
-              <strong className="num font-display text-3xl font-black leading-8">{x.value}</strong>
-            </div>
-          ))
-        ) : (
-          <p className="mono col-span-3 m-0">Você não é membro deste fã clube, então não aparece no ranking dele.</p>
-        )}
-      </section>
 
       <section aria-labelledby="rk-top" className="pt-4">
         <h3 id="rk-top" className="mono m-0 mb-1">

@@ -38,6 +38,12 @@ services:
       AWS_REGION: ${AWS_REGION:-us-east-1}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # Fotos já indexadas fora do Super Fãs (coleção do Rekognition + bucket do S3): a busca devolve links temporários.
+      REKOGNITION_COLLECTION_ID: ${REKOGNITION_COLLECTION_ID:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_PHOTO_PREFIX: ${S3_PHOTO_PREFIX:-photos/original/}
+      S3_PHOTO_SUFFIX: ${S3_PHOTO_SUFFIX:-.jpg}
+      PRESIGNED_URL_EXPIRES_SECONDS: ${PRESIGNED_URL_EXPIRES_SECONDS:-3600}
       INSTAGRAM_ENABLED: ${INSTAGRAM_ENABLED:-false}
       INSTAGRAM_USER_ID: ${INSTAGRAM_USER_ID:-}
       INSTAGRAM_ACCESS_TOKEN: ${INSTAGRAM_ACCESS_TOKEN:-}
