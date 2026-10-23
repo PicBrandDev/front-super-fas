@@ -10,6 +10,7 @@ import { normalizeTheme } from "./themes";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
+import { exampleInAppAds, type InAppAds } from "./ads";
 import type {
   ClubMemberRow,
   ClubAnalytics,
@@ -203,6 +204,20 @@ export const getTracks = (slug: string) => get<Track[]>(`/artists/${slug}/tracks
 
 /** GET /artists/{slug}/ads/home — anúncio ativo no card da Home */
 export const getHomeAd = (slug: string) => get<HomeAd | null>(`/artists/${slug}/ads/home`, () => mock.homeAd);
+
+/**
+ * GET /artists/{slug}/ads/in-app — criativos do modal de entrada, da roleta e do Mural.
+ * Enquanto o back não tem a rota (ou ela falha), usa os exemplos de ./ads: anúncio nunca derruba a página.
+ */
+export async function getInAppAds(slug: string): Promise<InAppAds> {
+  try {
+    return await get<InAppAds>(`/artists/${slug}/ads/in-app`, () => exampleInAppAds(slug), {
+      notFound: exampleInAppAds(slug),
+    });
+  } catch {
+    return exampleInAppAds(slug);
+  }
+}
 
 /** GET /artists/{slug}/membership/perks */
 export const getMemberPerks = (slug: string) =>
