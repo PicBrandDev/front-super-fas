@@ -19,7 +19,7 @@ referências `vintage-culture-fanzone-refs`, fora do repo): tema escuro,
 | texto secundário | `text-fg-muted` | #B8AAA1 |
 | acento (botão primário, ativo) | `bg-amber` / `text-amber-text` | #FE9900 |
 | texto sobre amber/sun | `text-on-amber` | #120907 |
-| amarelo (PicKap, selo, tag key) | `bg-sun` | #FCCA0B |
+| amarelo (PicKup, selo, tag key) | `bg-sun` | #FCCA0B |
 | alerta, "últimos lotes", curtida | `text-signal` | #E5574D |
 | azul profundo (cartaz, Photo Finder, Loja) | `bg-lagoon-deep` | #29495D |
 | cinza metálico (ações do post) | `text-chrome` | #8C9898 |

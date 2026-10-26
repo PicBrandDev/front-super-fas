@@ -10,7 +10,7 @@ Plataforma (admin master da PicBrand) — cria os cantores
    ├─ Conteúdo oficial: agenda, loja, Drop News, Drops Hits, benefícios, anúncios do ambiente
    │    → administrado pela equipe do fã clube master (o dono do master é o "admin master do cantor")
    ├─ Fã clube master  ─┐
-   ├─ Fã clube 2 … 10  ─┴─ cada um: 1 dono + ajudantes; membros, mural da galera, PicKap e anúncios próprios
+   ├─ Fã clube 2 … 10  ─┴─ cada um: 1 dono + ajudantes; membros, mural da galera, PicKup e anúncios próprios
    └─ Assinatura de membro → paga ao ambiente do cantor
 ```
 
@@ -60,11 +60,11 @@ Com a API ligada, **todo o site exige login** e cada tipo de conta só entra na 
 | `/` | Entrada da plataforma (lista de fã clubes e painéis) |
 | `/[artista]` | Início do ambiente (anúncio, Drop News, próximo show, seus fã clubes, atalhos) |
 | `/[artista]/clubes` | Fã clubes do cantor (entrar/sair) |
-| `/[artista]/clubes/[clube]` | Página do fã clube: mural da galera, anúncio do clube, PicKap do clube |
+| `/[artista]/clubes/[clube]` | Página do fã clube: mural da galera, anúncio do clube, PicKup do clube |
 | `/[artista]/mural` | Mural: Drop News, feed da galera, posts do Instagram |
 | `/[artista]/agenda` | Agenda de shows |
 | `/[artista]/eventos/[id]` | Evento: sorte do evento, brindes, onde comprar |
-| `/[artista]/pickap?clube=` | PicKap da sorte (roleta de cada fã clube) |
+| `/[artista]/pickup?clube=` | PicKup da sorte (roleta de cada fã clube) |
 | `/[artista]/loja` | Loja virtual |
 | `/[artista]/drops` | Drops Hits (prévias) |
 | `/[artista]/photo-finder` | Photo Finder |
@@ -79,7 +79,7 @@ Com a API ligada, **todo o site exige login** e cada tipo de conta só entra na 
 | `/[artista]/admin/anuncios` | Ambiente: vitrines e campanhas do ambiente |
 | `/[artista]/clubes/[clube]/admin/membros` | Fã clube: membros |
 | `/[artista]/clubes/[clube]/admin/mural` | Fã clube: moderação do mural da galera |
-| `/[artista]/clubes/[clube]/admin/pickap` | Fã clube: fatias da roleta |
+| `/[artista]/clubes/[clube]/admin/pickup` | Fã clube: fatias da roleta |
 | `/[artista]/clubes/[clube]/admin/anuncios` | Fã clube: vitrines e campanhas do clube |
 | `/[artista]/clubes/[clube]/admin/equipe` | Fã clube: dono e ajudantes |
 | `/[artista]/clubes/[clube]/admin/dados` | Fã clube: nome, cidade, descrição |

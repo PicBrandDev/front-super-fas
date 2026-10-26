@@ -190,10 +190,10 @@ export const getVendors = (slug: string, eventId: string) =>
 export const getGifts = (slug: string, eventId: string) =>
   get<Gift[]>(`/artists/${slug}/events/${eventId}/gifts`, () => mock.gifts);
 
-// ---------- PicKap, Loja, Drops Hits ----------
+// ---------- PicKup, Loja, Drops Hits ----------
 
-/** GET /artists/{slug}/pickap/prizes */
-export const getPrizes = (slug: string) => get<Prize[]>(`/artists/${slug}/pickap/prizes`, () => mock.prizes);
+/** GET /artists/{slug}/pickup/prizes */
+export const getPrizes = (slug: string) => get<Prize[]>(`/artists/${slug}/pickup/prizes`, () => mock.prizes);
 
 /** GET /artists/{slug}/products */
 export const getProducts = (slug: string) => get<Product[]>(`/artists/${slug}/products`, () => mock.products);
@@ -277,8 +277,8 @@ export const getRanking = (slug: string) => get<Ranking | null>(`/artists/${slug
 /** GET /artists/{slug}/me/tickets: os ingressos que o fã comprou. */
 export const getMyTickets = (slug: string) => get<MyTicket[]>(`/artists/${slug}/me/tickets`, () => [] as MyTicket[]);
 
-/** GET /artists/{slug}/pickap/spins: os giros do fã, cada um com o motivo. */
-export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickap/spins`, () => [] as SpinCredit[]);
+/** GET /artists/{slug}/pickup/spins: os giros do fã, cada um com o motivo. */
+export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickup/spins`, () => [] as SpinCredit[]);
 
 /** GET /artists/{slug}/me/rewards: os brindes que o fã ganhou na roleta. */
 export const getMyRewards = (slug: string) => get<Reward[]>(`/artists/${slug}/me/rewards`, () => [] as Reward[]);
@@ -318,9 +318,9 @@ export const getClub = (slug: string, club: string) =>
 export const getClubPosts = (slug: string, club: string) =>
   get<Post[]>(`/artists/${slug}/clubs/${club}/posts`, () => mock.posts.filter((p) => p.kind !== "drop"));
 
-/** GET /artists/{slug}/clubs/{club}/pickap/prizes */
+/** GET /artists/{slug}/clubs/{club}/pickup/prizes */
 export const getClubPrizes = (slug: string, club: string) =>
-  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickap/prizes`, () => mock.prizes);
+  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickup/prizes`, () => mock.prizes);
 
 /** GET /artists/{slug}/clubs/{club}/ad-slots */
 export const getClubAdSlots = (slug: string, club: string) =>

@@ -150,7 +150,7 @@ export function fanClubNav(slug: string, club: string): AdminNavItem[] {
   return [
     { key: "visao", label: "Visão geral", href: base, icon: "chart" },
     { key: "mural", label: "Posts do fã clube", href: `${base}/mural`, icon: "news" },
-    { key: "pickap", label: "PicKap", href: `${base}/pickap`, icon: "wheel" },
+    { key: "pickup", label: "PicKup", href: `${base}/pickup`, icon: "wheel" },
     { key: "anuncios", label: "Anúncios", href: `${base}/anuncios`, icon: "megaphone" },
     { key: "equipe", label: "Equipe", href: `${base}/equipe`, icon: "user" },
     { key: "dados", label: "Dados do clube", href: `${base}/dados`, icon: "settings" },

@@ -75,9 +75,9 @@ export function BrindesView({ rewards }: { rewards: Reward[] }) {
   return (
     <div className="flex flex-col gap-5 px-4 pb-8 pt-4">
       <header className="flex flex-col gap-2">
-        <Link href={`${base}/pickap`} className="back">
+        <Link href={`${base}/pickup`} className="back">
           <Icon name="back" size={18} />
-          PicKap
+          PicKup
         </Link>
         <h1 className="m-0 font-display text-[40px] font-black leading-[40px]">Meus brindes</h1>
         <p className="m-0 text-[15px] leading-[22px] text-fg-muted">
@@ -89,9 +89,9 @@ export function BrindesView({ rewards }: { rewards: Reward[] }) {
         <section className="flex flex-col gap-3 border border-line p-5">
           <strong className="text-[17px]">Você ainda não ganhou brindes</strong>
           <p className="m-0 text-[15px] leading-[22px] text-fg-muted">
-            Gire a roleta do PicKap: tem cupons de desconto no ingresso, ingresso de pista, camiseta e boné do Vintage.
+            Gire a roleta do PicKup: tem cupons de desconto no ingresso, ingresso de pista, camiseta e boné do Vintage.
           </p>
-          <Link href={`${base}/pickap`} className="btn btn-primary">
+          <Link href={`${base}/pickup`} className="btn btn-primary">
             Ir para a roleta
           </Link>
         </section>

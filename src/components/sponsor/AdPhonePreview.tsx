@@ -7,29 +7,29 @@ export type PhoneAd = {
   text: string;
   cta: string;
   art: string | null;
-  /** Vídeo da vitrine "pickap_video" (arquivo local blob: ou link). */
+  /** Vídeo da vitrine "pickup_video" (arquivo local blob: ou link). */
   video?: string | null;
 };
 
-type Screen = "home" | "mural" | "evento" | "pickap" | "loja" | "drops" | "entrada" | "pickap_video" | "pickap_resgate";
+type Screen = "home" | "mural" | "evento" | "pickup" | "loja" | "drops" | "entrada" | "pickup_video" | "pickup_resgate";
 
 const SCREENS: Record<Screen, string> = {
   home: "Início",
   mural: "Mural",
   evento: "Tela do evento",
-  pickap: "PicKap",
+  pickup: "PicKup",
   loja: "Loja",
   drops: "Drops Hits",
   entrada: "Início",
-  pickap_video: "PicKap",
-  pickap_resgate: "PicKap",
+  pickup_video: "PicKup",
+  pickup_resgate: "PicKup",
 };
 
 /** Momento da tela em que o anúncio aparece (para as vitrines em janela). */
 const MOMENTS: Partial<Record<Screen, string>> = {
   entrada: "ao abrir o app",
-  pickap_video: "antes de girar",
-  pickap_resgate: "ao ganhar um prêmio",
+  pickup_video: "antes de girar",
+  pickup_resgate: "ao ganhar um prêmio",
 };
 
 /** A vitrine "oficial.home" ou "home" aponta para a tela "home". */
@@ -113,7 +113,7 @@ function Poster() {
   );
 }
 
-/** Janela de baixo sobre a tela escurecida ("entrada" e "pickap_resgate"). */
+/** Janela de baixo sobre a tela escurecida ("entrada" e "pickup_resgate"). */
 function AdSheet({ ad }: { ad: PhoneAd }) {
   return (
     <div className="absolute inset-0 z-10 flex flex-col justify-end bg-black/55">
@@ -136,7 +136,7 @@ function AdSheet({ ad }: { ad: PhoneAd }) {
   );
 }
 
-/** Vídeo obrigatório de 30 s em tela cheia antes do giro ("pickap_video"). */
+/** Vídeo obrigatório de 30 s em tela cheia antes do giro ("pickup_video"). */
 function AdVideoOverlay({ ad }: { ad: PhoneAd }) {
   return (
     <div className="absolute inset-0 z-10 flex flex-col gap-2 bg-black/90 px-3 pb-4 pt-8 text-white">
@@ -184,7 +184,7 @@ function HomeScreen({ ad }: { ad?: PhoneAd }) {
   );
 }
 
-function PickapScreen({ prize }: { prize?: ReactNode }) {
+function PickupScreen({ prize }: { prize?: ReactNode }) {
   return (
     <>
       <Line w="40%" h={8} />
@@ -201,9 +201,9 @@ function Body({ screen, ad }: { screen: Screen; ad: PhoneAd }) {
       return <HomeScreen ad={ad} />;
     case "entrada":
       return <HomeScreen />;
-    case "pickap_video":
-    case "pickap_resgate":
-      return <PickapScreen />;
+    case "pickup_video":
+    case "pickup_resgate":
+      return <PickupScreen />;
     case "mural":
       return (
         <>
@@ -226,9 +226,9 @@ function Body({ screen, ad }: { screen: Screen; ad: PhoneAd }) {
           </div>
         </>
       );
-    case "pickap":
+    case "pickup":
       return (
-        <PickapScreen
+        <PickupScreen
           prize={
             <Mark>
               <div className="flex items-center gap-2 rounded-xl bg-fg/10 p-2.5">
@@ -303,8 +303,8 @@ export function AdPhonePreview({ slotId, slotName, ad, themeStyle }: { slotId: s
               <span key={i} className="size-4 rounded bg-fg/20" />
             ))}
           </div>
-          {(screen === "entrada" || screen === "pickap_resgate") && <AdSheet ad={ad} />}
-          {screen === "pickap_video" && <AdVideoOverlay ad={ad} />}
+          {(screen === "entrada" || screen === "pickup_resgate") && <AdSheet ad={ad} />}
+          {screen === "pickup_video" && <AdVideoOverlay ad={ad} />}
         </div>
       </div>
       <span className="max-w-[250px] text-center text-xs text-adm-muted">

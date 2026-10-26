@@ -42,7 +42,7 @@ const filterOptions: { id: Filter; label: string }[] = [
 const moduleList: { id: string; label: string; hint: string }[] = [
   { id: "mural", label: "Mural", hint: "Drop News, feed da galera e Instagram" },
   { id: "agenda", label: "Agenda", hint: "Shows, ingressos e sorte do evento" },
-  { id: "pickap", label: "PicKap da sorte", hint: "Roleta geral" },
+  { id: "pickup", label: "PicKup da sorte", hint: "Roleta geral" },
   { id: "loja", label: "Loja virtual", hint: "Produtos e drops da loja" },
   { id: "drops", label: "Drops Hits", hint: "Prévias de músicas" },
   { id: "photo", label: "Photo Finder", hint: "Busca de fotos por selfie" },

@@ -28,11 +28,11 @@ export default async function NotificacoesPage({ params }: { params: Promise<{ a
       icon: "wheel",
       title: `${free.length} ${free.length === 1 ? "giro" : "giros"} esperando você`,
       text: free[0].reason,
-      href: `${base}/pickap`,
+      href: `${base}/pickup`,
       cta: "Girar a roleta",
     });
   } else if (viewer.spins > 0) {
-    items.push({ icon: "wheel", title: `${viewer.spins} ${viewer.spins === 1 ? "giro" : "giros"} esperando você`, text: "Gire a roleta do PicKap.", href: `${base}/pickap`, cta: "Girar a roleta" });
+    items.push({ icon: "wheel", title: `${viewer.spins} ${viewer.spins === 1 ? "giro" : "giros"} esperando você`, text: "Gire a roleta do PicKup.", href: `${base}/pickup`, cta: "Girar a roleta" });
   }
   for (const t of tickets.filter((t) => !isPastEvent(t.event)).slice(0, 3)) {
     items.push({

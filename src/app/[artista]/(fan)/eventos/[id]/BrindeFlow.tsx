@@ -17,7 +17,7 @@ type Cart = NonNullable<ReturnType<typeof summarize>>;
 /**
  * Fluxo de compra com brinde: avisa que comprar o ingresso dá um prêmio, mostra o carrinho (ingresso, experiências,
  * Photo Finder incluso, cupom de desconto e total), simula o pagamento e, depois de pagar, o fã ganha 1 tentativa
- * na roleta (com o motivo registrado). O botão "Tentar" abre o PicKap, onde ele gira.
+ * na roleta (com o motivo registrado). O botão "Tentar" abre o PicKup, onde ele gira.
  * O pagamento é uma simulação: acontece fora do app. O valor com cupom vem da API (nunca só da tela).
  */
 export function BrindeFlow({
@@ -307,7 +307,7 @@ export function BrindeFlow({
             className="btn btn-primary btn-block"
             onClick={() => {
               close();
-              router.push(`${base}/pickap`);
+              router.push(`${base}/pickup`);
             }}
             data-autofocus
           >

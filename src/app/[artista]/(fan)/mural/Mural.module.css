@@ -290,7 +290,7 @@
     transform: none;
   }
 }
-/* o disco do PicKap já tem rotação própria (--rec-rot): gira a partir dela */
+/* o disco do PicKup já tem rotação própria (--rec-rot): gira a partir dela */
 @keyframes turnRec {
   from {
     transform: rotate(calc(var(--rec-rot, 0deg) - 24deg));
