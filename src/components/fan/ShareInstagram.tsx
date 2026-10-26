@@ -8,6 +8,7 @@ import { useArtist } from "./ArtistContext";
 import { Sheet } from "./Sheet";
 import { useToast } from "./Toast";
 import { Icon } from "@/components/icons";
+import { buildShareArt, type ShareFormat } from "@/lib/share-art";
 import type { Post } from "@/lib/types";
 
 type Step = "info" | "won" | "capped";
@@ -16,10 +17,12 @@ const HASHTAG = "EuSouUmSuperFaDoVintage";
 const GO_MS = 2200; // quanto tempo a mensagem do giro fica antes de levar à roleta
 
 /**
- * Compartilhar um post oficial ou um Drop no Instagram (ranking Fã Super do Vintage). O fã vê o aviso do ranking e da
- * hashtag que conta pontos, posta (o app copia a legenda pronta e abre o Instagram) e toca em "Já postei": como o
- * app ainda é de exemplo, isso rende na hora 1 giro da roleta e leva para o PicKap. O ponto no ranking só vem
- * quando a conferência no Instagram achar a hashtag e o código do fã.
+ * Compartilhar um post oficial ou um Drop no Instagram (ranking Fã Super do Vintage). O app monta duas artes prontas
+ * (Stories 9:16 e Feed 4:5) com a foto, a hashtag que conta pontos e o código do fã, e copia a legenda. Um toque abre o
+ * compartilhamento do celular, onde o fã escolhe Instagram → Stories, Feed etc. (o Instagram não deixa uma página
+ * preencher legenda ou hashtag, por isso a hashtag também vai dentro da imagem). No computador, a arte é baixada.
+ * Depois, "Já postei": como o app ainda é de exemplo, rende na hora 1 giro da roleta e leva para o PicKap. O ponto no
+ * ranking só vem quando a conferência no Instagram achar a hashtag e o código do fã.
  */
 export function ShareInstagram({
   post,
@@ -28,7 +31,7 @@ export function ShareInstagram({
   post: Pick<Post, "id" | "text"> & { image?: { src: string } | null };
   kind?: "post" | "track";
 }) {
-  const { base, slug } = useArtist();
+  const { base, slug, name: artistName } = useArtist();
   const toast = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -36,12 +39,49 @@ export function ShareInstagram({
   const [busy, setBusy] = useState<"open" | "claim" | null>(null);
   const [error, setError] = useState("");
   const [info, setInfo] = useState<ShareInfo | null>(null);
+  // Artes prontas (geradas ao abrir, para o compartilhamento sair no mesmo toque do fã).
+  const [arts, setArts] = useState<Partial<Record<ShareFormat, { file: File; url: string }>>>({});
 
   const close = () => {
     setOpen(false);
     setStep("info");
     setError("");
   };
+
+  // Ao abrir: registra a intenção (legenda com hashtag e código) e monta as duas artes.
+  useEffect(() => {
+    if (!open || step !== "info") return;
+    let alive = true;
+    void (async () => {
+      const data = await ensureShare();
+      if (!data || !alive) return;
+      const made: Partial<Record<ShareFormat, { file: File; url: string }>> = {};
+      for (const format of ["story", "feed"] as const) {
+        try {
+          const blob = await buildShareArt({
+            format,
+            imageSrc: post.image?.src,
+            text: post.text,
+            hashtag: data.hashtag,
+            code: data.code,
+            artistName,
+          });
+          made[format] = { file: new File([blob], `${slug}-${format}.jpg`, { type: "image/jpeg" }), url: URL.createObjectURL(blob) };
+        } catch {
+          /* sem arte desse formato: o botão cai no texto e na legenda copiada */
+        }
+      }
+      if (alive) setArts(made);
+      else Object.values(made).forEach((a) => URL.revokeObjectURL(a.url));
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, step]);
+
+  // Libera as imagens geradas quando elas trocam ou o componente sai da tela.
+  useEffect(() => () => Object.values(arts).forEach((a) => a && URL.revokeObjectURL(a.url)), [arts]);
 
   // Depois da mensagem do giro, leva para a roleta.
   useEffect(() => {
@@ -72,34 +112,40 @@ export function ShareInstagram({
     return data;
   }
 
-  async function openInstagram() {
+  /** Copia a legenda e abre o compartilhamento do celular com a arte pronta (Instagram → Stories, Feed...). */
+  async function postTo(format: ShareFormat) {
     if (busy) return;
-    setBusy("open");
     setError("");
-    const data = await ensureShare();
-    setBusy(null);
+    const data = info;
     if (!data) return;
+    const art = arts[format];
+    // A legenda com a hashtag e o código vai para a área de transferência: o fã cola no post.
+    let copied = false;
     try {
       await navigator.clipboard.writeText(data.caption);
-      toast.show("Legenda copiada. Cole no seu post do Instagram.");
+      copied = true;
     } catch {
       // Sem permissão da área de transferência: o fã copia a legenda da tela.
     }
-    // No celular, o compartilhamento do aparelho deixa escolher o Instagram e já leva a foto e a legenda.
-    try {
-      if (navigator.share) {
-        const files: File[] = [];
-        if (post.image?.src) {
-          const blob = await (await fetch(post.image.src)).blob();
-          files.push(new File([blob], "post.jpg", { type: blob.type || "image/jpeg" }));
-        }
-        const payload: ShareData = files.length && navigator.canShare?.({ files }) ? { files, text: data.caption } : { text: data.caption };
-        await navigator.share(payload);
+    if (art && navigator.canShare?.({ files: [art.file] })) {
+      try {
+        await navigator.share({ files: [art.file], text: data.caption });
+        toast.show(copied ? "Cole a legenda com a hashtag no seu post." : "Poste e use a hashtag na legenda.");
         return;
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return; // o fã fechou o compartilhamento
       }
-    } catch (e) {
-      if ((e as Error).name === "AbortError") return; // o fã fechou o compartilhamento
     }
+    // Sem compartilhamento de arquivo (computador): baixa a arte e abre o Instagram para o fã postar.
+    if (art) {
+      const a = document.createElement("a");
+      a.href = art.url;
+      a.download = art.file.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    toast.show(copied ? "Arte baixada e legenda copiada. Poste no Instagram." : "Arte baixada. Poste no Instagram com a hashtag.");
     window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
   }
 
@@ -145,10 +191,43 @@ export function ShareInstagram({
                 {error}
               </p>
             )}
-            <button type="button" className="btn btn-outline btn-block" onClick={openInstagram} disabled={!!busy} aria-busy={busy === "open" || undefined}>
-              {busy === "open" ? "Preparando…" : "Abrir o Instagram e copiar a legenda"}
-              <Icon name="external" size={16} />
-            </button>
+            <div className="grid grid-cols-2 gap-3" role="group" aria-label="Escolha onde postar">
+              {(
+                [
+                  ["story", "Stories", "9:16"],
+                  ["feed", "Feed", "4:5"],
+                ] as const
+              ).map(([format, label, ratio]) => {
+                const art = arts[format];
+                return (
+                  <button
+                    key={format}
+                    type="button"
+                    onClick={() => void postTo(format)}
+                    disabled={!info || !!busy}
+                    className="flex cursor-pointer flex-col items-stretch gap-2 border border-line bg-night p-2 text-left text-fg disabled:cursor-wait disabled:opacity-70"
+                  >
+                    <span className={`relative block w-full overflow-hidden bg-raised ${format === "story" ? "aspect-[9/16]" : "aspect-[4/5]"}`}>
+                      {art ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- prévia local (blob) da arte
+                        <img src={art.url} alt={`Prévia da arte para ${label}`} className="size-full object-cover" />
+                      ) : (
+                        <span className="mono absolute inset-0 flex items-center justify-center p-2 text-center">{info ? "Montando a arte…" : "Preparando…"}</span>
+                      )}
+                    </span>
+                    <strong className="flex items-center gap-1.5 text-[15px] leading-5">
+                      <Icon name="share" size={14} />
+                      Postar no {label}
+                    </strong>
+                    <span className="mono">{ratio}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="m-0 text-[13px] leading-5">
+              No celular, abre o compartilhamento: escolha <strong>Instagram</strong> e depois Stories ou Feed. A legenda com a hashtag fica copiada para colar. No
+              computador, a arte é baixada.
+            </p>
             <button type="button" className="btn btn-primary btn-block" onClick={posted} disabled={!!busy} aria-busy={busy === "claim" || undefined}>
               {busy === "claim" ? "Confirmando…" : "Já postei"}
             </button>
