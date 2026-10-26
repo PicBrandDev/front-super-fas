@@ -92,7 +92,7 @@ export function EventoView({
       {!past && hasOptions && (
         <section className={s.sect} aria-labelledby="ingressos-h">
           <h2 id="ingressos-h">Pacotes das agências</h2>
-          <p>Escolha o tipo de ingresso do pacote e toque em Comprar ingresso.</p>
+          <p>Escolha o tipo de ingresso do pacote e toque em Comprar ingresso. Todos os pacotes incluem o Photo Finder.</p>
           {packages.length > 0 && (
             <PackagePicker
               packages={packages}

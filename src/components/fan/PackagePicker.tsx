@@ -1,18 +1,19 @@
 "use client";
 
 import { Icon } from "@/components/icons";
+import { experienceLabel, PHOTO_FINDER_NOTE } from "@/lib/experiences";
 import { formatBRL } from "@/lib/format";
 import type { EventPackage } from "@/lib/types";
 
 const KIND_LABEL = {
-  photo: "Ingresso + transfer + selo + Photo Finder",
+  photo: "Ingresso + transfer + selo",
   seal: "Ingresso + transfer + selo",
   transfer: "Ingresso + transfer",
   ticket: "Somente ingresso",
 } as const;
 
 /**
- * Pacotes da agência do show: cada pacote tem cartões de opção (só ingresso, + transfer, + selo, + Photo Finder),
+ * Pacotes da agência do show: cada pacote tem cartões de opção (só ingresso, + transfer, + selo) e o Photo Finder vem em todos,
  * cada um com o seu valor, e o fã escolhe um. Usado na tela do show e no modal de compra do Início.
  */
 export function PackagePicker({
@@ -51,14 +52,18 @@ export function PackagePicker({
                     Selo no app do Vintage
                   </span>
                 )}
-                {p.items.some((i) => i.kind === "photo") && (
-                  <span className="tag">
-                    <Icon name="camera" size={11} />
-                    Photo Finder: suas fotos do show no app
+                {p.experiences.map((x) => (
+                  <span key={x} className="tag tag-key">
+                    <Icon name="gift" size={11} />
+                    {experienceLabel(x)}
                   </span>
-                )}
+                ))}
               </header>
               {p.description && <p className="m-0 text-[15px] leading-[22px] text-fg-muted">{p.description}</p>}
+              <p className="m-0 flex items-start gap-1.5 text-[14px] leading-5 text-fg-muted">
+                <Icon name="camera" size={14} />
+                <span>{PHOTO_FINDER_NOTE}</span>
+              </p>
               <div role="radiogroup" aria-label={`Opções do pacote ${p.name}`} className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
                 {p.items.map((it, idx) => {
                   const on = choice?.id === p.id && choice.item === idx;
@@ -70,19 +75,13 @@ export function PackagePicker({
                       } ${it.soldOut ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                     >
                       <input type="radio" name="opcao" className="sr-only" checked={on} disabled={it.soldOut} onChange={() => onChoose(p.id, idx)} />
-                      <span className="mono">{KIND_LABEL[it.kind]}</span>
+                      <span className="mono">{p.experiences.length > 0 ? "Ingresso + experiência" : KIND_LABEL[it.kind]}</span>
                       <strong className="text-[16px] leading-5">{it.label}</strong>
                       <span className={`num text-[16px] ${it.soldOut ? "line-through" : ""}`}>{formatBRL(it.priceCents)}</span>
                       {(it.kind === "seal" || it.kind === "photo") && (
                         <span className="tag tag-key self-start">
                           <Icon name="star" size={11} />
                           Selo no app
-                        </span>
-                      )}
-                      {it.kind === "photo" && (
-                        <span className="tag self-start">
-                          <Icon name="camera" size={11} />
-                          Photo Finder
                         </span>
                       )}
                       {it.soldOut && <span className="tag tag-demo self-start">Esgotado</span>}

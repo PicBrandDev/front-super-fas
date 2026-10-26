@@ -1,3 +1,4 @@
+import type { ExperienceKey } from "@/lib/experiences";
 /**
  * Tipos do domínio. Espelham os schemas que o back (FastAPI) vai expor,
  * então mantenha os nomes dos campos iguais aos da API.
@@ -314,6 +315,7 @@ export type EventPackage = {
   url: string; // link de venda do pacote
   transferDetails: string;
   hasTransfer: boolean;
+  experiences: ExperienceKey[]; // jantar, meet & greet no camarim, pré-esquenta, after
   fromPriceCents: number | null; // menor preço disponível
   items: PackageItem[];
 };
@@ -329,6 +331,7 @@ export type PackageAdmin = {
   transferDetails: string;
   url: string;
   items: PackageItem[];
+  experiences: ExperienceKey[];
   active: boolean;
   position: number;
 };

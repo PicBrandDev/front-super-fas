@@ -5,6 +5,7 @@ import { useState, useTransition, type FormEvent } from "react";
 import { deleteContent, saveContent } from "@/app/actions/admin";
 import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
+import { EXPERIENCES, experienceLabel, type ExperienceKey } from "@/lib/experiences";
 import { formatBRL } from "@/lib/format";
 import type { AgencyAdmin, PackageAdmin, PackageItem } from "@/lib/types";
 
@@ -15,7 +16,8 @@ type Draft = {
   transferDetails: string;
   url: string;
   active: boolean;
-  items: { kind: "ticket" | "transfer" | "seal" | "photo"; label: string; price: string; soldOut: boolean }[];
+  experiences: ExperienceKey[];
+  items: { kind: "ticket" | "transfer" | "seal"; label: string; price: string; soldOut: boolean }[];
 };
 
 const priceText = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
@@ -31,6 +33,7 @@ const blank = (agencyId: string): Draft => ({
   transferDetails: "",
   url: "",
   active: true,
+  experiences: [],
   items: [{ kind: "ticket", label: "", price: "", soldOut: false }],
 });
 
@@ -41,7 +44,8 @@ const toDraft = (p: PackageAdmin): Draft => ({
   transferDetails: p.transferDetails,
   url: p.url,
   active: p.active,
-  items: p.items.map((i) => ({ kind: i.kind, label: i.label, price: priceText(i.priceCents), soldOut: i.soldOut })),
+  experiences: p.experiences ?? [],
+  items: p.items.map((i) => ({ kind: i.kind === "photo" ? "seal" : i.kind, label: i.label, price: priceText(i.priceCents), soldOut: i.soldOut })),
 });
 
 /**
@@ -99,6 +103,7 @@ export function PackagesManager({
           transferDetails: d.transferDetails.trim(),
           url: d.url.trim(),
           active: d.active,
+          experiences: d.experiences,
           items,
         },
       );
@@ -124,7 +129,7 @@ export function PackagesManager({
           <h2 id="pk-title" className="m-0 text-lg font-bold">
             Agências e pacotes
           </h2>
-          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes. Em cada pacote, cada tipo de ingresso tem o seu valor: só ingresso, ingresso + transfer, + selo no app ou + Photo Finder (suas fotos do show no app).</p>
+          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes. Em cada pacote, cada tipo de ingresso tem o seu valor: só ingresso, ingresso + transfer ou + selo no app. O Photo Finder já vem em todos os pacotes; para vender experiências (jantar, camarim, pré-esquenta, after), marque-as no pacote.</p>
         </div>
         <button
           type="button"
@@ -190,22 +195,21 @@ export function PackagesManager({
                   <label htmlFor={`pk-k-${i}`} className="text-xs font-semibold">
                     Tipo
                   </label>
-                  <select id={`pk-k-${i}`} value={it.kind} onChange={(e) => setItem(i, { kind: e.target.value as "ticket" | "transfer" | "seal" | "photo" })} className={inputClass}>
+                  <select id={`pk-k-${i}`} value={it.kind} onChange={(e) => setItem(i, { kind: e.target.value as "ticket" | "transfer" | "seal" })} className={inputClass}>
                     <option value="ticket">Somente ingresso</option>
                     <option value="transfer">Ingresso + transfer</option>
                     <option value="seal">Ingresso + transfer + selo</option>
-                    <option value="photo">Ingresso + transfer + selo + Photo Finder</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label htmlFor={`pk-l-${i}`} className="text-xs font-semibold">
-                    {it.kind === "ticket" ? "Tipo de ingresso" : it.kind === "transfer" ? "Ingresso com transfer" : it.kind === "seal" ? "Ingresso com transfer e selo" : "Ingresso com transfer, selo e Photo Finder"}
+                    {it.kind === "ticket" ? "Tipo de ingresso" : it.kind === "transfer" ? "Ingresso com transfer" : "Ingresso com transfer e selo"}
                   </label>
                   <input
                     id={`pk-l-${i}`}
                     value={it.label}
                     onChange={(e) => setItem(i, { label: e.target.value })}
-                    placeholder={it.kind === "ticket" ? "Pista, Camarote, VIP…" : it.kind === "transfer" ? "Pista + transfer" : it.kind === "seal" ? "Pista + transfer + selo" : "Pista + transfer + selo + Photo Finder"}
+                    placeholder={it.kind === "ticket" ? "Pista, Camarote, VIP…" : it.kind === "transfer" ? "Pista + transfer" : "Pista + transfer + selo"}
                     className={inputClass}
                   />
                 </div>
@@ -239,9 +243,26 @@ export function PackagesManager({
               <button type="button" onClick={() => setDraft({ items: [...editing.draft.items, { kind: "seal", label: "", price: "", soldOut: false }] })} className={btnSecondary}>
                 + Ingresso + transfer + selo
               </button>
-              <button type="button" onClick={() => setDraft({ items: [...editing.draft.items, { kind: "photo", label: "", price: "", soldOut: false }] })} className={btnSecondary}>
-                + com Photo Finder
-              </button>
+            </div>
+          </fieldset>
+
+          <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+            <legend className="mb-1 p-0 text-[13px] font-semibold">Experiências do pacote (o Photo Finder já vem em todos)</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {EXPERIENCES.map((x) => (
+                <label key={x.key} className="flex min-h-11 items-start gap-2 rounded-lg border border-adm-line-soft p-2.5 text-[13px]">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={editing.draft.experiences.includes(x.key)}
+                    onChange={(e) => setDraft({ experiences: e.target.checked ? [...editing.draft.experiences, x.key] : editing.draft.experiences.filter((k) => k !== x.key) })}
+                  />
+                  <span className="flex flex-col">
+                    <strong>{x.label}</strong>
+                    <span className="text-adm-muted">{x.hint}</span>
+                  </span>
+                </label>
+              ))}
             </div>
           </fieldset>
 
@@ -289,7 +310,12 @@ export function PackagesManager({
                   <div className="flex flex-wrap gap-1.5">
                     {p.items.some((i) => i.kind !== "ticket") && <Badge tone="info">Com transfer</Badge>}
                     {p.items.some((i) => i.kind === "seal" || i.kind === "photo") && <Badge tone="ok">Selo no app</Badge>}
-                    {p.items.some((i) => i.kind === "photo") && <Badge tone="ok">Photo Finder</Badge>}
+                    <Badge tone="ok">Photo Finder</Badge>
+                    {(p.experiences ?? []).map((x) => (
+                      <Badge key={x} tone="info">
+                        {experienceLabel(x)}
+                      </Badge>
+                    ))}
                     {!p.active && <Badge tone="off">Inativo</Badge>}
                   </div>
                 </header>
@@ -297,7 +323,7 @@ export function PackagesManager({
                   {p.items.map((i, idx) => (
                     <li key={idx} className="flex items-center justify-between gap-3 py-1.5">
                       <span className="flex min-w-0 items-center gap-2">
-                        <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">{i.kind === "ticket" ? "Só ingresso" : i.kind === "transfer" ? "Com transfer" : i.kind === "seal" ? "Transfer + selo" : "Transfer + selo + Photo Finder"}</span>
+                        <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">{i.kind === "ticket" ? "Só ingresso" : i.kind === "transfer" ? "Com transfer" : "Transfer + selo"}</span>
                         <span className={`truncate ${i.soldOut ? "line-through opacity-60" : ""}`}>{i.label}</span>
                         {i.soldOut && <Badge tone="warn">Esgotado</Badge>}
                       </span>
