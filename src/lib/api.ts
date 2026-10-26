@@ -17,6 +17,7 @@ import type {
   ClubOverview,
   EventPackage,
   EventPhoto,
+  Reward,
   EventTicket,
   FanClub,
   FeedItem,
@@ -278,6 +279,9 @@ export const getMyTickets = (slug: string) => get<MyTicket[]>(`/artists/${slug}/
 
 /** GET /artists/{slug}/pickap/spins: os giros do fã, cada um com o motivo. */
 export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickap/spins`, () => [] as SpinCredit[]);
+
+/** GET /artists/{slug}/me/rewards: os brindes que o fã ganhou na roleta. */
+export const getMyRewards = (slug: string) => get<Reward[]>(`/artists/${slug}/me/rewards`, () => [] as Reward[]);
 
 /** GET /artists/{slug}/clubs-overview: todos os fã clubes do ambiente, com o dono e os números. */
 export const getClubsOverview = (slug: string) =>

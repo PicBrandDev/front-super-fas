@@ -142,7 +142,22 @@ export type Gift = {
   qtyLabel?: string;
 };
 
-export type Prize = { id: string; label: string; isRetry?: boolean };
+export type PrizeKind = "" | "none" | "retry" | "coupon" | "ticket" | "pickup";
+
+export type Prize = { id: string; label: string; isRetry?: boolean; kind?: PrizeKind };
+
+/** Brinde ganho na roleta (Meus brindes): código para retirar, como retirar e a situação. */
+export type Reward = {
+  id: string;
+  label: string;
+  kind: PrizeKind;
+  code: string;
+  instructions: string;
+  couponCode: string; // cupom gerado (kind "coupon")
+  status: "available" | "redeemed" | "used" | "expired";
+  expiresOn: string | null;
+  wonAt: string;
+};
 
 export type ProductCategory = "roupas" | "acessorios" | "musica";
 

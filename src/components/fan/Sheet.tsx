@@ -21,19 +21,25 @@ export function Sheet({
 }) {
   const sheet = useRef<HTMLDivElement>(null);
   const lastFocus = useRef<Element | null>(null);
+  // onClose costuma ser uma função nova a cada render do pai: guardada numa ref para o efeito rodar só ao abrir/fechar
+  // (senão o foco voltava ao primeiro botão a cada escolha dentro da folha, e a tela pulava para o topo).
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
     lastFocus.current = document.activeElement;
     const first = sheet.current?.querySelector<HTMLElement>("[data-autofocus], button");
-    first?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    first?.focus({ preventScroll: true });
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
       (lastFocus.current as HTMLElement | null)?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (

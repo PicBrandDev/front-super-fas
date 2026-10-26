@@ -14,6 +14,45 @@ type Step = "intro" | "pay" | "done";
 type Method = "pix" | "card";
 type Cart = NonNullable<ReturnType<typeof summarize>>;
 
+type Card = { number: string; name: string; exp: string; cvv: string };
+const NO_CARD: Card = { number: "", name: "", exp: "", cvv: "" };
+const MAX_INSTALLMENTS = 6;
+
+/** Número do cartão em grupos de 4 (até 19 dígitos). */
+const maskNumber = (v: string) => v.replace(/\D/g, "").slice(0, 19).replace(/(\d{4})(?=\d)/g, "$1 ");
+/** Validade em MM/AA. */
+const maskExp = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 4);
+  return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+};
+/** Confere o dígito verificador do número do cartão (algoritmo de Luhn). */
+function luhn(num: string) {
+  let sum = 0;
+  [...num].reverse().forEach((ch, i) => {
+    let n = Number(ch);
+    if (i % 2 === 1) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+  });
+  return sum % 10 === 0;
+}
+/** Primeiro erro dos dados do cartão, ou "" se estão certos. */
+function cardError(c: Card): string {
+  const num = c.number.replace(/\D/g, "");
+  if (num.length < 13 || !luhn(num)) return "Confira o número do cartão.";
+  if (c.name.trim().split(/\s+/).length < 2) return "Digite o nome como está no cartão.";
+  const [mm, yy] = c.exp.split("/").map(Number);
+  const now = new Date();
+  if (!mm || mm < 1 || mm > 12 || !yy || c.exp.length < 5) return "Confira a validade do cartão (MM/AA).";
+  if (2000 + yy < now.getFullYear() || (2000 + yy === now.getFullYear() && mm < now.getMonth() + 1)) return "Cartão vencido.";
+  if (c.cvv.length < 3) return "Digite o código de segurança (CVV).";
+  return "";
+}
+
+const cardInput = "min-h-12 w-full min-w-0 border border-line bg-night px-3 font-mono text-[15px] text-fg";
+
 const METHODS: { key: Method; label: string }[] = [
   { key: "pix", label: "Pix" },
   { key: "card", label: "Cartão de crédito" },
@@ -52,6 +91,8 @@ export function BrindeFlow({
   const [applied, setApplied] = useState<Quote | null>(null);
   const [coupons, setCoupons] = useState<MyCoupon[]>([]);
   const [paidTotal, setPaidTotal] = useState(0);
+  const [card, setCard] = useState<Card>(NO_CARD);
+  const [installments, setInstallments] = useState(1);
 
   const cartKey = picked ? `${choice?.id}|${choice?.item}|${choice?.addons.join(",")}` : "";
 
@@ -90,6 +131,8 @@ export function BrindeFlow({
     setCode("");
     setCouponError("");
     setApplied(null);
+    setCard(NO_CARD); // os dados do cartão não ficam guardados
+    setInstallments(1);
     onClose();
   };
 
@@ -116,6 +159,10 @@ export function BrindeFlow({
 
   async function paid() {
     if (paying || !picked || !choice) return;
+    if (method === "card") {
+      const bad = cardError(card);
+      if (bad) return setError(bad);
+    }
     setPaying(true);
     setError("");
     const res = await buyTicket(slug, event.id, picked.pkg.id, choice.item, choice.addons, applied?.coupon ?? "");
@@ -123,6 +170,7 @@ export function BrindeFlow({
     // Sem API (modo exemplo, status 0) só avança na tela.
     if (!res.ok && res.status !== 0) return setError(res.error);
     setPaidTotal(total);
+    setCard(NO_CARD);
     setStep("done");
   }
 
@@ -287,11 +335,89 @@ export function BrindeFlow({
                 <input type="radio" name="pagamento" className="size-5 accent-amber" checked={method === mt.key} onChange={() => setMethod(mt.key)} />
                 <span className="flex flex-1 flex-col">
                   <strong className="text-[15px] leading-5 text-fg">{mt.label}</strong>
-                  <span className="mono">{mt.key === "pix" ? "Aprovação na hora" : `Em até 6x de ${formatBRL(Math.ceil(total / 6))} sem juros`}</span>
+                  <span className="mono">{mt.key === "pix" ? "Aprovação na hora" : `Em até ${MAX_INSTALLMENTS}x de ${formatBRL(Math.ceil(total / MAX_INSTALLMENTS))} sem juros`}</span>
                 </span>
               </label>
             ))}
           </fieldset>
+
+          {method === "card" && (
+            <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0" aria-label="Dados do cartão de crédito">
+              <legend className="mono mb-1 p-0">Dados do cartão</legend>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="cc-number" className="mono">
+                  Número do cartão
+                </label>
+                <input
+                  id="cc-number"
+                  inputMode="numeric"
+                  autoComplete="cc-number"
+                  placeholder="0000 0000 0000 0000"
+                  value={card.number}
+                  onChange={(e) => setCard({ ...card, number: maskNumber(e.target.value) })}
+                  className={cardInput}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="cc-name" className="mono">
+                  Nome impresso no cartão
+                </label>
+                <input
+                  id="cc-name"
+                  autoComplete="cc-name"
+                  autoCapitalize="characters"
+                  placeholder="NOME COMO NO CARTÃO"
+                  value={card.name}
+                  onChange={(e) => setCard({ ...card, name: e.target.value.toUpperCase().slice(0, 40) })}
+                  className={cardInput}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="cc-exp" className="mono">
+                    Validade
+                  </label>
+                  <input
+                    id="cc-exp"
+                    inputMode="numeric"
+                    autoComplete="cc-exp"
+                    placeholder="MM/AA"
+                    value={card.exp}
+                    onChange={(e) => setCard({ ...card, exp: maskExp(e.target.value) })}
+                    className={cardInput}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="cc-csc" className="mono">
+                    CVV
+                  </label>
+                  <input
+                    id="cc-csc"
+                    inputMode="numeric"
+                    type="password"
+                    autoComplete="cc-csc"
+                    placeholder="123"
+                    value={card.cvv}
+                    onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                    className={cardInput}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="cc-parcelas" className="mono">
+                  Parcelas
+                </label>
+                <select id="cc-parcelas" value={installments} onChange={(e) => setInstallments(Number(e.target.value))} className={cardInput}>
+                  {Array.from({ length: MAX_INSTALLMENTS }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      {n}x de {formatBRL(Math.ceil(total / n))} sem juros
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p>Pagamento simulado: os dados do cartão ficam só nesta tela e não são enviados nem guardados.</p>
+            </fieldset>
+          )}
 
           <span className="tag tag-demo self-start">Simulação</span>
           {error && (
@@ -300,7 +426,7 @@ export function BrindeFlow({
             </p>
           )}
           <button type="button" className="btn btn-primary btn-block" onClick={paid} disabled={paying} aria-busy={paying}>
-            {paying ? "Confirmando…" : `Pagar ${formatBRL(total)}`}
+            {paying ? "Confirmando…" : method === "card" && installments > 1 ? `Pagar ${installments}x de ${formatBRL(Math.ceil(total / installments))}` : `Pagar ${formatBRL(total)}`}
           </button>
           <button type="button" className="btn btn-ghost" data-close>
             Cancelar

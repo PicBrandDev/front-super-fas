@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fetchJson, send, type ApiResult } from "@/lib/api";
-import type { MyCoupon, MyTicket, Post, Prize, Quote, SpinCredit, Viewer } from "@/lib/types";
+import type { MyCoupon, MyTicket, Post, Prize, Quote, Reward, SpinCredit, Viewer } from "@/lib/types";
 
 /*
  * Ações do fã. Sem API (modo exemplo) elas devolvem status 0 e as telas simulam o resultado.
@@ -25,7 +25,7 @@ export async function fanPost(
   return res;
 }
 
-export type SpinResult = { prize: Prize; spinsLeft: number; luckPoints: number; credits: SpinCredit[] };
+export type SpinResult = { prize: Prize; reward?: Reward | null; spinsLeft: number; luckPoints: number; credits: SpinCredit[] };
 
 /** Gira a roleta; com `creditId`, gasta aquele giro específico (senão o mais antigo). */
 export async function spinPickap(slug: string, club: string, creditId?: string): Promise<ApiResult<SpinResult>> {

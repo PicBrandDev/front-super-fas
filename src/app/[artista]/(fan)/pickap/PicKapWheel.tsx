@@ -10,7 +10,7 @@ import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
 import { useToast } from "@/components/fan/Toast";
 import type { InAppAd } from "@/lib/ads";
-import type { Prize, SpinCredit } from "@/lib/types";
+import type { Prize, Reward, SpinCredit } from "@/lib/types";
 import s from "./PicKap.module.css";
 import { PicKapVideoAd } from "./PicKapVideoAd";
 
@@ -20,13 +20,15 @@ const ARM_LEAD_MS = 450; // o braço desce antes de o disco girar
 const VU_MS = 140;
 
 type ClubRef = { slug: string; name: string };
-type Won = { key: number; label: string };
 
-/** Fatia em destaque na chegada: o ingresso, se houver; senão a primeira que não é "tente de novo". */
+/** Sem brinde nesta rodada: "não foi dessa vez" ou "tente de novo". */
+const isLose = (p: Prize) => !!p.isRetry || p.kind === "none" || p.kind === "retry";
+
+/** Fatia em destaque na chegada: o ingresso de pista, se houver; senão a primeira que dá brinde. */
 function featuredIndex(prizes: Prize[]) {
-  const ticket = prizes.findIndex((p) => /ingresso/i.test(p.label));
+  const ticket = prizes.findIndex((p) => p.kind === "ticket" || (!p.kind && /ingresso/i.test(p.label)));
   if (ticket >= 0) return ticket;
-  const real = prizes.findIndex((p) => !p.isRetry);
+  const real = prizes.findIndex((p) => !isLose(p));
   return real >= 0 ? real : 0;
 }
 
@@ -34,6 +36,7 @@ export function PicKapWheel({
   prizes,
   initialSpins,
   initialCredits,
+  rewardsCount = 0,
   club,
   demo,
   videoAd = null,
@@ -42,6 +45,7 @@ export function PicKapWheel({
   prizes: Prize[];
   initialSpins: number;
   initialCredits: SpinCredit[]; // cada giro com o motivo
+  rewardsCount?: number; // brindes ganhos ainda para retirar ou usar
   club: ClubRef | null; // roleta de qual fã clube
   demo: boolean; // prêmios de exemplo (sem API)
   videoAd?: InAppAd | null; // vídeo obrigatório antes do primeiro giro do período
@@ -69,21 +73,19 @@ export function PicKapWheel({
       : Array.from({ length: initialSpins }, (_, i) => ({ id: `demo-${i}`, reason: "Bônus de boas-vindas", used: false, prizeLabel: null, date: "" })),
   );
   const [error, setError] = useState("");
-  const [won, setWon] = useState<Won[]>([]);
   const [result, setResult] = useState<Prize | null>(null);
+  const [reward, setReward] = useState<Reward | null>(null); // o brinde guardado em Meus brindes
+  const [newRewards, setNewRewards] = useState(0);
   const [mastShift, setMastShift] = useState(0);
   const [mastMs, setMastMs] = useState<number | undefined>(undefined);
   // Giro esperando o vídeo patrocinado (guarda o crédito escolhido).
   const [pendingSpin, setPendingSpin] = useState<{ creditId?: string } | null>(null);
   const [claimOpen, setClaimOpen] = useState(false);
-  const focusMine = useRef(false);
 
   const mastBox = useRef<HTMLDivElement>(null);
-  const mineRef = useRef<HTMLElement>(null);
   const rotRef = useRef(rot);
   const vuTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const wonKey = useRef(0);
 
   const later = (fn: () => void, ms: number) => {
     const t = setTimeout(fn, ms);
@@ -117,11 +119,7 @@ export function PicKapWheel({
       setSpun(true);
       setOn(idx);
       setResult(prize);
-      if (!prize.isRetry) {
-        wonKey.current += 1;
-        const key = wonKey.current;
-        setWon((list) => [{ key, label: prize.label }, ...list]);
-      }
+      if (!isLose(prize)) setNewRewards((v) => v + 1);
     },
     [settle],
   );
@@ -134,6 +132,7 @@ export function PicKapWheel({
     setSpinning(true);
     setError("");
     setResult(null);
+    setReward(null);
     setOn(-1);
     setPlaying(true);
     setArm(TT.play);
@@ -158,6 +157,7 @@ export function PicKapWheel({
       idx = prizes.findIndex((p) => p.id === res.data.prize.id);
       setSpins(res.data.spinsLeft);
       setCredits(res.data.credits);
+      setReward(res.data.reward ?? null);
       if (idx < 0) {
         settle();
         setError("A roleta mudou. Recarregue a página.");
@@ -227,21 +227,17 @@ export function PicKapWheel({
 
   /** Fecha o resultado; se foi brinde, o anúncio de resgate entra depois (não trava o brinde). */
   const closeResult = useCallback(() => {
-    if (result && !result.isRetry && claimAd) setClaimOpen(true);
+    if (result && !isLose(result) && claimAd) setClaimOpen(true);
     setResult(null);
   }, [result, claimAd]);
   const closeClaim = useCallback(() => {
     setClaimOpen(false);
-    if (focusMine.current) {
-      focusMine.current = false;
-      toast("Guardado em Seus brindes");
-      // Depois de o modal devolver o foco, leva o fã até "Seus brindes".
-      setTimeout(() => mineRef.current?.focus(), 0);
-    }
+    toast("Guardado em Meus brindes");
   }, [toast]);
 
   const keyLabel = spinning ? "Tocando" : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : "Girar o disco";
-  const lose = !!result?.isRetry;
+  const lose = !!result && isLose(result);
+  const noPrize = result?.kind === "none";
 
   return (
     <div className={`${s.screen} bg-sun text-ink`}>
@@ -325,27 +321,28 @@ export function PicKapWheel({
           )}
         </section>
 
-        <section ref={mineRef} className={s.mine} aria-labelledby="mineH" tabIndex={-1}>
-          <h3 id="mineH">Seus brindes</h3>
-          {won.length === 0 ? (
-            <p className={s.empty}>
-              Nenhum brinde ainda. Gire para concorrer; o que sair fica guardado aqui para retirar no próximo evento.
-            </p>
-          ) : (
-            won.map((w) => (
-              <div key={w.key} className={`${s.won} new`}>
-                <strong>{w.label}</strong>
-                <span className="tag">Retirar no evento</span>
-              </div>
-            ))
-          )}
+        <section className={s.mine} aria-labelledby="mineH">
+          <h3 id="mineH">Meus brindes</h3>
+          <Link href={`${base}/pickap/brindes`} className={`${s.won} no-underline`}>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <strong>Ver todos os brindes que ganhei</strong>
+              <span className="mono" style={{ color: "inherit", opacity: 0.75 }}>
+                Cupons, ingresso, camiseta e boné, com o código e como retirar
+              </span>
+            </span>
+            {rewardsCount + newRewards > 0 && <span className="tag tag-key">{rewardsCount + newRewards}</span>}
+          </Link>
         </section>
       </div>
 
-      <Sheet open={!!result} onClose={closeResult} title={result ? (lose ? "Quase" : result.label) : ""}>
+      <Sheet open={!!result} onClose={closeResult} title={result ? (noPrize ? "Não foi dessa vez" : lose ? "Quase" : result.label) : ""}>
         {lose ? (
           <>
-            <p>A agulha parou em “tente de novo”. A roleta abre de novo na próxima rodada da fanzone.</p>
+            <p>
+              {noPrize
+                ? "Desta vez a agulha não parou em nenhum brinde. Seus próximos giros continuam valendo."
+                : "A agulha parou em “tente de novo”. A roleta abre de novo na próxima rodada da fanzone."}
+            </p>
             <button className="btn btn-primary" type="button" data-close data-autofocus>
               Fechar
             </button>
@@ -353,22 +350,35 @@ export function PicKapWheel({
         ) : (
           <>
             <p className="mono text-fg">Você ganhou{demo ? " · Exemplo" : ""}</p>
-            <p>O brinde fica guardado no seu perfil. Você retira no próximo evento com a sua identidade de fã.</p>
+            {reward ? (
+              <>
+                <p>{reward.instructions}</p>
+                {reward.kind !== "coupon" && (
+                  <p className="mono text-fg">
+                    Código para retirar: <strong className="num text-[20px] tracking-[0.2em]">{reward.code}</strong>
+                  </p>
+                )}
+                {reward.kind === "coupon" && (
+                  <p className="mono text-fg">
+                    Cupom: <strong className="num tracking-[0.1em]">{reward.couponCode}</strong>
+                  </p>
+                )}
+              </>
+            ) : (
+              <p>O brinde fica guardado em Meus brindes. Você retira no próximo evento com a sua identidade de fã.</p>
+            )}
             <div className="row">
-              <button
+              <Link
+                href={`${base}/pickap/brindes`}
                 className="btn btn-primary"
-                type="button"
                 data-close
                 data-autofocus
                 onClick={() => {
-                  // Com anúncio de resgate, o aviso sai depois que ele fecha (senão fica por cima do título).
-                  if (!claimAd) toast("Guardado em Seus brindes");
-                  mineRef.current?.focus();
-                  focusMine.current = true;
+                  if (!claimAd) toast("Guardado em Meus brindes");
                 }}
               >
-                Ver meu brinde
-              </button>
+                Ver meus brindes
+              </Link>
               <button className="btn btn-outline" type="button" data-close>
                 Fechar
               </button>
