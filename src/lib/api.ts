@@ -11,6 +11,19 @@ import { redirect, unstable_rethrow } from "next/navigation";
 import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import { exampleInAppAds, type InAppAds } from "./ads";
+import * as resaleMock from "./resale-mock";
+import type {
+  Eligibility,
+  Identity,
+  Listing,
+  ListingsPage,
+  MyListing,
+  Order,
+  ResaleEvent,
+  ResaleEventDetail,
+  Seller,
+  SellerReview,
+} from "./resale";
 import type {
   ClubMemberRow,
   ClubAnalytics,
@@ -80,7 +93,13 @@ async function get<T>(path: string, fallback: () => T, opts: { notFound?: T } = 
   return (await res.json()) as T;
 }
 
-export type ApiResult<T = unknown> = { ok: true; data: T } | { ok: false; error: string; status: number };
+/** `code` vem quando a API manda um código de máquina (ex.: revenda: "QTY_UNAVAILABLE"). */
+export type ApiResult<T = unknown> = { ok: true; data: T } | { ok: false; error: string; status: number; code?: string };
+
+const errorCode = (data: unknown) => {
+  const code = (data as { code?: unknown } | null)?.code;
+  return typeof code === "string" ? code : undefined;
+};
 
 /** Escrita na API (usado pelas server actions). Devolve a mensagem de erro da API, pronta para mostrar. */
 /** GET numa server action (o `get` do arquivo só roda em páginas e redireciona no 401). */
@@ -93,21 +112,23 @@ export async function fetchJson<T = unknown>(path: string): Promise<ApiResult<T>
     return { ok: false, error: "Não foi possível falar com o servidor.", status: 0 };
   }
   const data = await res.json().catch(() => null);
-  if (!res.ok) return { ok: false, error: errorMessage(data, res.status), status: res.status };
+  if (!res.ok) return { ok: false, error: errorMessage(data, res.status), status: res.status, code: errorCode(data) };
   return { ok: true, data: data as T };
 }
 
 export async function send<T = unknown>(
-  method: "POST" | "PATCH" | "DELETE",
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
+  extraHeaders?: Record<string, string>,
 ): Promise<ApiResult<T>> {
   if (!API_URL) return { ok: false, error: "O front não está ligado à API (API_URL).", status: 0 };
-  const init: RequestInit = { method };
+  const headers = new Headers(extraHeaders);
+  const init: RequestInit = { method, headers };
   if (body instanceof FormData) init.body = body;
   else if (body !== undefined) {
     init.body = JSON.stringify(body);
-    init.headers = { "Content-Type": "application/json" };
+    headers.set("Content-Type", "application/json");
   }
   let res: Response;
   try {
@@ -117,7 +138,7 @@ export async function send<T = unknown>(
   }
   if (res.status === 204) return { ok: true, data: undefined as T };
   const data = await res.json().catch(() => null);
-  if (!res.ok) return { ok: false, error: errorMessage(data, res.status), status: res.status };
+  if (!res.ok) return { ok: false, error: errorMessage(data, res.status), status: res.status, code: errorCode(data) };
   return { ok: true, data: data as T };
 }
 
@@ -190,10 +211,10 @@ export const getVendors = (slug: string, eventId: string) =>
 export const getGifts = (slug: string, eventId: string) =>
   get<Gift[]>(`/artists/${slug}/events/${eventId}/gifts`, () => mock.gifts);
 
-// ---------- PicKap, Loja, Drops Hits ----------
+// ---------- PicKup, Loja, Drops Hits ----------
 
-/** GET /artists/{slug}/pickap/prizes */
-export const getPrizes = (slug: string) => get<Prize[]>(`/artists/${slug}/pickap/prizes`, () => mock.prizes);
+/** GET /artists/{slug}/pickup/prizes */
+export const getPrizes = (slug: string) => get<Prize[]>(`/artists/${slug}/pickup/prizes`, () => mock.prizes);
 
 /** GET /artists/{slug}/products */
 export const getProducts = (slug: string) => get<Product[]>(`/artists/${slug}/products`, () => mock.products);
@@ -277,8 +298,8 @@ export const getRanking = (slug: string) => get<Ranking | null>(`/artists/${slug
 /** GET /artists/{slug}/me/tickets: os ingressos que o fã comprou. */
 export const getMyTickets = (slug: string) => get<MyTicket[]>(`/artists/${slug}/me/tickets`, () => [] as MyTicket[]);
 
-/** GET /artists/{slug}/pickap/spins: os giros do fã, cada um com o motivo. */
-export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickap/spins`, () => [] as SpinCredit[]);
+/** GET /artists/{slug}/pickup/spins: os giros do fã, cada um com o motivo. */
+export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickup/spins`, () => [] as SpinCredit[]);
 
 /** GET /artists/{slug}/me/rewards: os brindes que o fã ganhou na roleta. */
 export const getMyRewards = (slug: string) => get<Reward[]>(`/artists/${slug}/me/rewards`, () => [] as Reward[]);
@@ -318,9 +339,9 @@ export const getClub = (slug: string, club: string) =>
 export const getClubPosts = (slug: string, club: string) =>
   get<Post[]>(`/artists/${slug}/clubs/${club}/posts`, () => mock.posts.filter((p) => p.kind !== "drop"));
 
-/** GET /artists/{slug}/clubs/{club}/pickap/prizes */
+/** GET /artists/{slug}/clubs/{club}/pickup/prizes */
 export const getClubPrizes = (slug: string, club: string) =>
-  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickap/prizes`, () => mock.prizes);
+  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickup/prizes`, () => mock.prizes);
 
 /** GET /artists/{slug}/clubs/{club}/ad-slots */
 export const getClubAdSlots = (slug: string, club: string) =>
@@ -360,6 +381,54 @@ export const getClubManaged = <T>(slug: string, club: string, resource: string) 
 /** GET /artists/{slug}/manage/{recurso} */
 export const getManaged = <T>(slug: string, resource: string, query = "") =>
   get<T[]>(`/artists/${slug}/manage/${resource}${query}`, () => [] as T[]);
+
+// ---------- Revenda de ingressos (escrow entre fãs) ----------
+
+/**
+ * Leitura da revenda que pode falhar com motivo (ex.: 409 RESALE_CLOSED, 403 NOT_ELIGIBLE): a página mostra o `detail`.
+ * Sem API, devolve os dados de exemplo.
+ */
+async function resaleGet<T>(path: string, fallback: () => T | null): Promise<ApiResult<T>> {
+  if (!API_URL) {
+    await token();
+    const data = fallback();
+    return data == null ? { ok: false, error: "Não encontrado.", status: 404 } : { ok: true, data };
+  }
+  const res = await fetchJson<T>(path);
+  if (!res.ok && res.status === 401) redirect("/login");
+  return res;
+}
+
+const rs = (slug: string) => `/artists/${slug}/resale`;
+
+export const getResaleEligibility = (slug: string) => resaleGet<Eligibility>(`${rs(slug)}/me/eligibility`, () => resaleMock.eligibility);
+export const getResaleEvents = (slug: string) => resaleGet<ResaleEvent[]>(`${rs(slug)}/events`, () => resaleMock.events);
+export const getResaleEvent = (slug: string, id: string) =>
+  resaleGet<ResaleEventDetail>(`${rs(slug)}/events/${encodeURIComponent(id)}`, () => resaleMock.eventDetail(id));
+export const getResaleListings = (slug: string, eventId: string, q: { ticketId?: string; sort?: "price" | "recent"; page?: number } = {}) => {
+  const p = new URLSearchParams();
+  if (q.ticketId) p.set("ticketId", q.ticketId);
+  if (q.sort) p.set("sort", q.sort);
+  if (q.page && q.page > 1) p.set("page", String(q.page));
+  const qs = p.toString();
+  return resaleGet<ListingsPage>(`${rs(slug)}/events/${encodeURIComponent(eventId)}/listings${qs ? `?${qs}` : ""}`, () => {
+    let items = resaleMock.listings.filter((l) => l.eventId === eventId && (!q.ticketId || l.ticketId === q.ticketId));
+    if (q.sort !== "recent") items = [...items].sort((a, b) => a.unitPriceCents - b.unitPriceCents);
+    return { items, page: 1, hasMore: false };
+  });
+};
+export const getResaleListing = (slug: string, id: string) =>
+  resaleGet<Listing>(`${rs(slug)}/listings/${encodeURIComponent(id)}`, () => resaleMock.listings.find((l) => l.id === id) ?? null);
+export const getMyResaleListings = (slug: string) => resaleGet<MyListing[]>(`${rs(slug)}/me/listings`, () => resaleMock.myListings);
+export const getMyResaleOrders = (slug: string, role: "buyer" | "seller" | "all" = "all") =>
+  resaleGet<Order[]>(`${rs(slug)}/me/orders?role=${role}`, () => resaleMock.orders().filter((o) => role === "all" || o.role === role));
+export const getResaleOrder = (slug: string, id: string) =>
+  resaleGet<Order>(`${rs(slug)}/orders/${encodeURIComponent(id)}`, () => resaleMock.orders().find((o) => o.id === id) ?? null);
+export const getResaleSeller = (slug: string, userId: string) =>
+  resaleGet<Seller>(`${rs(slug)}/sellers/${encodeURIComponent(userId)}`, () => resaleMock.sellerById(userId));
+export const getResaleSellerReviews = (slug: string, userId: string) =>
+  resaleGet<SellerReview[]>(`${rs(slug)}/sellers/${encodeURIComponent(userId)}/reviews`, () => resaleMock.reviews);
+export const getIdentity = () => resaleGet<Identity>("/me/identity", () => resaleMock.identity);
 
 // ---------- Utilidades ----------
 

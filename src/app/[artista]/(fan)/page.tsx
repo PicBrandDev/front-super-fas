@@ -26,7 +26,7 @@ function Block({ title, children, flush = false }: { title: string; children: Re
 
 /**
  * Início: cartaz "Culture is the answer" com a faixa de leitura e, embaixo,
- * um bloco por tela (evento, PicKap, drops, loja, fã clubes, anúncio),
+ * um bloco por tela (evento, PicKup, drops, loja, fã clubes, anúncio),
  * todos montados com as peças do protótipo.
  */
 export default async function HomePage({ params }: { params: Promise<{ artista: string }> }) {
@@ -146,13 +146,13 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
         )}
       </Block>
 
-      <Block title="PicKap da sorte">
+      <Block title="PicKup da sorte">
         <div className="flex items-end justify-between gap-3">
           <div className="grid gap-2">
             <p className="m-0 max-w-[24ch] text-[15px] leading-[22px]">Solte a agulha e concorra a brindes da fanzone.</p>
             {featured && <span className="mono">Destaque: {featured.label}</span>}
           </div>
-          <Link href={`${base}/pickap`} className="btn btn-primary btn-sm">
+          <Link href={`${base}/pickup`} className="btn btn-primary btn-sm">
             Girar
           </Link>
         </div>

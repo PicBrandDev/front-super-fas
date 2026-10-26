@@ -21,7 +21,7 @@ type Params = Promise<{ artista: string; clube: string; secao: string }>;
 
 const titles: Record<string, string> = {
   mural: "Posts do fã clube",
-  pickap: "PicKap",
+  pickup: "PicKup",
   anuncios: "Anúncios",
   equipe: "Equipe",
   dados: "Dados do clube",
@@ -54,13 +54,13 @@ export default async function ClubAdminSection({ params }: { params: Params }) {
     case "mural":
       body = <ClubFeedAdmin slug={artist.slug} club={club.slug} clubName={club.name} items={await getClubFeed(artist.slug, club.slug)} />;
       break;
-    case "pickap":
+    case "pickup":
       body = (
         <ResourceManager
           slug={artist.slug}
           club={club.slug}
           resource="prizes"
-          title="PicKap do clube"
+          title="PicKup do clube"
           description={`Fatias da roleta do ${club.name}. O sorteio acontece no servidor; fatias com pontos somam nos pontos da sorte do fã.`}
           singular="prêmio"
           fields={prizeFields}

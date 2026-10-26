@@ -21,7 +21,7 @@ const GO_MS = 2200; // quanto tempo a mensagem do giro fica antes de levar à ro
  * (Stories 9:16 e Feed 4:5) com a foto, a hashtag que conta pontos e o código do fã, e copia a legenda. Um toque abre o
  * compartilhamento do celular, onde o fã escolhe Instagram → Stories, Feed etc. (o Instagram não deixa uma página
  * preencher legenda ou hashtag, por isso a hashtag também vai dentro da imagem). No computador, a arte é baixada.
- * Depois, "Já postei": como o app ainda é de exemplo, rende na hora 1 giro da roleta e leva para o PicKap. O ponto no
+ * Depois, "Já postei": como o app ainda é de exemplo, rende na hora 1 giro da roleta e leva para o PicKup. O ponto no
  * ranking só vem quando a conferência no Instagram achar a hashtag e o código do fã.
  */
 export function ShareInstagram({
@@ -89,7 +89,7 @@ export function ShareInstagram({
     const t = setTimeout(() => {
       setOpen(false);
       setStep("info");
-      router.push(`${base}/pickap`);
+      router.push(`${base}/pickup`);
     }, GO_MS);
     return () => clearTimeout(t);
   }, [step, base, router]);
@@ -276,7 +276,7 @@ export function ShareInstagram({
               onClick={() => {
                 setOpen(false);
                 setStep("info");
-                router.push(`${base}/pickap`);
+                router.push(`${base}/pickup`);
               }}
             >
               Ir para a roleta agora

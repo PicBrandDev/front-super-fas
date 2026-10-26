@@ -3,7 +3,7 @@ import { MARK_POINTS } from "./Mark";
 import s from "./Turntable.module.css";
 
 /**
- * Toca-discos do PicKap: o disco é a roleta e a agulha escolhe o prêmio.
+ * Toca-discos do PicKup: o disco é a roleta e a agulha escolhe o prêmio.
  * Porte fiel de `turntable()` do protótipo fanzone.html.
  *
  * API
@@ -200,7 +200,7 @@ export function Turntable({
         <circle cx={c.cx} cy={c.cy} r="52" fill="var(--label-blue)" />
         <circle cx={c.cx} cy={c.cy} r="47" fill="none" stroke="var(--fc-ink)" strokeWidth=".6" />
         <text x={c.cx} y={c.cy - 17} textAnchor="middle" fontWeight="800" fontSize="12" fill="var(--fc-ink)" style={grotesk}>
-          PICKAP
+          PICKUP
         </text>
         <g transform={`translate(${c.cx - 15} ${c.cy + 5}) scale(0.034)`} fill="none" stroke="var(--fc-ink)" strokeWidth="40">
           <g transform="translate(-146 -288)">

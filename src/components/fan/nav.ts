@@ -12,8 +12,8 @@ export type NavItem = { href: string; label: string; icon: IconName; match?: str
 export const deckNav: NavItem[] = [
   { href: "", label: "Início", icon: "home", match: ["/mural", "/drops"] },
   { href: "/comunidade", label: "Comunidade", icon: "comment", match: ["/clubes"] },
-  { href: "/pickap", label: "PicKap", icon: "wheel" },
-  { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos", "/photo-finder"] },
+  { href: "/pickup", label: "PicKup", icon: "wheel" },
+  { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos", "/photo-finder", "/revenda"] },
   { href: "/loja", label: "Loja", icon: "bag" },
 ];
 
@@ -23,8 +23,9 @@ export const sideNav: NavItem[] = [
   { href: "/mural", label: "Mural", icon: "news", match: ["/drops"] },
   { href: "/comunidade", label: "Comunidade", icon: "comment" },
   { href: "/clubes", label: "Fã clubes", icon: "users" },
-  { href: "/pickap", label: "PicKap da sorte", icon: "wheel" },
+  { href: "/pickup", label: "PicKup da sorte", icon: "wheel" },
   { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos"] },
+  { href: "/revenda", label: "Revenda entre fãs", icon: "repost" },
   { href: "/photo-finder", label: "Photo finder", icon: "camera" },
   { href: "/loja", label: "Loja Vintage", icon: "bag" },
 ];

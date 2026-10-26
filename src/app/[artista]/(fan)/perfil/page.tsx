@@ -174,8 +174,8 @@ export default async function PerfilPage({ params }: { params: Promise<{ artista
             <Row label="Giros disponíveis" value={String(freeSpins)} />
             <Row label="Pontos da sorte" value={viewer.luckPoints.toLocaleString("pt-BR")} />
           </dl>
-          <Link href={`${base}/pickap`} className="go mt-2 min-h-11">
-            Ir para o PicKap
+          <Link href={`${base}/pickup`} className="go mt-2 min-h-11">
+            Ir para o PicKup
             <Icon name="arrow" size={14} />
           </Link>
         </Section>

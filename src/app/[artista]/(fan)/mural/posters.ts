@@ -11,7 +11,7 @@ export type Poster = {
   /** Id do Drop News de origem (só nos cartazes de post oficial; é o que dá para compartilhar no Instagram). */
   postId?: string;
   kind: PosterKind;
-  /** Nome curto do cartaz (aria-label, "Drop novo", "PicKap"...). */
+  /** Nome curto do cartaz (aria-label, "Drop novo", "PicKup"...). */
   cap: string;
   /** Quem assina a faixa de leitura. */
   by: string;
@@ -147,12 +147,12 @@ export function buildPosters({
   out.push({
     id: "pick",
     kind: "pick",
-    cap: "PicKap",
+    cap: "PicKup",
     by: "Fanzone",
-    text: "PicKap da sorte aberto para todos os fãs. Gira, concorre e vê o seu brinde na hora.",
+    text: "PicKup da sorte aberto para todos os fãs. Gira, concorre e vê o seu brinde na hora.",
     headline: ["Tente", "a", "sorte"],
-    credits: ["PicKap da sorte"],
-    cta: { label: "Girar", href: "/pickap" },
+    credits: ["PicKup da sorte"],
+    cta: { label: "Girar", href: "/pickup" },
     likes: 960,
     comments: 120,
     reposts: 88,

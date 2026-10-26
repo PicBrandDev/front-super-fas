@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
-import { PICKAP_VIDEO_MIN_SECONDS, type InAppAd } from "@/lib/ads";
-import v from "./PicKapVideoAd.module.css";
+import { PICKUP_VIDEO_MIN_SECONDS, type InAppAd } from "@/lib/ads";
+import v from "./PicKupVideoAd.module.css";
 
 const TICK_MS = 250;
 
@@ -14,7 +14,7 @@ const TICK_MS = 250;
  * Sem `videoUrl` (ou se o vídeo falhar) mostra a arte parada com a mesma contagem.
  * "Agora não" fecha sem girar a qualquer momento; Esc só depois de liberado.
  */
-export function PicKapVideoAd({
+export function PicKupVideoAd({
   ad,
   onDone,
   onDismiss,
@@ -23,7 +23,7 @@ export function PicKapVideoAd({
   onDone: () => void; // "Girar agora"
   onDismiss: (watched: boolean) => void; // "Agora não" ou Esc depois de liberado: fecha sem girar (não gasta o giro)
 }) {
-  const total = Math.max(1, Math.round(ad.minSeconds ?? PICKAP_VIDEO_MIN_SECONDS));
+  const total = Math.max(1, Math.round(ad.minSeconds ?? PICKUP_VIDEO_MIN_SECONDS));
   const box = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
@@ -112,8 +112,8 @@ export function PicKapVideoAd({
       className={v.overlay}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="pickap-ad-title"
-      aria-describedby="pickap-ad-text"
+      aria-labelledby="pickup-ad-title"
+      aria-describedby="pickup-ad-text"
       tabIndex={-1}
     >
       <div className={v.bar}>
@@ -182,10 +182,10 @@ export function PicKapVideoAd({
       </div>
 
       <div className={`${v.body} ${hasVideo ? v.compact : ""}`}>
-        <h2 id="pickap-ad-title" className={v.title}>
+        <h2 id="pickup-ad-title" className={v.title}>
           {ad.title}
         </h2>
-        <p id="pickap-ad-text" className={v.text}>
+        <p id="pickup-ad-text" className={v.text}>
           {ad.text}
         </p>
         <div className={v.pair}>

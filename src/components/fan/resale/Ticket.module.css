@@ -1,0 +1,372 @@
+/*
+ * Ingresso na tela (revenda e Meus ingressos): campo chapado do show em cima, corpo com titular e número,
+ * picote com dois recortes e o canhoto. O carimbo da etapa bate no corpo.
+ */
+.ticket {
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  color: var(--fc-fg);
+  text-decoration: none;
+}
+
+/* ---------- face: o show ---------- */
+.face {
+  /* A cidade e a foto ficam presas dentro da face (na carteira, o ingresso seguinte cobre o pé desta). */
+  isolation: isolate;
+  --field: var(--fc-amber);
+  --on-field: var(--fc-ink);
+  position: relative;
+  overflow: hidden;
+  height: clamp(150px, 42cqw, 176px);
+  padding: 14px 16px;
+  border-radius: 2px 2px 0 0;
+  background: var(--field);
+  color: var(--on-field);
+}
+.ticket[data-field="sun"] .face {
+  --field: var(--fc-sun);
+}
+.ticket[data-field="poster-grey"] .face {
+  --field: var(--fc-poster-grey);
+}
+.ticket[data-field="lagoon-deep"] .face {
+  --field: var(--fc-lagoon-deep);
+  --on-field: var(--fc-paper);
+}
+.faceTop {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 30cqw;
+  font: 500 11px/14px var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+/* Data do show em serifa e, embaixo, dia da semana, hora, tipo e quantidade: a leitura da faixa, à esquerda da foto. */
+.when {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  padding-right: 30cqw;
+  font: 500 11px/14px var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.when b {
+  font: 900 26px/26px var(--fc-font-display);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.photo {
+  position: absolute;
+  right: -6cqw;
+  bottom: 0;
+  height: 84%;
+  width: auto;
+  max-width: none;
+  mix-blend-mode: multiply;
+  filter: grayscale(1) contrast(1.05);
+  pointer-events: none;
+  user-select: none;
+}
+.disc {
+  position: absolute;
+  right: -18cqw;
+  top: 50%;
+  width: 66cqw;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+/* A cidade em serifa pesada, cortada pela borda de baixo (a informação legível está no corpo). */
+.city {
+  position: absolute;
+  z-index: 1;
+  left: 12px;
+  bottom: 0;
+  margin: 0;
+  font: 900 clamp(60px, 21cqw, 96px) / 0.8 var(--fc-font-display);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  transform: translateY(0.16em);
+}
+
+/* ---------- corpo: quem, o quê, qual número ---------- */
+.body {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 16px 16px 18px;
+  background: var(--fc-surface);
+  border-inline: 1px solid var(--fc-line);
+}
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.cell {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.cell dt {
+  font: 400 11px/14px var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fc-fg-muted);
+}
+.cell dd {
+  margin: 0;
+  font: 700 17px/22px var(--fc-font-grotesk);
+  overflow-wrap: anywhere;
+}
+.holder dd {
+  font: 700 22px/26px var(--fc-font-display);
+  padding-right: 120px;
+}
+.ref dd {
+  font: 500 20px/24px var(--fc-font-mono);
+  letter-spacing: 0.14em;
+  font-variant-numeric: tabular-nums;
+}
+.proof {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fc-line);
+}
+.proof p {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--fc-fg-muted);
+}
+.proof p svg {
+  flex: none;
+  margin-top: 1px;
+}
+.proof .ok {
+  color: var(--fc-fg);
+}
+/* Fora do ingresso (abaixo da trilha), sem o fio de cima do corpo. */
+.proofOut {
+  padding-top: 0;
+  border-top: 0;
+}
+/* Quem emite o ingresso: rodapé do corpo em mono apagado. */
+.issuer {
+  margin: 0;
+  font: 400 11px/14px var(--fc-font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fc-fg-muted);
+}
+.stampSlot {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+}
+
+/* ---------- picote ---------- */
+.perf {
+  position: relative;
+  height: 24px;
+  background: var(--fc-surface);
+}
+.perf::before,
+.perf::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fc-bg);
+  border: 1px solid var(--fc-line);
+}
+.perf::before {
+  left: -12px;
+}
+.perf::after {
+  right: -12px;
+}
+.perf i {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 11px;
+  border-top: 1px dashed var(--fc-line-strong);
+}
+
+/* ---------- canhoto ---------- */
+.stub {
+  display: grid;
+  gap: 16px;
+  padding: 6px 16px 18px;
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-line);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
+}
+
+/* ---------- na carteira: barra (tipo + carimbo) em cima, face embaixo; os ingressos se sobrepõem ---------- */
+.compact .face {
+  height: 136px;
+  border-radius: 0 0 2px 2px;
+}
+.compact .city {
+  font-size: clamp(56px, 19cqw, 84px);
+}
+.compactBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px;
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-line-strong);
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+}
+.compactBar strong {
+  min-width: 0;
+  font-size: 15px;
+  line-height: 20px;
+}
+.compactSub {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--fc-fg-muted);
+}
+a.ticket {
+  transition: transform 0.2s var(--ease);
+}
+a.ticket:hover,
+a.ticket:focus-visible {
+  transform: translateY(-6px);
+}
+a.ticket:hover .compactBar,
+a.ticket:focus-visible .compactBar {
+  background: var(--fc-raised);
+}
+.wallet {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.wallet > li {
+  position: relative;
+}
+.wallet > li + li {
+  margin-top: -72px;
+}
+@media (prefers-reduced-motion: reduce) {
+  a.ticket {
+    transition: none;
+  }
+}
+
+/* ---------- carimbo ---------- */
+.stamp {
+  --ink: var(--fc-fg);
+  display: inline-grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 10px 5px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  color: var(--ink);
+  transform: rotate(-7deg);
+  white-space: nowrap;
+}
+.stamp b {
+  font: 500 13px/16px var(--fc-font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.stamp small {
+  font: 400 10px/12px var(--fc-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stamp[data-tone="amber"] {
+  --ink: var(--fc-amber-text);
+}
+.stamp[data-tone="sun"] {
+  --ink: var(--fc-sun);
+}
+.stamp[data-tone="signal"] {
+  --ink: var(--fc-signal);
+}
+.stamp[data-tone="spent"],
+.stamp[data-tone="done"] {
+  --ink: var(--fc-fg-muted);
+}
+.stamp[data-tone="spent"] b {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.stamp.small {
+  padding: 3px 7px 2px;
+  transform: rotate(-4deg);
+}
+.stamp.small b {
+  font-size: 11px;
+  line-height: 13px;
+}
+/* A etapa mudou agora: o carimbo bate uma vez. */
+.stamp.fresh {
+  animation: stamp-in 0.18s var(--ease) both;
+}
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: rotate(-7deg) scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-7deg) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stamp.fresh {
+    animation: none;
+  }
+}
+
+/* ---------- trilha de carimbos (etapas já passadas) ---------- */
+.trail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  border-top: 1px solid var(--fc-line);
+}
+.trail li {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--fc-line);
+}
+.trail li[data-state="next"] {
+  color: var(--fc-fg-muted);
+}
+.trail li[data-state="next"] .stamp {
+  border-style: dashed;
+}
+.trail .trailWhen {
+  font-size: 14px;
+  line-height: 20px;
+}
