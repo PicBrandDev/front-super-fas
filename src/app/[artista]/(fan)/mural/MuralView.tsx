@@ -65,18 +65,24 @@ export function MuralView({
   const [reacts, setReacts] = useState<Record<string, boolean>>({});
   const wall = useRef<HTMLDivElement>(null);
 
-  // Liga `in` no cartaz encaixado e avança o contador.
+  // Feed: a animação de entrada do cartaz toca só na primeira vez que ele aparece (repetir a cada rolagem faz o feed "dançar"),
+  // e o contador mostra o cartaz que está ocupando a tela.
   useEffect(() => {
     const root = wall.current;
     if (tab !== "wall" || !root) return;
+    const visible = new Set<number>();
     const io = new IntersectionObserver(
       (entries) => {
         for (const en of entries) {
-          en.target.classList.toggle(s.in, en.isIntersecting);
-          if (en.isIntersecting) setIndex(Number((en.target as HTMLElement).dataset.i));
+          const i = Number((en.target as HTMLElement).dataset.i);
+          if (en.isIntersecting) {
+            en.target.classList.add(s.in);
+            visible.add(i);
+          } else visible.delete(i);
         }
+        if (visible.size) setIndex(Math.min(...visible));
       },
-      { root, threshold: 0.6 },
+      { threshold: 0.5 },
     );
     root.querySelectorAll<HTMLElement>("[data-i]").forEach((el) => io.observe(el));
     return () => io.disconnect();

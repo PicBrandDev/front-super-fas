@@ -1,15 +1,16 @@
-/* Mural: muro de cartazes (um por tela, snap obrigatório) e lista de Drops.
-   Porte fiel do protótipo fanzone.html (.wall .slide .pst .meta .p-* .drop .prog). */
+/* Mural: feed de cartazes (rolagem normal da página, sem encaixe forçado) e lista de Drops.
+   Porte do protótipo fanzone.html (.wall .slide .pst .meta .p-* .drop .prog). */
 
 .screen {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - var(--navspace));
-  min-height: 0;
+  min-height: calc(100dvh - var(--navspace));
+  padding-bottom: calc(var(--navspace) + 16px); /* o último cartaz não fica atrás da barra de baixo */
 }
 @media (min-width: 64rem) {
   .screen {
-    height: calc(100dvh - 48px);
+    min-height: calc(100dvh - 48px);
+    padding-bottom: 24px;
   }
 }
 
@@ -25,33 +26,19 @@
 
 /* ---------- o muro ---------- */
 .wall {
-  flex: 1;
-  min-height: 0;
   margin-top: 12px;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-}
-.wall::-webkit-scrollbar {
-  display: none;
-}
-.slide {
-  height: calc(100% - 14px);
   display: flex;
   flex-direction: column;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  container-type: size;
+  gap: 20px;
 }
-.slide:last-child {
-  height: 100%;
+.slide {
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size; /* o cartaz mede em cqw da largura; a altura vem do conteúdo */
 }
-/* Post patrocinado: uma linha baixa entre dois cartazes. Encaixa pela borda de baixo,
-   então o cartaz anterior continua quase inteiro na tela; sem snap-stop, passa direto no gesto. */
+/* Post patrocinado: uma linha baixa entre dois cartazes, rolando junto com o feed. */
 .feedAd {
   flex: none;
-  scroll-snap-align: end;
 }
 .pst {
   position: relative;
@@ -334,9 +321,6 @@
 /* ---------- drops ---------- */
 .list {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 .drop {
   display: grid;
