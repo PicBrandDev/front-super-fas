@@ -28,9 +28,9 @@ export async function fanPost(
 export type SpinResult = { prize: Prize; reward?: Reward | null; spinsLeft: number; luckPoints: number; credits: SpinCredit[] };
 
 /** Gira a roleta; com `creditId`, gasta aquele giro específico (senão o mais antigo). */
-export async function spinPickap(slug: string, club: string, creditId?: string): Promise<ApiResult<SpinResult>> {
+export async function spinPickup(slug: string, club: string, creditId?: string): Promise<ApiResult<SpinResult>> {
   if (!slugOk(slug) || !slugOk(club) || (creditId && !idOk(creditId))) return bad();
-  return send<SpinResult>("POST", `/artists/${slug}/clubs/${club}/pickap/spin`, creditId ? { creditId } : undefined);
+  return send<SpinResult>("POST", `/artists/${slug}/clubs/${club}/pickup/spin`, creditId ? { creditId } : undefined);
 }
 
 const cartOk = (slug: string, eventId: string, packageId: string, item: number, addons: string[], coupon: string) =>

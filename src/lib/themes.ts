@@ -20,7 +20,7 @@ export type ArtistTheme = {
   amber: string; // acento assinatura (botão primário, ativo)
   amberText: string; // acento usado como texto (contraste sobre bg)
   onAmber: string; // texto sobre amber/sun
-  sun: string; // amarelo (PicKap, selo do vinil, tag key)
+  sun: string; // amarelo (PicKup, selo do vinil, tag key)
   signalRed: string; // alerta, "últimos lotes", curtida
   lagoon: string; // azul
   lagoonDeep: string; // azul profundo (cartaz, Photo Finder, Loja)

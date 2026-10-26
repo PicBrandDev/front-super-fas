@@ -132,7 +132,7 @@ export const vendors: Vendor[] = [
 
 export const gifts: Gift[] = [
   { id: "b1", name: "Pôster autografado", phase: "before", qtyLabel: "[qtd] un." },
-  { id: "b2", name: "+1 giro no PicKap", phase: "before", qtyLabel: "todos" },
+  { id: "b2", name: "+1 giro no PicKup", phase: "before", qtyLabel: "todos" },
   { id: "b3", name: "Kit de adesivos", phase: "before", qtyLabel: "[qtd] un." },
   { id: "a1", name: "Camiseta do show", phase: "after" },
   { id: "a2", name: "Upgrade de setor", phase: "after" },
@@ -174,7 +174,7 @@ export const homeAd: HomeAd = {
 
 export const memberPerks: MemberPerk[] = [
   { title: "Drop News exclusivos", sub: "Bastidores e notícias só para membros" },
-  { title: "Giros extras no PicKap", sub: "+[n] giros todo mês" },
+  { title: "Giros extras no PicKup", sub: "+[n] giros todo mês" },
   { title: "Prioridade na sorte dos eventos", sub: "Mais chances nos brindes de cada show" },
   { title: "Desconto na Loja Vintage", sub: "[x]% em todos os produtos" },
   { title: "Drops Hits antes de todo mundo", sub: "Prévias liberadas primeiro para você" },
@@ -185,17 +185,17 @@ export const adSlots: AdSlot[] = [
   { id: "home", name: "Card da Home", where: "Início · logo acima do Drop News", format: "Arte + título + texto + link", priceLabel: "R$ [PREÇO] / semana", occupied: true, active: true, diagram: { top: 20, height: 16 } },
   { id: "mural", name: "Post patrocinado no Mural", where: "Mural · post pequeno entre os cartazes, a cada 4", format: "Miniatura + título + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 28, height: 24 } },
   { id: "evento", name: "Patrocínio de evento", where: "Tela do evento · faixa acima de Onde comprar", format: "Logo + texto + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 58, height: 12 } },
-  { id: "pickap", name: "Prêmio patrocinado no PicKap", where: "Roleta · uma fatia com a marca e o prêmio", format: "Logo + prêmio ou cupom", priceLabel: "R$ [PREÇO] / semana", occupied: true, active: true, diagram: { top: 18, height: 44 } },
+  { id: "pickup", name: "Prêmio patrocinado no PicKup", where: "Roleta · uma fatia com a marca e o prêmio", format: "Logo + prêmio ou cupom", priceLabel: "R$ [PREÇO] / semana", occupied: true, active: true, diagram: { top: 18, height: 44 } },
   { id: "loja", name: "Banner da Loja", where: "Loja Vintage · topo da página", format: "Banner 16:9 + link", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 16, height: 20 } },
   { id: "drops", name: "“Apresenta” no Drops Hits", where: "Player de prévias · “[Marca] apresenta”", format: "Logo", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 22, height: 10 } },
   { id: "entrada", name: "Anúncio de entrada", where: "Ao abrir o app · janela depois do login", format: "Arte + título + texto + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 50, height: 34 } },
-  { id: "pickap_video", name: "Vídeo antes do giro", where: "PicKap · vídeo de 30 s antes de girar a roleta", format: "Vídeo 30 s + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 4, height: 84 } },
-  { id: "pickap_resgate", name: "Anúncio no resgate do prêmio", where: "PicKap · janela depois de ganhar na roleta", format: "Arte + título + texto + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 50, height: 34 } },
+  { id: "pickup_video", name: "Vídeo antes do giro", where: "PicKup · vídeo de 30 s antes de girar a roleta", format: "Vídeo 30 s + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 4, height: 84 } },
+  { id: "pickup_resgate", name: "Anúncio no resgate do prêmio", where: "PicKup · janela depois de ganhar na roleta", format: "Arte + título + texto + botão", priceLabel: "R$ [PREÇO] / semana", occupied: false, active: true, diagram: { top: 50, height: 34 } },
 ];
 
 export const campaigns: Campaign[] = [
   { id: "c1", sponsor: "[Marca A]", slotName: "Card da Home", title: "[Título do anúncio]", period: "[início] – [fim]", status: "live" },
-  { id: "c2", sponsor: "[Marca B]", slotName: "Prêmio patrocinado no PicKap", title: "[Prêmio patrocinado]", period: "[início] – [fim]", status: "live" },
+  { id: "c2", sponsor: "[Marca B]", slotName: "Prêmio patrocinado no PicKup", title: "[Prêmio patrocinado]", period: "[início] – [fim]", status: "live" },
   { id: "c3", sponsor: "[Marca C]", slotName: "Post patrocinado no Mural", title: "[Título do anúncio]", period: "[início] – [fim]", status: "pending" },
   { id: "c4", sponsor: "[Marca D]", slotName: "Banner da Loja", title: "[Título do anúncio]", period: "[início] – [fim]", status: "pending" },
 ];
@@ -213,7 +213,7 @@ export const clubAdmins: ClubAdmin[] = [
   { name: "Caio Duarte", role: "Conteúdo e Drop News" },
   { name: "Lu Ferreira", role: "Agenda e eventos" },
   { name: "Téo Martins", role: "Loja Vintage" },
-  { name: "Nina Rocha", role: "PicKap e sorteios" },
+  { name: "Nina Rocha", role: "PicKup e sorteios" },
   { name: "Duda Alves", role: "Photo Finder" },
 ];
 

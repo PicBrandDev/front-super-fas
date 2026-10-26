@@ -17,7 +17,7 @@ export default async function ArtistCadastroPage({ params }: { params: Promise<{
     <AuthShell
       artist={artist}
       title="Criar conta de fã"
-      description={`Você já entra no fã clube de ${artist.name}: mural, PicKap, agenda e fotos dos shows.`}
+      description={`Você já entra no fã clube de ${artist.name}: mural, PicKup, agenda e fotos dos shows.`}
       footer={
         <>
           Já tem conta?{" "}

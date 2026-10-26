@@ -227,7 +227,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
                 className="btn btn-primary btn-block"
                 onClick={() => {
                   closeBag();
-                  router.push(`${base}/pickap`);
+                  router.push(`${base}/pickup`);
                 }}
                 data-autofocus
               >

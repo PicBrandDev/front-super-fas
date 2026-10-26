@@ -20,7 +20,7 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
  * borda, que desliza conforme a aba ativa (`index` de 0 a `steps - 1`).
  * Ao entrar na tela, a palavra chega pela direita (sem movimento com
  * reduced motion). `shiftPx`/`durationMs` deslocam a palavra por fora
- * (ex.: enquanto o PicKap gira).
+ * (ex.: enquanto o PicKup gira).
  */
 export function Masthead({
   word,

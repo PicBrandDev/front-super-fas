@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { spinPickap } from "@/app/actions/fan";
+import { spinPickup } from "@/app/actions/fan";
 import { AdModal } from "@/components/fan/AdModal";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Masthead } from "@/components/fan/Masthead";
@@ -11,8 +11,8 @@ import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable"
 import { useToast } from "@/components/fan/Toast";
 import type { InAppAd } from "@/lib/ads";
 import type { Prize, Reward, SpinCredit } from "@/lib/types";
-import s from "./PicKap.module.css";
-import { PicKapVideoAd } from "./PicKapVideoAd";
+import s from "./PicKup.module.css";
+import { PicKupVideoAd } from "./PicKupVideoAd";
 
 const PFX = "dk";
 const SPIN_MS = 4200; // transição do disco (Turntable.module.css)
@@ -32,7 +32,7 @@ function featuredIndex(prizes: Prize[]) {
   return real >= 0 ? real : 0;
 }
 
-export function PicKapWheel({
+export function PicKupWheel({
   prizes,
   initialSpins,
   initialCredits,
@@ -151,7 +151,7 @@ export function PicKapWheel({
     const started = Date.now();
 
     // O servidor sorteia o prêmio e desconta o giro; sem API (modo exemplo) sorteia aqui.
-    const res = await spinPickap(slug, club.slug, creditId && !creditId.startsWith("demo-") ? creditId : undefined);
+    const res = await spinPickup(slug, club.slug, creditId && !creditId.startsWith("demo-") ? creditId : undefined);
     let idx: number;
     if (res.ok) {
       idx = prizes.findIndex((p) => p.id === res.data.prize.id);
@@ -242,7 +242,7 @@ export function PicKapWheel({
   return (
     <div className={`${s.screen} bg-sun text-ink`}>
       <div ref={mastBox}>
-        <Masthead word="PicKap" label="PicKap da sorte" tone="sun" shiftPx={mastShift} durationMs={mastMs} />
+        <Masthead word="PicKup" label="PicKup da sorte" tone="sun" shiftPx={mastShift} durationMs={mastMs} />
       </div>
 
       <div className={s.plinth}>
@@ -323,7 +323,7 @@ export function PicKapWheel({
 
         <section className={s.mine} aria-labelledby="mineH">
           <h3 id="mineH">Meus brindes</h3>
-          <Link href={`${base}/pickap/brindes`} className={`${s.won} no-underline`}>
+          <Link href={`${base}/pickup/brindes`} className={`${s.won} no-underline`}>
             <span className="flex min-w-0 flex-1 flex-col">
               <strong>Ver todos os brindes que ganhei</strong>
               <span className="mono" style={{ color: "inherit", opacity: 0.75 }}>
@@ -369,7 +369,7 @@ export function PicKapWheel({
             )}
             <div className="row">
               <Link
-                href={`${base}/pickap/brindes`}
+                href={`${base}/pickup/brindes`}
                 className="btn btn-primary"
                 data-close
                 data-autofocus
@@ -387,7 +387,7 @@ export function PicKapWheel({
         )}
       </Sheet>
 
-      {videoAd && pendingSpin && <PicKapVideoAd ad={videoAd} onDone={videoDone} onDismiss={videoDismiss} />}
+      {videoAd && pendingSpin && <PicKupVideoAd ad={videoAd} onDone={videoDone} onDismiss={videoDismiss} />}
       {claimAd && (
         <AdModal ad={claimAd} open={claimOpen} onClose={closeClaim} lockSeconds={claimAd.minSeconds ?? 0} closeLabel="Fechar anúncio" />
       )}
