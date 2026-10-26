@@ -8,6 +8,7 @@ import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
 import { eventName, isPastEvent, statusLabel, statusTagClass } from "@/lib/events";
 import { formatBRL } from "@/lib/format";
+import { summarize, type PackageChoice } from "@/lib/package-choice";
 import type { EventPackage, ShowEvent, Vendor } from "@/lib/types";
 import { PackagePicker } from "@/components/fan/PackagePicker";
 import { BrindeFlow } from "./BrindeFlow";
@@ -38,12 +39,13 @@ export function EventoView({
   const [buyOpen, setBuyOpen] = useState(false);
   const [brindeOpen, setBrindeOpen] = useState(false);
   // Opção escolhida: um ingresso avulso (vai para a ticketeira) ou um pacote de agência (vai para o link do pacote).
-  const [choice, setChoice] = useState<{ type: "package"; id: string; item: number } | null>(null);
+  const [choice, setChoice] = useState<PackageChoice | null>(null);
   const hasOptions = packages.length > 0;
-  const chosenPackage = choice?.type === "package" ? packages.find((p) => p.id === choice.id) : undefined;
-  // Cada opção do pacote é um tipo de ingresso (com ou sem transfer) com o seu valor.
-  const chosenOption = chosenPackage && choice?.type === "package" ? chosenPackage.items[choice.item] : undefined;
-  const buyLabel = chosenOption ? `${chosenOption.label} · ${formatBRL(chosenOption.priceCents)}` : "";
+  // Cada opção do pacote é um tipo de ingresso (com ou sem transfer); as experiências marcadas somam ao valor.
+  const picked = summarize(packages, choice);
+  const chosenPackage = picked?.pkg;
+  const chosenOption = picked?.option;
+  const buyLabel = picked?.label ?? "";
 
   return (
     <>
@@ -96,8 +98,9 @@ export function EventoView({
           {packages.length > 0 && (
             <PackagePicker
               packages={packages}
-              choice={choice ? { id: choice.id, item: choice.item } : null}
-              onChoose={(id, item) => setChoice({ type: "package", id, item })}
+              choice={choice}
+              onChoose={(id, item) => setChoice((c) => ({ id, item, addons: c?.id === id ? c.addons : [] }))}
+              onToggleAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.includes(key) ? c.addons.filter((k) => k !== key) : [...c.addons, key] } : c))}
               labelledBy="ingressos-h"
             />
           )}
@@ -146,7 +149,7 @@ export function EventoView({
         )}
       </div>
 
-      <BrindeFlow open={brindeOpen && !!chosenPackage} onClose={() => setBrindeOpen(false)} label={buyLabel} eventId={event.id} packageId={chosenPackage?.id ?? ""} item={choice?.item ?? 0} />
+      <BrindeFlow open={brindeOpen && !!chosenPackage} onClose={() => setBrindeOpen(false)} label={buyLabel} eventId={event.id} packageId={chosenPackage?.id ?? ""} item={choice?.item ?? 0} addons={choice?.addons ?? []} />
 
       <Sheet open={buyOpen} onClose={() => setBuyOpen(false)} title="Onde comprar">
         <p>A compra acontece no site do parceiro. A fanzone leva você até lá e guarda o seu brinde.</p>

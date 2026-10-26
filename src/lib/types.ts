@@ -302,6 +302,9 @@ export type FeedItem = {
 };
 
 /** Item de um pacote: um tipo de ingresso (com preço) ou uma opção de transfer. */
+/** Experiência avulsa de um pacote (jantar, camarim, pré-esquenta, after, hotel), com o preço. */
+export type PackageAddon = { key: ExperienceKey; label: string; priceCents: number; soldOut: boolean };
+
 export type PackageItem = { kind: "ticket" | "transfer" | "seal" | "photo"; label: string; priceCents: number; soldOut: boolean };
 
 /** Pacote de uma agência para um show, como o fã vê. */
@@ -315,7 +318,7 @@ export type EventPackage = {
   url: string; // link de venda do pacote
   transferDetails: string;
   hasTransfer: boolean;
-  experiences: ExperienceKey[]; // jantar, meet & greet no camarim, pré-esquenta, after
+  addons: PackageAddon[]; // experiências que o fã adiciona ao ingresso
   fromPriceCents: number | null; // menor preço disponível
   items: PackageItem[];
 };
@@ -331,7 +334,7 @@ export type PackageAdmin = {
   transferDetails: string;
   url: string;
   items: PackageItem[];
-  experiences: ExperienceKey[];
+  addons: { key: ExperienceKey; priceCents: number; soldOut: boolean }[];
   active: boolean;
   position: number;
 };

@@ -34,9 +34,9 @@ export async function spinPickap(slug: string, club: string, creditId?: string):
 }
 
 /** Compra de ingresso (simulada): registra o ingresso em Meus ingressos e dá 1 giro da roleta, com o motivo. */
-export async function buyTicket(slug: string, eventId: string, packageId: string, item: number): Promise<ApiResult<MyTicket>> {
-  if (!slugOk(slug) || !idOk(eventId) || !idOk(packageId) || !Number.isInteger(item) || item < 0) return bad();
-  const res = await send<MyTicket>("POST", `/artists/${slug}/events/${eventId}/purchases`, { packageId, item });
+export async function buyTicket(slug: string, eventId: string, packageId: string, item: number, addons: string[] = []): Promise<ApiResult<MyTicket>> {
+  if (!slugOk(slug) || !idOk(eventId) || !idOk(packageId) || !Number.isInteger(item) || item < 0 || addons.some((a) => !/^[a-z]{2,12}$/.test(a))) return bad();
+  const res = await send<MyTicket>("POST", `/artists/${slug}/events/${eventId}/purchases`, { packageId, item, addons });
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
 }

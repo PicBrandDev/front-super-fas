@@ -16,7 +16,7 @@ type Draft = {
   transferDetails: string;
   url: string;
   active: boolean;
-  experiences: ExperienceKey[];
+  addons: { key: ExperienceKey; on: boolean; price: string; soldOut: boolean }[];
   items: { kind: "ticket" | "transfer" | "seal"; label: string; price: string; soldOut: boolean }[];
 };
 
@@ -26,6 +26,13 @@ const parsePrice = (s: string) => {
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : null;
 };
 
+/** Uma linha por experiência possível; as que o pacote já oferece vêm marcadas, com o preço. */
+const toAddons = (list: { key: ExperienceKey; priceCents: number; soldOut: boolean }[]): Draft["addons"] =>
+  EXPERIENCES.map((x) => {
+    const a = list.find((i) => i.key === x.key);
+    return { key: x.key, on: !!a, price: a ? priceText(a.priceCents) : "", soldOut: a?.soldOut ?? false };
+  });
+
 const blank = (agencyId: string): Draft => ({
   agencyId,
   name: "",
@@ -33,7 +40,7 @@ const blank = (agencyId: string): Draft => ({
   transferDetails: "",
   url: "",
   active: true,
-  experiences: [],
+  addons: toAddons([]),
   items: [{ kind: "ticket", label: "", price: "", soldOut: false }],
 });
 
@@ -44,7 +51,7 @@ const toDraft = (p: PackageAdmin): Draft => ({
   transferDetails: p.transferDetails,
   url: p.url,
   active: p.active,
-  experiences: p.experiences ?? [],
+  addons: toAddons(p.addons ?? []),
   items: p.items.map((i) => ({ kind: i.kind === "photo" ? "seal" : i.kind, label: i.label, price: priceText(i.priceCents), soldOut: i.soldOut })),
 });
 
@@ -90,6 +97,12 @@ export function PackagesManager({
       if (cents === null) return setError(`O preço do item “${it.label}” precisa ser um valor em reais.`);
       items.push({ kind: it.kind, label: it.label.trim(), priceCents: cents, soldOut: it.soldOut });
     }
+    const addons: { key: ExperienceKey; priceCents: number; soldOut: boolean }[] = [];
+    for (const a of d.addons.filter((x) => x.on)) {
+      const cents = parsePrice(a.price);
+      if (cents === null) return setError(`Informe o preço de “${experienceLabel(a.key)}” em reais.`);
+      addons.push({ key: a.key, priceCents: cents, soldOut: a.soldOut });
+    }
     start(async () => {
       const res = await saveContent(
         slug,
@@ -103,7 +116,7 @@ export function PackagesManager({
           transferDetails: d.transferDetails.trim(),
           url: d.url.trim(),
           active: d.active,
-          experiences: d.experiences,
+          addons,
           items,
         },
       );
@@ -129,7 +142,7 @@ export function PackagesManager({
           <h2 id="pk-title" className="m-0 text-lg font-bold">
             Agências e pacotes
           </h2>
-          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes. Em cada pacote, cada tipo de ingresso tem o seu valor: só ingresso, ingresso + transfer ou + selo no app. O Photo Finder já vem em todos os pacotes; para vender experiências (jantar, camarim, pré-esquenta, after), marque-as no pacote.</p>
+          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes. Em cada pacote, cada tipo de ingresso tem o seu valor: só ingresso, ingresso + transfer ou + selo no app. O Photo Finder já vem em todos os pacotes. O fã pode somar ao ingresso as experiências que você marcar no pacote (jantar, camarim, pré-esquenta, after, hotel), cada uma com o seu valor.</p>
         </div>
         <button
           type="button"
@@ -247,23 +260,33 @@ export function PackagesManager({
           </fieldset>
 
           <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
-            <legend className="mb-1 p-0 text-[13px] font-semibold">Experiências do pacote (o Photo Finder já vem em todos)</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
-              {EXPERIENCES.map((x) => (
-                <label key={x.key} className="flex min-h-11 items-start gap-2 rounded-lg border border-adm-line-soft p-2.5 text-[13px]">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={editing.draft.experiences.includes(x.key)}
-                    onChange={(e) => setDraft({ experiences: e.target.checked ? [...editing.draft.experiences, x.key] : editing.draft.experiences.filter((k) => k !== x.key) })}
-                  />
-                  <span className="flex flex-col">
-                    <strong>{x.label}</strong>
-                    <span className="text-adm-muted">{x.hint}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
+            <legend className="mb-1 p-0 text-[13px] font-semibold">Experiências que o fã pode adicionar ao ingresso (o Photo Finder já vem em todos)</legend>
+            {editing.draft.addons.map((a, i) => {
+              const x = EXPERIENCES.find((e) => e.key === a.key)!;
+              const setAddon = (patch: Partial<Draft["addons"][number]>) =>
+                setDraft({ addons: editing.draft.addons.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) });
+              return (
+                <div key={a.key} className="grid items-center gap-2 rounded-lg border border-adm-line-soft p-2.5 sm:grid-cols-[minmax(0,1fr)_130px_auto]">
+                  <label className="flex min-h-11 items-start gap-2 text-[13px]">
+                    <input type="checkbox" className="mt-0.5" checked={a.on} onChange={(e) => setAddon({ on: e.target.checked })} />
+                    <span className="flex flex-col">
+                      <strong>{x.label}</strong>
+                      <span className="text-adm-muted">{x.hint}</span>
+                    </span>
+                  </label>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor={`pk-a-${a.key}`} className="text-xs font-semibold">
+                      Valor extra (R$)
+                    </label>
+                    <input id={`pk-a-${a.key}`} inputMode="decimal" disabled={!a.on} value={a.price} onChange={(e) => setAddon({ price: e.target.value })} placeholder="0,00" className={inputClass} />
+                  </div>
+                  <label className="flex min-h-11 items-center gap-2 text-[13px]">
+                    <input type="checkbox" disabled={!a.on} checked={a.soldOut} onChange={(e) => setAddon({ soldOut: e.target.checked })} />
+                    Esgotado
+                  </label>
+                </div>
+              );
+            })}
           </fieldset>
 
           <div className="flex flex-col gap-1.5">
@@ -311,9 +334,9 @@ export function PackagesManager({
                     {p.items.some((i) => i.kind !== "ticket") && <Badge tone="info">Com transfer</Badge>}
                     {p.items.some((i) => i.kind === "seal" || i.kind === "photo") && <Badge tone="ok">Selo no app</Badge>}
                     <Badge tone="ok">Photo Finder</Badge>
-                    {(p.experiences ?? []).map((x) => (
-                      <Badge key={x} tone="info">
-                        {experienceLabel(x)}
+                    {(p.addons ?? []).map((x) => (
+                      <Badge key={x.key} tone="info">
+                        {experienceLabel(x.key)} +{formatBRL(x.priceCents)}
                       </Badge>
                     ))}
                     {!p.active && <Badge tone="off">Inativo</Badge>}

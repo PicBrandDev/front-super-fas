@@ -20,6 +20,7 @@ export function BrindeFlow({
   eventId,
   packageId,
   item,
+  addons = [],
 }: {
   open: boolean;
   onClose: () => void;
@@ -27,6 +28,7 @@ export function BrindeFlow({
   eventId: string;
   packageId: string;
   item: number;
+  addons?: string[];
 }) {
   const { base, slug } = useArtist();
   const router = useRouter();
@@ -44,7 +46,7 @@ export function BrindeFlow({
     if (paying) return;
     setPaying(true);
     setError("");
-    const res = await buyTicket(slug, eventId, packageId, item);
+    const res = await buyTicket(slug, eventId, packageId, item, addons);
     setPaying(false);
     // Sem API (modo exemplo, status 0) só avança na tela.
     if (!res.ok && res.status !== 0) return setError(res.error);

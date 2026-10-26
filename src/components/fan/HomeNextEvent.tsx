@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/icons";
 import { formatBRL } from "@/lib/format";
+import { summarize, type PackageChoice } from "@/lib/package-choice";
 import type { EventPackage, ShowEvent } from "@/lib/types";
 import { BrindeFlow } from "@/app/[artista]/(fan)/eventos/[id]/BrindeFlow";
 import { useArtist } from "./ArtistContext";
@@ -25,11 +26,12 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
   const { base } = useArtist();
   const [open, setOpen] = useState(false);
   const [brinde, setBrinde] = useState(false);
-  const [choice, setChoice] = useState<{ id: string; item: number } | null>(null);
+  const [choice, setChoice] = useState<PackageChoice | null>(null);
 
-  const pkg = choice ? packages.find((p) => p.id === choice.id) : undefined;
-  const option = pkg && choice ? pkg.items[choice.item] : undefined;
-  const label = option ? `${option.label} · ${formatBRL(option.priceCents)}` : "";
+  const picked = summarize(packages, choice);
+  const pkg = picked?.pkg;
+  const option = picked?.option;
+  const label = picked?.label ?? "";
 
   const card = (
     <>
@@ -76,7 +78,12 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
 
       <Sheet open={open} onClose={() => setOpen(false)} title={`Comprar ingresso · ${event.city}, ${event.day} ${event.month}`}>
         <div className="max-h-[52dvh] overflow-y-auto pr-1">
-          <PackagePicker packages={packages} choice={choice} onChoose={(id, item) => setChoice({ id, item })} />
+          <PackagePicker
+            packages={packages}
+            choice={choice}
+            onChoose={(id, item) => setChoice((c) => ({ id, item, addons: c?.id === id ? c.addons : [] }))}
+            onToggleAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.includes(key) ? c.addons.filter((k) => k !== key) : [...c.addons, key] } : c))}
+          />
         </div>
         <button
           type="button"
@@ -87,7 +94,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
             setBrinde(true);
           }}
         >
-          {option ? `Comprar ingresso · ${formatBRL(option.priceCents)}` : "Escolha uma opção"}
+          {picked ? `Comprar ingresso · ${formatBRL(picked.priceCents)}` : "Escolha uma opção"}
         </button>
         <Link href={`${base}/eventos/${event.id}`} className="go min-h-11">
           Ver todos os detalhes do show
@@ -95,7 +102,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
         </Link>
       </Sheet>
 
-      <BrindeFlow open={brinde && !!pkg} onClose={() => setBrinde(false)} label={label} eventId={event.id} packageId={pkg?.id ?? ""} item={choice?.item ?? 0} />
+      <BrindeFlow open={brinde && !!pkg} onClose={() => setBrinde(false)} label={label} eventId={event.id} packageId={pkg?.id ?? ""} item={choice?.item ?? 0} addons={choice?.addons ?? []} />
     </>
   );
 }
