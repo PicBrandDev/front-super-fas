@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { apiEnabled, getArtist, getEvent, getPackages, getVendors } from "@/lib/api";
+import { apiEnabled, getArtist, getEvent, getPackages, getResaleEvents, getVendors } from "@/lib/api";
 import { eventName } from "@/lib/events";
 import { EventoView } from "./EventoView";
 
@@ -20,6 +20,7 @@ export default async function EventoPage({ params }: { params: Params }) {
   const { artista, id } = await params;
   const [artist, event] = await Promise.all([getArtist(artista), getEvent(artista, id)]);
   if (!artist || !event) notFound();
-  const [vendors, packages] = await Promise.all([getVendors(artista, event.id), getPackages(artista, event.id)]);
-  return <EventoView artistName={artist.name} event={event} vendors={vendors} packages={packages} demo={!apiEnabled()} />;
+  const [vendors, packages, resaleEvents] = await Promise.all([getVendors(artista, event.id), getPackages(artista, event.id), getResaleEvents(artista)]);
+  const resale = resaleEvents.ok ? (resaleEvents.data.find((e) => e.id === event.id) ?? null) : null;
+  return <EventoView artistName={artist.name} event={event} vendors={vendors} packages={packages} resale={resale} demo={!apiEnabled()} />;
 }

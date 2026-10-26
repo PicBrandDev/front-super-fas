@@ -457,7 +457,8 @@ body {
   .tab:hover {
     color: var(--fc-fg);
   }
-  .tab[aria-selected="true"] {
+  .tab[aria-selected="true"],
+  .tab[aria-current="page"] {
     color: var(--fc-fg);
     border-bottom-color: var(--fc-amber);
   }
