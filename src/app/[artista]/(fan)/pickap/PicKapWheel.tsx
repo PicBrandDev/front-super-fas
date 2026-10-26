@@ -9,8 +9,7 @@ import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
 import { useToast } from "@/components/fan/Toast";
-import { markSeen, seenWithin } from "@/lib/adFrequency";
-import { PICKAP_VIDEO_PERIOD_HOURS, type InAppAd } from "@/lib/ads";
+import type { InAppAd } from "@/lib/ads";
 import type { Prize, SpinCredit } from "@/lib/types";
 import s from "./PicKap.module.css";
 import { PicKapVideoAd } from "./PicKapVideoAd";
@@ -206,12 +205,10 @@ export function PicKapWheel({
     }, wait);
   }
 
-  const videoKey = `pickap-video-${slug}`;
-
-  /** Antes de girar: se o fã não viu o vídeo no período, mostra o vídeo e gira no "Girar agora". */
+  /** Antes de cada giro mostra o vídeo do anúncio; o giro sai no "Girar agora". */
   function requestSpin(creditId?: string) {
     if (cantSpin || !club) return;
-    if (videoAd && !seenWithin(videoKey, PICKAP_VIDEO_PERIOD_HOURS)) {
+    if (videoAd) {
       setPendingSpin({ creditId });
       return;
     }
@@ -220,15 +217,13 @@ export function PicKapWheel({
 
   const videoDone = () => {
     const creditId = pendingSpin?.creditId;
-    markSeen(videoKey);
     setPendingSpin(null);
     void spin(creditId);
   };
-  // Saiu antes do fim: não conta como visto, o próximo giro mostra o vídeo de novo.
-  const videoDismiss = useCallback((watched: boolean) => {
-    if (watched) markSeen(videoKey);
+  // Saiu antes do fim: não gira; o próximo giro mostra o vídeo de novo.
+  const videoDismiss = useCallback(() => {
     setPendingSpin(null);
-  }, [videoKey]);
+  }, []);
 
   /** Fecha o resultado; se foi brinde, o anúncio de resgate entra depois (não trava o brinde). */
   const closeResult = useCallback(() => {

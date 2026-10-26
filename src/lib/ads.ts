@@ -27,8 +27,6 @@ export type InAppAd = {
 
 export type InAppAds = Partial<Record<AdPlacement, InAppAd | null>>;
 
-/** Quanto tempo o vídeo da roleta fica "visto" antes de aparecer de novo (em horas). */
-export const PICKAP_VIDEO_PERIOD_HOURS = 24;
 export const PICKAP_VIDEO_MIN_SECONDS = 30;
 /** O post patrocinado entra depois de cada N cartazes/posts do Mural. */
 export const FEED_AD_EVERY = 4;
