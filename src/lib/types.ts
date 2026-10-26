@@ -166,6 +166,7 @@ export type Product = {
   name: string;
   category: ProductCategory;
   priceLabel: string;
+  priceCents?: number | null; // valor em centavos (a API manda; sem ele o item não entra na conta)
   color: string; // cor de fundo quando não há foto
   image?: MediaImage | null; // foto do produto (a API ainda não manda; ver lib/media.ts)
 };

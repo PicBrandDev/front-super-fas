@@ -147,12 +147,43 @@ export async function startInstagramShare(slug: string, id: string, kind: "post"
 
 // ---------- Loja ----------
 
-export type CheckoutResult = { items: number; spinsGranted: number };
+export type StoreCartItem = { productId: string; qty: number; size: string };
+export type StoreDelivery = "pickup" | "ship";
+export type StoreLine = { productId: string; name: string; category: string; qty: number; size: string; unitCents: number; totalCents: number };
+export type StoreQuote = { lines: StoreLine[]; subtotalCents: number; shippingCents: number; totalCents: number; freeShippingFromCents: number };
+export type CheckoutResult = { items: number; spinsGranted: number; orderCode: string; totalCents: number; delivery: StoreDelivery };
+export type StoreOrder = {
+  id: string;
+  code: string;
+  delivery: StoreDelivery;
+  address: string;
+  lines: StoreLine[];
+  subtotalCents: number;
+  shippingCents: number;
+  totalCents: number;
+  createdAt: string;
+};
 
-/** Compra da sacola (simulada): ganha 1 giro da roleta por camiseta. */
-export async function checkoutStore(slug: string, productIds: string[]): Promise<ApiResult<CheckoutResult>> {
-  if (!slugOk(slug) || productIds.length === 0 || !productIds.every(idOk)) return bad();
-  const res = await send<CheckoutResult>("POST", `/artists/${slug}/store/checkout`, { productIds });
+const storeOk = (slug: string, items: StoreCartItem[]) =>
+  slugOk(slug) && items.length > 0 && items.every((i) => idOk(i.productId) && Number.isInteger(i.qty) && i.qty >= 1 && i.qty <= 10 && /^[A-Za-z]{0,4}$/.test(i.size));
+
+/** Valores do carrinho da loja (itens, frete e total), calculados pela API, sem comprar. */
+export async function quoteStore(slug: string, items: StoreCartItem[], delivery: StoreDelivery, address: string): Promise<ApiResult<StoreQuote>> {
+  if (!storeOk(slug, items)) return bad();
+  return send<StoreQuote>("POST", `/artists/${slug}/store/quote`, { items, delivery, address });
+}
+
+/** Compra do carrinho (pagamento simulado): grava o pedido com código para retirar e dá 1 giro da roleta por camiseta. */
+export async function checkoutStore(slug: string, items: StoreCartItem[], delivery: StoreDelivery, address: string): Promise<ApiResult<CheckoutResult>> {
+  if (!storeOk(slug, items)) return bad();
+  const res = await send<CheckoutResult>("POST", `/artists/${slug}/store/checkout`, { items, delivery, address });
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
+}
+
+/** Pedidos da loja do fã (lista vazia sem API ou sem login). */
+export async function myOrders(slug: string): Promise<StoreOrder[]> {
+  if (!slugOk(slug)) return [];
+  const res = await fetchJson<StoreOrder[]>(`/artists/${slug}/me/orders`);
+  return res.ok ? res.data : [];
 }

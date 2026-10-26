@@ -608,6 +608,7 @@ body {
     border-radius: 6px 6px 0 0;
     padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* o conteúdo não alarga a folha além da tela */
     gap: 16px;
     animation: fan-up 0.25s var(--ease);
     max-height: 94dvh;
