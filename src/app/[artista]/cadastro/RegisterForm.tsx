@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { register } from "@/app/actions/auth";
 import { AuthInput, AuthSelect, AuthSubmit, Field, FormError } from "@/components/auth/look";
 
-const UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
+import { UFS } from "@/lib/ufs";
 
 /** O cadastro é de um ambiente só: quem se cadastra aqui entra no fã clube deste artista. */
 export function RegisterForm({ artista }: { artista: string }) {

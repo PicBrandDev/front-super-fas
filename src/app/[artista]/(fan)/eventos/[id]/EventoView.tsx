@@ -19,12 +19,15 @@ export function EventoView({
   event,
   vendors,
   packages = [],
-    demo,
+  resale = null,
+  demo,
 }: {
   artistName: string;
   event: ShowEvent;
   vendors: Vendor[];
   packages?: EventPackage[];
+  /** Revenda entre fãs aberta para este show (esgotado na ticketeira). */
+  resale?: { listingsCount: number; fromPriceCents: number | null } | null;
   demo: boolean;
 }) {
   const { base } = useArtist();
@@ -90,6 +93,21 @@ export function EventoView({
         <dt className="mono">Endereço</dt>
         <dd>{event.address}</dd>
       </dl>
+
+      {!past && resale && (
+        <section className={s.sect} aria-labelledby="revenda-h">
+          <h2 id="revenda-h">Revenda entre fãs</h2>
+          <p>
+            Esgotou na ticketeira, mas tem fã vendendo:{" "}
+            {resale.listingsCount === 1 ? "1 anúncio" : `${resale.listingsCount} anúncios`}
+            {resale.fromPriceCents != null ? `, a partir de ${formatBRL(resale.fromPriceCents)}` : ""}. Pelo valor de face no máximo, com o pagamento retido até o ingresso chegar.
+          </p>
+          <Link href={`${base}/revenda/${event.id}`} className="btn btn-outline self-start">
+            Ver revenda
+            <Icon name="arrow" size={16} />
+          </Link>
+        </section>
+      )}
 
       {!past && hasOptions && (
         <section className={s.sect} aria-labelledby="ingressos-h">

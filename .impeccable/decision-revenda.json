@@ -1,0 +1,75 @@
+{
+  "title": "Revenda de ingressos: como o fluxo se organiza",
+  "question": "O visual Noite já está decidido; aqui escolhemos a estrutura das telas da revenda (hub, anúncio, pedido e o ingresso). Fique com uma, ajuste com um comentário ou peça outra rodada.",
+  "options": [
+    {
+      "id": "painel-de-partidas",
+      "label": "Painel de partidas",
+      "kicker": "THE ROLL",
+      "lineage": "quadro de embarque de aeroporto e rodoviária, com linhas de status que se atualizam",
+      "thesis": "Cada show e cada pedido é uma linha de partida: o status e o próximo prazo em tipo monumental, o resto em silêncio.",
+      "palette": ["#120907", "#1C1311", "#F6F1EC", "#FE9900", "#E5574D"],
+      "materials": ["linhas de 1px com números tabulares", "status em grotesca caixa alta", "ingresso de papel no topo do pedido"],
+      "viewport": "Hub: lista de shows como quadro (data, cidade, N anúncios, a partir de R$, status Revenda aberta). Pedido: o ingresso do evento no topo e, embaixo, uma faixa de status gigante (AGUARDANDO TRANSFERÊNCIA · até 22h14) com a única ação possível e a trilha do dinheiro em linhas.",
+      "risk": "Pode ficar seco demais se o ingresso não carregar a emoção do show.",
+      "wireframe": {
+        "cols": 6,
+        "rows": 12,
+        "regions": [
+          { "label": "cabeçalho cortado REVENDA", "x": 0, "y": 0, "w": 6, "h": 1 },
+          { "label": "ingresso do evento (nome, ID, arte do show)", "x": 0, "y": 1, "w": 6, "h": 4, "accent": true },
+          { "label": "faixa de status + prazo monumental", "x": 0, "y": 5, "w": 6, "h": 2, "accent": true },
+          { "label": "ação única (confirmar / pagar)", "x": 0, "y": 7, "w": 6, "h": 1 },
+          { "label": "trilha do dinheiro: você → retido → vendedor", "x": 0, "y": 8, "w": 6, "h": 2 },
+          { "label": "cartão de confiança do vendedor", "x": 0, "y": 10, "w": 6, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "carteira-com-carimbos",
+      "label": "Carteira com carimbos",
+      "lineage": "carteira de ingressos empilhados e o carimbo de validação na portaria",
+      "thesis": "O ingresso é a tela: cada etapa do pedido carimba o próprio ingresso (Reservado, Pago, Transferido, Confirmado) e nada some, só muda de carimbo.",
+      "palette": ["#120907", "#FE9900", "#FCCA0B", "#29495D", "#F6F1EC"],
+      "materials": ["ingresso com picote e canhoto", "carimbos em linha (sem preenchimento)", "pilha de ingressos em Meus ingressos"],
+      "viewport": "Pedido: o ingresso ocupa a primeira tela, com o carimbo da etapa atual sobre ele; o canhoto destacável embaixo traz valor, prazo e a ação. Meus ingressos: pilha de ingressos, toque abre.",
+      "risk": "O carimbo pode competir com o nome e o ID se não houver hierarquia firme.",
+      "wireframe": {
+        "cols": 6,
+        "rows": 12,
+        "regions": [
+          { "label": "cabeçalho cortado", "x": 0, "y": 0, "w": 6, "h": 1 },
+          { "label": "ingresso grande com arte do show", "x": 0, "y": 1, "w": 6, "h": 6, "accent": true },
+          { "label": "carimbo da etapa", "x": 3, "y": 4, "w": 3, "h": 2 },
+          { "label": "picote", "x": 0, "y": 7, "w": 6, "h": 1 },
+          { "label": "canhoto: valor, prazo, ação", "x": 0, "y": 8, "w": 6, "h": 2, "accent": true },
+          { "label": "pilha dos outros ingressos", "x": 0, "y": 10, "w": 6, "h": 2 }
+        ]
+      }
+    },
+    {
+      "id": "um-passo-por-tela",
+      "label": "Um passo por tela",
+      "lineage": "guichê com senha: uma pergunta, uma resposta, o próximo passo",
+      "thesis": "Cada momento do dinheiro tem a tela inteira para si: reservar, pagar em 15 min, esperar o vendedor, conferir na ticketeira, confirmar.",
+      "palette": ["#120907", "#F6F1EC", "#FE9900", "#B8AAA1"],
+      "materials": ["contagem regressiva em serifa pesada", "uma ação primária por tela", "ingresso aparece só quando é seu"],
+      "viewport": "Pedido: o passo atual em tela cheia (ex.: 14:32 em serifa gigante para pagar a reserva), um resumo do valor e uma ação; os passos anteriores dobram numa régua no topo. O ingresso com nome e ID entra como a tela final.",
+      "risk": "Esconde o contexto (vendedor, valores) atrás de toques extras; menos visão geral do pedido.",
+      "wireframe": {
+        "cols": 6,
+        "rows": 12,
+        "regions": [
+          { "label": "régua de passos", "x": 0, "y": 0, "w": 6, "h": 1 },
+          { "label": "passo atual: prazo gigante", "x": 0, "y": 1, "w": 6, "h": 5, "accent": true },
+          { "label": "resumo do valor", "x": 0, "y": 6, "w": 6, "h": 2 },
+          { "label": "ação primária", "x": 0, "y": 8, "w": 6, "h": 1, "accent": true },
+          { "label": "detalhes recolhidos (vendedor, regras)", "x": 0, "y": 9, "w": 6, "h": 3 }
+        ]
+      }
+    }
+  ],
+  "reroll": true,
+  "buildPath": { "value": "code", "toggle": false },
+  "steer": true
+}
