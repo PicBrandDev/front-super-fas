@@ -112,41 +112,69 @@ export function ShareInstagram({
     return data;
   }
 
-  /** Copia a legenda e abre o compartilhamento do celular com a arte pronta (Instagram → Stories, Feed...). */
-  async function postTo(format: ShareFormat) {
+  /**
+   * Um toque: copia a legenda e leva ao Instagram. Tudo que precisa do gesto do fã (compartilhar, abrir janela ou app)
+   * é chamado direto no toque, sem esperar nada antes: o Safari do iPhone e os bloqueadores de janela recusam o contrário.
+   */
+  function postTo(format: ShareFormat) {
     if (busy) return;
     setError("");
     const data = info;
-    if (!data) return;
     const art = arts[format];
-    // A legenda com a hashtag e o código vai para a área de transferência: o fã cola no post.
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(data.caption);
-      copied = true;
-    } catch {
-      // Sem permissão da área de transferência: o fã copia a legenda da tela.
-    }
-    if (art && navigator.canShare?.({ files: [art.file] })) {
-      try {
-        await navigator.share({ files: [art.file], text: data.caption });
-        toast.show(copied ? "Cole a legenda com a hashtag no seu post." : "Poste e use a hashtag na legenda.");
-        return;
-      } catch (e) {
-        if ((e as Error).name === "AbortError") return; // o fã fechou o compartilhamento
+    if (!data) return;
+    // A legenda com a hashtag e o código vai para a área de transferência (sem esperar a resposta): o fã cola no post.
+    const copy = navigator.clipboard?.writeText(data.caption).then(
+      () => true,
+      () => false,
+    );
+    const hint = async (saved: boolean) => {
+      const copied = copy ? await copy : false;
+      toast.show(
+        saved
+          ? copied ? "Arte salva e legenda copiada. Escolha a arte no Instagram e cole a legenda." : "Arte salva. Escolha a arte no Instagram e use a hashtag."
+          : copied ? "Legenda copiada. Cole no seu post do Instagram." : "Poste e use a hashtag na legenda.",
+      );
+    };
+
+    const mobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    // Salva a arte e abre o Instagram (o app no celular, o site no computador).
+    const openInstagram = () => {
+      if (art) download(art);
+      void hint(!!art);
+      if (mobile) {
+        // Atalho do app: a câmera dos Stories (de onde se escolhe a arte salva) ou o app aberto para o Feed.
+        window.location.href = format === "story" ? "instagram://story-camera" : "instagram://app";
+        // Sem o app instalado a página continua aberta: cai no site.
+        setTimeout(() => {
+          if (!document.hidden) window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+        }, 1500);
+      } else {
+        window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
       }
+    };
+
+    // Celular com compartilhamento de arquivo: abre o menu do aparelho com a arte (Instagram → Stories, Feed...).
+    // No computador não usa o menu do sistema (no Windows ele nem lista o Instagram): vai direto para o site.
+    if (mobile && art && navigator.canShare?.({ files: [art.file] })) {
+      navigator
+        .share({ files: [art.file], text: data.caption })
+        .then(() => hint(false))
+        .catch((e: Error) => {
+          if (e.name !== "AbortError") openInstagram(); // o fã fechar o menu não conta como erro
+        });
+      return;
     }
-    // Sem compartilhamento de arquivo (computador): baixa a arte e abre o Instagram para o fã postar.
-    if (art) {
-      const a = document.createElement("a");
-      a.href = art.url;
-      a.download = art.file.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-    toast.show(copied ? "Arte baixada e legenda copiada. Poste no Instagram." : "Arte baixada. Poste no Instagram com a hashtag.");
-    window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+    openInstagram();
+  }
+
+  function download(art: { file: File; url: string }) {
+    const a = document.createElement("a");
+    a.href = art.url;
+    a.download = art.file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   async function posted() {
@@ -203,7 +231,7 @@ export function ShareInstagram({
                   <button
                     key={format}
                     type="button"
-                    onClick={() => void postTo(format)}
+                    onClick={() => postTo(format)}
                     disabled={!info || !!busy}
                     className="flex cursor-pointer flex-col items-stretch gap-2 border border-line bg-night p-2 text-left text-fg disabled:cursor-wait disabled:opacity-70"
                   >
@@ -215,18 +243,19 @@ export function ShareInstagram({
                         <span className="mono absolute inset-0 flex items-center justify-center p-2 text-center">{info ? "Montando a arte…" : "Preparando…"}</span>
                       )}
                     </span>
-                    <strong className="flex items-center gap-1.5 text-[15px] leading-5">
+                    <span className="btn btn-primary btn-sm btn-block pointer-events-none">
                       <Icon name="share" size={14} />
                       Postar no {label}
-                    </strong>
-                    <span className="mono">{ratio}</span>
+                    </span>
+                    <span className="mono text-center">{ratio}</span>
                   </button>
                 );
               })}
             </div>
             <p className="m-0 text-[13px] leading-5">
-              No celular, abre o compartilhamento: escolha <strong>Instagram</strong> e depois Stories ou Feed. A legenda com a hashtag fica copiada para colar. No
-              computador, a arte é baixada.
+              Toque em <strong>Postar</strong>: no celular abre o compartilhamento (escolha <strong>Instagram</strong> e depois Stories ou Feed) e a legenda com a
+              hashtag fica copiada para colar. Se o celular não abrir o compartilhamento, a arte é salva e o Instagram abre. No computador, a arte é baixada e o
+              site do Instagram abre.
             </p>
             <button type="button" className="btn btn-primary btn-block" onClick={posted} disabled={!!busy} aria-busy={busy === "claim" || undefined}>
               {busy === "claim" ? "Confirmando…" : "Já postei"}
