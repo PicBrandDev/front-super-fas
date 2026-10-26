@@ -149,7 +149,14 @@ export function EventoView({
         )}
       </div>
 
-      <BrindeFlow open={brindeOpen && !!chosenPackage} onClose={() => setBrindeOpen(false)} label={buyLabel} eventId={event.id} packageId={chosenPackage?.id ?? ""} item={choice?.item ?? 0} addons={choice?.addons ?? []} />
+      <BrindeFlow
+        open={brindeOpen && !!picked}
+        onClose={() => setBrindeOpen(false)}
+        event={{ id: event.id, title, city: event.city, day: event.day, month: event.month }}
+        picked={picked}
+        choice={choice}
+        onRemoveAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.filter((k) => k !== key) } : c))}
+      />
 
       <Sheet open={buyOpen} onClose={() => setBuyOpen(false)} title="Onde comprar">
         <p>A compra acontece no site do parceiro. A fanzone leva você até lá e guarda o seu brinde.</p>

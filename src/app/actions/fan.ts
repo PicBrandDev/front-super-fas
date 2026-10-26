@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { fetchJson, send, type ApiResult } from "@/lib/api";
-import type { MyTicket, Post, Prize, SpinCredit, Viewer } from "@/lib/types";
+import type { MyCoupon, MyTicket, Post, Prize, Quote, SpinCredit, Viewer } from "@/lib/types";
 
 /*
  * Ações do fã. Sem API (modo exemplo) elas devolvem status 0 e as telas simulam o resultado.
@@ -33,10 +33,40 @@ export async function spinPickap(slug: string, club: string, creditId?: string):
   return send<SpinResult>("POST", `/artists/${slug}/clubs/${club}/pickap/spin`, creditId ? { creditId } : undefined);
 }
 
+const cartOk = (slug: string, eventId: string, packageId: string, item: number, addons: string[], coupon: string) =>
+  slugOk(slug) && idOk(eventId) && idOk(packageId) && Number.isInteger(item) && item >= 0 && addons.every((a) => /^[a-z]{2,12}$/.test(a)) && /^[A-Za-z0-9_-]{0,30}$/.test(coupon);
+
+/** Valor do carrinho (ingresso + experiências) e do cupom, calculado pela API, sem comprar. */
+export async function quoteTicket(
+  slug: string,
+  eventId: string,
+  packageId: string,
+  item: number,
+  addons: string[],
+  coupon: string,
+): Promise<ApiResult<Quote>> {
+  if (!cartOk(slug, eventId, packageId, item, addons, coupon)) return bad();
+  return send<Quote>("POST", `/artists/${slug}/events/${eventId}/quote`, { packageId, item, addons, coupon });
+}
+
+/** Cupons pessoais do fã que ainda valem (lista vazia sem API ou sem login). */
+export async function myCoupons(slug: string): Promise<MyCoupon[]> {
+  if (!slugOk(slug)) return [];
+  const res = await fetchJson<MyCoupon[]>(`/artists/${slug}/me/coupons`);
+  return res.ok ? res.data : [];
+}
+
 /** Compra de ingresso (simulada): registra o ingresso em Meus ingressos e dá 1 giro da roleta, com o motivo. */
-export async function buyTicket(slug: string, eventId: string, packageId: string, item: number, addons: string[] = []): Promise<ApiResult<MyTicket>> {
-  if (!slugOk(slug) || !idOk(eventId) || !idOk(packageId) || !Number.isInteger(item) || item < 0 || addons.some((a) => !/^[a-z]{2,12}$/.test(a))) return bad();
-  const res = await send<MyTicket>("POST", `/artists/${slug}/events/${eventId}/purchases`, { packageId, item, addons });
+export async function buyTicket(
+  slug: string,
+  eventId: string,
+  packageId: string,
+  item: number,
+  addons: string[] = [],
+  coupon = "",
+): Promise<ApiResult<MyTicket>> {
+  if (!cartOk(slug, eventId, packageId, item, addons, coupon)) return bad();
+  const res = await send<MyTicket>("POST", `/artists/${slug}/events/${eventId}/purchases`, { packageId, item, addons, coupon });
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
 }

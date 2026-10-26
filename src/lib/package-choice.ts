@@ -12,5 +12,9 @@ export function summarize(packages: EventPackage[], choice: PackageChoice | null
   const extras = pkg.addons.filter((a) => choice.addons.includes(a.key) && !a.soldOut);
   const priceCents = option.priceCents + extras.reduce((sum, a) => sum + a.priceCents, 0);
   const name = [option.label, ...extras.map((a) => a.label)].join(" + ");
-  return { pkg, option, extras, priceCents, name, label: `${name} · ${formatBRL(priceCents)}` };
+  const lines = [
+    { key: "ticket", label: option.label, priceCents: option.priceCents },
+    ...extras.map((a) => ({ key: a.key, label: a.label, priceCents: a.priceCents })),
+  ];
+  return { pkg, option, extras, lines, priceCents, name, label: `${name} · ${formatBRL(priceCents)}` };
 }

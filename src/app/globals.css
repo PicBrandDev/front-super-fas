@@ -610,6 +610,8 @@ body {
     display: grid;
     gap: 16px;
     animation: fan-up 0.25s var(--ease);
+    max-height: 94dvh;
+    overflow-y: auto;
   }
   .sheet h2 {
     margin: 0;

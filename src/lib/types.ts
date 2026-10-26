@@ -345,6 +345,12 @@ export type EventTicket = { id: string; label: string; description: string; pric
 /** Um giro da roleta do fã e o motivo de ele existir (compra de ingresso, boas-vindas...). */
 export type SpinCredit = { id: string; reason: string; used: boolean; prizeLabel: string | null; date: string };
 
+/** Valor do carrinho calculado pela API: ingresso + experiências, com o cupom. */
+export type Quote = { subtotalCents: number; discountCents: number; totalCents: number; coupon: string; couponLabel: string };
+
+/** Cupom pessoal do fã (ex.: o de 10% que ganhou na roleta). */
+export type MyCoupon = { code: string; label: string; source: string; expiresOn: string | null };
+
 /** Ingresso que o fã comprou (Meus ingressos na Agenda). */
 export type MyTicket = {
   id: string;

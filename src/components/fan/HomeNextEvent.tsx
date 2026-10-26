@@ -29,9 +29,6 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
   const [choice, setChoice] = useState<PackageChoice | null>(null);
 
   const picked = summarize(packages, choice);
-  const pkg = picked?.pkg;
-  const option = picked?.option;
-  const label = picked?.label ?? "";
 
   const card = (
     <>
@@ -88,7 +85,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
         <button
           type="button"
           className="btn btn-primary btn-block"
-          disabled={!option}
+          disabled={!picked}
           onClick={() => {
             setOpen(false);
             setBrinde(true);
@@ -102,7 +99,14 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
         </Link>
       </Sheet>
 
-      <BrindeFlow open={brinde && !!pkg} onClose={() => setBrinde(false)} label={label} eventId={event.id} packageId={pkg?.id ?? ""} item={choice?.item ?? 0} addons={choice?.addons ?? []} />
+      <BrindeFlow
+        open={brinde && !!picked}
+        onClose={() => setBrinde(false)}
+        event={{ id: event.id, title: `Vintage Culture em ${event.city}`, city: event.city, day: event.day, month: event.month }}
+        picked={picked}
+        choice={choice}
+        onRemoveAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.filter((k) => k !== key) } : c))}
+      />
     </>
   );
 }
