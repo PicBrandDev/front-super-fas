@@ -104,7 +104,7 @@ export function RideCard({ artist, base, ride }: { artist: string; base: string;
           <div className="flex flex-wrap gap-2">
             {mb.status === "reserved" && (
               <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={() => run(() => bookingAction(artist, mb.id, "pay"))}>
-                Pagar {formatBRL(mb.amountCents)} (simulação)
+                Pagar {formatBRL(mb.amountCents)}
               </button>
             )}
             {mb.status === "paid" && departed && (

@@ -24,7 +24,7 @@ export function MinhasCaronas({ artist, mine }: { artist: string; mine: MyCarpoo
   );
   return (
     <>
-      {group("Vagas que reservei", mine.booked.map((b) => ({ id: b.id, ride: { ...b.ride, myBooking: b } })), "Você ainda não reservou nenhuma vaga. Abra um show na agenda e veja as caronas.")}
+      {group("Vagas que reservei", mine.booked.filter((b) => b.status !== "cancelled" && b.status !== "refunded").map((b) => ({ id: b.id, ride: { ...b.ride, myBooking: b } })), "Você ainda não reservou nenhuma vaga. Abra um show na agenda e veja as caronas.")}
       {group("Caronas que ofereço", mine.offered.map((r) => ({ id: r.id, ride: r })), "Você ainda não ofereceu carona.")}
     </>
   );

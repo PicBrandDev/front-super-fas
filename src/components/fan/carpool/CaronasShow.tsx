@@ -35,7 +35,6 @@ export function CaronasShow({ artist, eventId, rides, past }: { artist: string; 
           ))}
         </ul>
       )}
-      <p className="mono">Pagamento em simulação enquanto o gateway não está ligado.</p>
     </>
   );
 }
