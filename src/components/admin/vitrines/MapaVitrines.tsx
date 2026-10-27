@@ -8,9 +8,7 @@ const dm = (iso: string | null) => (iso ? iso.split("-").reverse().join("/") : "
 
 const GROUPS: { key: string; title: string; text: string }[] = [
   { key: "entrada", title: "Entrada do app", text: "O primeiro anúncio que o fã vê: um modal logo depois do login." },
-  { key: "roleta", title: "Roleta (PicKup)", text: "O vídeo obrigatório antes de girar, o anúncio depois do prêmio e a fatia patrocinada." },
-  { key: "feed", title: "Entre os posts do feed", text: "Posts patrocinados no feed do cantor e no feed de cada fã clube." },
-  { key: "outras", title: "Outras telas", text: "Início, eventos, loja e Drops Hits." },
+  { key: "feed", title: "Entre os posts do feed", text: "Posts patrocinados entre os posts. O feed é um só, o mesmo para todos os fã clubes." },
 ];
 
 /**
