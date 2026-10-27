@@ -12,6 +12,7 @@ import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import { exampleInAppAds, type InAppAds } from "./ads";
 import * as resaleMock from "./resale-mock";
+import * as chatMock from "./chat-mock";
 import type {
   Eligibility,
   Identity,
@@ -58,6 +59,10 @@ import type {
   Track,
   Vendor,
   Viewer,
+  ChatMessage,
+  ChatUser,
+  Conversation,
+  PublicFan,
 } from "./types";
 
 const API_URL = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL)?.replace(/\/$/, "");
@@ -429,6 +434,84 @@ export const getResaleSeller = (slug: string, userId: string) =>
 export const getResaleSellerReviews = (slug: string, userId: string) =>
   resaleGet<SellerReview[]>(`${rs(slug)}/sellers/${encodeURIComponent(userId)}/reviews`, () => resaleMock.reviews);
 export const getIdentity = () => resaleGet<Identity>("/me/identity", () => resaleMock.identity);
+
+// ---------- Chat privado entre fãs (docs/chat-api.md do back) ----------
+
+type Raw = Record<string, unknown>;
+const str = (v: unknown) => (v == null ? null : String(v));
+
+/** O back responde em camelCase; aceita snake_case também, por segurança. */
+export const toChatUser = (r: Raw | null | undefined): ChatUser => ({
+  id: String(r?.id ?? ""),
+  name: String(r?.name ?? "Fã"),
+  handle: str(r?.handle),
+  avatar: str(r?.avatar),
+});
+
+export const toChatMessage = (r: Raw): ChatMessage => ({
+  id: Number(r.id),
+  conversationId: Number(r.conversationId ?? r.conversation_id),
+  senderId: String(r.senderId ?? r.sender_id ?? ""),
+  body: String(r.body ?? ""),
+  createdAt: String(r.createdAt ?? r.created_at ?? ""),
+  readAt: str(r.readAt ?? r.read_at),
+  mine: !!r.mine,
+});
+
+export const toConversation = (r: Raw): Conversation => {
+  const last = (r.lastMessage ?? r.last_message) as Raw | null | undefined;
+  return {
+    id: Number(r.id),
+    other: toChatUser(r.other as Raw),
+    lastMessage: last ? toChatMessage(last) : null,
+    lastMessageAt: str(r.lastMessageAt ?? r.last_message_at),
+    unread: Number(r.unread ?? 0),
+  };
+};
+
+const chat = (slug: string) => `/artists/${slug}/chat`;
+
+/** GET /artists/{slug}/chat/conversations (mais recente primeiro). */
+export const getConversations = (slug: string) =>
+  get<Raw[]>(`${chat(slug)}/conversations`, () => chatMock.listConversations() as unknown as Raw[]).then((rs) =>
+    rs.map(toConversation),
+  );
+
+/** GET /artists/{slug}/chat/conversations/{id}. null se não existe ou não é sua (404/403). */
+export async function getConversation(slug: string, id: number): Promise<Conversation | null> {
+  if (!API_URL) {
+    await token();
+    return chatMock.getConversation(id);
+  }
+  const res = await fetchJson<Raw>(`${chat(slug)}/conversations/${id}`);
+  if (res.ok) return toConversation(res.data);
+  if (res.status === 401) redirect("/login");
+  if (res.status === 404 || res.status === 403) return null;
+  throw new Error(`GET conversa ${id} falhou: ${res.status}`);
+}
+
+/** GET /artists/{slug}/chat/conversations/{id}/messages (últimas 50, da mais antiga para a mais nova). */
+export const getMessages = (slug: string, id: number) =>
+  get<Raw[]>(`${chat(slug)}/conversations/${id}/messages?limit=50`, () => (chatMock.listMessages(id) ?? []) as unknown as Raw[], {
+    notFound: [],
+  }).then((rs) => rs.map(toChatMessage));
+
+/** GET /artists/{slug}/fans/{id}: perfil público do fã. null se não existe. */
+export async function getPublicFan(slug: string, id: string): Promise<PublicFan | null> {
+  const r = await get<Raw | null>(`/artists/${slug}/fans/${encodeURIComponent(id)}`, () => chatMock.publicFan(id) as unknown as Raw | null, {
+    notFound: null,
+  });
+  if (!r) return null;
+  const club = r.club as Raw | null | undefined;
+  return {
+    ...toChatUser(r),
+    club: club ? { slug: String(club.slug ?? ""), name: String(club.name ?? ""), avatar: str(club.avatar) } : null,
+    points: r.points == null ? null : Number(r.points),
+    rank: r.rank == null ? null : Number(r.rank),
+    isMe: !!(r.isMe ?? r.is_me),
+    posts: Array.isArray(r.posts) ? (r.posts as Post[]) : [],
+  };
+}
 
 // ---------- Utilidades ----------
 

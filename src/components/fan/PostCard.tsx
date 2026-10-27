@@ -44,6 +44,8 @@ export function PostCard({
   const official = !!post.author.official || post.kind === "drop";
   const image = postImage(slug, post, index);
   const replyId = `reply-${post.id}`;
+  // Perfil público do fã autor (abre o chat privado); post oficial não tem perfil.
+  const profileHref = !official && post.author.id ? `${base}/fas/${encodeURIComponent(post.author.id)}` : null;
 
   // Uma visualização por post e sessão, quando mais da metade do card aparece.
   const ref = useRef<HTMLElement>(null);
@@ -111,13 +113,33 @@ export function PostCard({
             <Mark size={18} />
           </div>
         ) : (
-          <div className="avatar text-chrome" aria-hidden="true">
-            {initialsOf(post.author.name)}
-          </div>
+          (() => {
+            const face = post.author.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã
+              <img src={post.author.avatar} alt="" width={32} height={32} className="avatar overflow-hidden object-cover" />
+            ) : (
+              <div className="avatar text-chrome">{initialsOf(post.author.name)}</div>
+            );
+            return profileHref ? (
+              <Link href={profileHref} tabIndex={-1} aria-hidden="true" className="flex-none no-underline">
+                {face}
+              </Link>
+            ) : (
+              <div className="flex-none" aria-hidden="true">
+                {face}
+              </div>
+            );
+          })()
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <strong className="text-[15px] leading-5">{post.author.name}</strong>
+            {profileHref ? (
+              <Link href={profileHref} className="text-[15px] font-bold leading-5 text-fg no-underline hover:underline" aria-label={`Ver perfil de ${post.author.name}`}>
+                {post.author.name}
+              </Link>
+            ) : (
+              <strong className="text-[15px] leading-5">{post.author.name}</strong>
+            )}
             {post.author.badge && (
               <span className="tag tag-key">
                 <Icon name="star" size={11} />
