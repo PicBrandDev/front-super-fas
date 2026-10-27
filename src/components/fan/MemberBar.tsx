@@ -7,12 +7,12 @@ import { useArtist } from "./ArtistContext";
 
 /**
  * Faixa de convite para virar membro, em todas as telas do app. Some para quem já é membro, para quem não está
- * logado e na própria tela de assinatura.
+ * logado, na própria tela de assinatura e na tela da roleta (PicKup).
  */
 export function MemberBar() {
   const { base, viewer, priceLabel, loggedIn } = useArtist();
   const pathname = usePathname();
-  if (!loggedIn || viewer.isMember || pathname.startsWith(`${base}/membro`)) return null;
+  if (!loggedIn || viewer.isMember || pathname.startsWith(`${base}/membro`) || pathname.startsWith(`${base}/pickup`)) return null;
   return (
     <aside aria-label="Seja membro" className="flex items-center justify-between gap-3 border-b border-line bg-raised px-4 py-2.5">
       <span className="flex min-w-0 items-center gap-2 text-[14px] leading-5">
