@@ -70,7 +70,9 @@ export default async function ClubContentPage({
     const brl = (c: unknown) => (typeof c === "number" ? (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "R$ [PREÇO]");
     const products: LojaProduct[] = raw.map((it, i) => {
       const base = { id: it.id, name: String(it.name), category: String(it.category) as "roupas" | "acessorios" | "musica", color: String(it.color || "#E0A526") };
-      return { ...it, ...base, priceLabel: brl(it.priceCents), photo: productImage(artist.slug, { ...base, priceLabel: "" }, i) };
+      const imagePath = typeof it.imagePath === "string" ? it.imagePath : "";
+      const image = imagePath ? { src: imagePath, alt: `Foto do produto ${base.name}` } : null;
+      return { ...it, ...base, imagePath, priceLabel: brl(it.priceCents), photo: productImage(artist.slug, { ...base, priceLabel: "", image }, i) };
     });
     return (
       <ClubAdminShell artist={artist} active="loja">
