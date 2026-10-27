@@ -15,7 +15,7 @@ export default async function CaronasPage({ params }: { params: Params }) {
   if (!artist || !event) notFound();
   const rides = await getRides(artista, event.id);
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 px-4 pb-24 pt-2">
       <CaronasShow
         artist={artista}
         eventId={event.id}

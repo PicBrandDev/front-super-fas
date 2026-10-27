@@ -13,7 +13,7 @@ export default async function MinhasCaronasPage({ params, searchParams }: { para
   if (!artist) notFound();
   const mine = await getMyCarpool(artista);
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 px-4 pb-24 pt-2">
       <PageHead back={evento && /^[A-Za-z0-9_-]+$/.test(evento) ? `/${artista}/eventos/${evento}/caronas` : `/${artista}/agenda`} backLabel={evento ? "Caronas" : "Agenda"} title="Minhas caronas" text="As caronas que você oferece e quem reservou com você." />
       <MinhasCaronas artist={artista} mine={mine} view="ofertas" />
     </div>
