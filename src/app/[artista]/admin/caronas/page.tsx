@@ -5,12 +5,9 @@ import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { AdminEmpty } from "@/components/admin/ui";
 import { getArtist, getCarpoolAdmin } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
-import { SuporteCarona } from "./SuporteCarona";
+import { ListaCaronas } from "./ListaCaronas";
 
 export const metadata: Metadata = { title: "Caronas" };
-
-const when = (iso: string) =>
-  new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 /** Caronas por show: valor retido, liberado e devolvido, e suporte para devolver ou liberar uma reserva. */
 export default async function CaronasAdminPage({ params }: { params: Promise<{ artista: string }> }) {
@@ -42,27 +39,7 @@ export default async function CaronasAdminPage({ params }: { params: Promise<{ a
           {data.items.length === 0 ? (
             <AdminEmpty title="Nenhuma carona ainda" text="Quando um fã oferecer carona para um show, ela aparece aqui." />
           ) : (
-            <ul className="m-0 flex list-none flex-col gap-3 p-0">
-              {data.items.map(({ ride, heldCents, releasedCents, refundedCents }) => (
-                <li key={ride.id} className="flex flex-col gap-2 rounded-xl border border-adm-line bg-white p-4">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <strong>
-                      {ride.originCity} → {ride.city} · {when(ride.departAt)}
-                    </strong>
-                    <span className="font-adm-mono text-xs text-adm-muted">
-                      {ride.driver.name} · {formatBRL(ride.priceCents)}/vaga · {ride.seatsTotal - ride.seatsLeft}/{ride.seatsTotal} vagas
-                      {ride.status === "cancelled" ? " · cancelada" : ""}
-                    </span>
-                  </div>
-                  <span className="text-[13px] text-adm-muted">
-                    Retido {formatBRL(heldCents)} · liberado {formatBRL(releasedCents)} · devolvido {formatBRL(refundedCents)}
-                  </span>
-                  {ride.passengers.map((p) => (
-                    <SuporteCarona key={p.id} artist={artist.slug} booking={p} />
-                  ))}
-                </li>
-              ))}
-            </ul>
+            <ListaCaronas artist={artist.slug} items={data.items} />
           )}
         </>
       )}
