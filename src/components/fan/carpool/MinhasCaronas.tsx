@@ -8,7 +8,6 @@ export function MinhasCaronas({ artist, mine, view }: { artist: string; mine: My
   const { base } = useArtist();
   const group = (title: string, items: { id: string; ride: MyCarpool["offered"][number] }[], empty: string) => (
     <section className="flex flex-col gap-3" aria-label={title}>
-      <h2 className="m-0 font-display text-[26px] font-black">{title}</h2>
       {items.length === 0 ? (
         <p className="m-0 text-[15px] text-fg-muted">{empty}</p>
       ) : (
