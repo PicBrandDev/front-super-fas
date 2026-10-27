@@ -52,7 +52,7 @@ function Person({ row }: { row: Row }) {
 }
 
 /**
- * Ranking "Fã Super do Vintage": quem mais compartilhou os posts oficiais no Instagram com a hashtag.
+ * Ranking "HyperFans do Vintage": quem mais compartilhou os posts oficiais no Instagram com a hashtag.
  * "Geral" mistura todos os fã clubes; cada fã clube tem o seu ranking, só com os membros dele.
  * Só conta o compartilhamento confirmado no Instagram com a hashtag.
  */
@@ -71,7 +71,7 @@ export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope
     <div className="px-4 pb-8">
       <section aria-labelledby="rk-how" className="border-b border-line py-5">
         <h2 id="rk-how" className="m-0 font-display text-3xl font-black leading-8">
-          Fã Super do Vintage
+          HyperFans do Vintage
         </h2>
         <p className="mb-0 mt-2">
           Compartilhe a <strong>#{ranking.hashtag}</strong> no seu Instagram e suba no ranking.
