@@ -20,10 +20,10 @@ export function CaronasShow({ artist, eventId, rides, past }: { artist: string; 
               Oferecer carona
             </button>
           )}
-          <Link href={`${base}/caronas/reservas`} className="btn btn-outline">
+          <Link href={`${base}/caronas/reservas?evento=${eventId}`} className="btn btn-outline">
             Minhas reservas
           </Link>
-          <Link href={`${base}/caronas`} className="btn btn-outline">
+          <Link href={`${base}/caronas?evento=${eventId}`} className="btn btn-outline">
             Minhas caronas
           </Link>
         </div>

@@ -6,14 +6,15 @@ import { getArtist, getMyCarpool } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Minhas reservas" };
 
-export default async function MinhasReservasPage({ params }: { params: Promise<{ artista: string }> }) {
+export default async function MinhasReservasPage({ params, searchParams }: { params: Promise<{ artista: string }>; searchParams: Promise<{ evento?: string }> }) {
   const { artista } = await params;
+  const { evento } = await searchParams;
   const artist = await getArtist(artista);
   if (!artist) notFound();
   const mine = await getMyCarpool(artista);
   return (
     <div className="flex flex-col gap-5">
-      <PageHead back={`/${artista}/agenda`} backLabel="Agenda" title="Minhas reservas" text="As caronas em que você reservou uma vaga." />
+      <PageHead back={evento && /^[A-Za-z0-9_-]+$/.test(evento) ? `/${artista}/eventos/${evento}/caronas` : `/${artista}/agenda`} backLabel={evento ? "Caronas" : "Agenda"} title="Minhas reservas" text="As caronas em que você reservou uma vaga." />
       <MinhasCaronas artist={artista} mine={mine} view="reservas" />
     </div>
   );
