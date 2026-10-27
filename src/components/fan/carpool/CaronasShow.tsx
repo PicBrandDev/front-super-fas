@@ -10,7 +10,7 @@ import type { Ride } from "@/lib/types";
 export function CaronasShow({ artist, eventId, rides, past }: { artist: string; eventId: string; rides: Ride[]; past: boolean }) {
   const { base } = useArtist();
   const [offering, setOffering] = useState(false);
-  const open = rides.filter((r) => r.status === "open");
+  const open = rides.filter((r) => r.status === "open" && !r.mine);
   return (
     <>
       {!offering && (
