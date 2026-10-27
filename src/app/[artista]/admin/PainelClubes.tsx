@@ -7,12 +7,13 @@ import { ClubAvatar } from "@/components/admin/ClubAvatar";
 import { AdminEmpty, Badge, btnPrimary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import { formatCount } from "@/lib/format";
-import type { ClubOverview } from "@/lib/types";
+import type { ClubHighlight, ClubOverview } from "@/lib/types";
+import { Destaques } from "./Destaques";
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 /** Todos os fã clubes do ambiente (sem limite) em cards: foto, dono e números. Clicar abre o analytics. */
-export function PainelClubes({ artist, artistName, clubs }: { artist: string; artistName: string; clubs: ClubOverview[] }) {
+export function PainelClubes({ artist, artistName, clubs, highlights }: { artist: string; artistName: string; clubs: ClubOverview[]; highlights: ClubHighlight[] }) {
   const [q, setQ] = useState("");
   const shown = useMemo(() => {
     const t = norm(q.trim());
@@ -50,6 +51,15 @@ export function PainelClubes({ artist, artistName, clubs }: { artist: string; ar
           </div>
         ))}
       </dl>
+
+      {highlights.length > 0 && (
+        <section aria-labelledby="destaques-title" className="flex flex-col gap-3">
+          <h2 id="destaques-title" className="m-0 text-base font-bold">
+            Destaques dos fã clubes
+          </h2>
+          <Destaques artist={artist} clubs={highlights} />
+        </section>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <label htmlFor="painel-busca" className="sr-only">
