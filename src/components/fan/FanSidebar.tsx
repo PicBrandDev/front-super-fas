@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/actions/auth";
+import { UnreadBadge } from "@/components/chat/ChatIconButton";
+import { useChatUnread } from "@/components/chat/useChatUnread";
 import { Icon } from "@/components/icons";
 import { initialsOf } from "@/lib/format";
 import { useArtist } from "./ArtistContext";
@@ -18,6 +20,7 @@ import { isActive, sideNav } from "./nav";
 export function FanSidebar() {
   const { slug, name, fanClubName, base, priceLabel, viewer, loggedIn } = useArtist();
   const pathname = usePathname();
+  const unread = useChatUnread();
   return (
     <aside className="sticky top-0 hidden h-dvh w-[300px] flex-none flex-col gap-6 overflow-y-auto border-r border-line px-6 py-8 lg:flex">
       <Link href={base} aria-label={`Início do fã clube ${name}`} className="self-start text-amber">
@@ -36,7 +39,15 @@ export function FanSidebar() {
           return (
             <li key={item.label}>
               <Link href={base + item.href} aria-current={active ? "page" : undefined}>
-                <span>{item.label}</span>
+                <span className="flex items-center gap-2">
+                  {item.label}
+                  {item.href === "/conversas" && unread > 0 && (
+                    <>
+                      <UnreadBadge count={unread} />
+                      <span className="sr-only">, {unread} não lidas</span>
+                    </>
+                  )}
+                </span>
                 <Icon name="arrow" size={14} className="icon" />
               </Link>
             </li>
