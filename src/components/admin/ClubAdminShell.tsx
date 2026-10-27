@@ -17,14 +17,21 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
       passwordHref={`/${artist.slug}/conta/senha`}
       style={themeStyle(artist.theme)}
       brand={{
-        mark: (
-          <span
-            className="flex size-full items-center justify-center rounded-hair text-lg font-black"
-            style={{ background: artist.brandColor, color: artist.theme.text, fontFamily: artist.theme.fontDisplay }}
-          >
-            {artist.initial}
-          </span>
-        ),
+        // Vintage Culture usa o símbolo oficial (public/logo-vc.png, traço branco sobre transparente); os outros artistas, a inicial.
+        mark:
+          artist.slug === "vintage-culture" ? (
+            <span className="flex size-full items-center justify-center rounded-hair border border-adm-side-line">
+              {/* eslint-disable-next-line @next/next/no-img-element -- símbolo estático do artista */}
+              <img src="/logo-vc.png" alt="" width={34} height={34} className="size-[26px] object-contain" />
+            </span>
+          ) : (
+            <span
+              className="flex size-full items-center justify-center rounded-hair text-lg font-black"
+              style={{ background: artist.brandColor, color: artist.theme.text, fontFamily: artist.theme.fontDisplay }}
+            >
+              {artist.initial}
+            </span>
+          ),
         markClass: "bg-transparent",
         title: artist.name,
         subtitle: artist.status === "active" ? "Administração do ambiente" : "Ambiente em configuração",
