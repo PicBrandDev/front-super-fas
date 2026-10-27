@@ -122,7 +122,7 @@ export type ShowEvent = {
   lineup: string;
   giftsCount: number;
   status: EventStatus;
-  ticketingName?: string; // ticketeira oficial (ex.: Sympla)
+  ticketingName?: string; // ticketeira oficial (Ingresse)
   ticketingUrl?: string; // link de compra na ticketeira
 };
 
@@ -375,7 +375,7 @@ export type MyTicket = {
   packageName: string;
   agencyName: string;
   label: string;
-  kind: "ticket" | "transfer" | "seal" | "photo";
+  kind: "ticket" | "transfer" | "seal" | "photo" | "extras"; // "extras": compra só de experiências (ingresso na Ingresse)
   priceCents: number;
   includesTransfer: boolean;
   includesSeal: boolean;

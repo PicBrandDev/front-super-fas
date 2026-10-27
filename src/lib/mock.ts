@@ -116,15 +116,15 @@ export const posts: Post[] = [
 ];
 
 export const events: ShowEvent[] = [
-  { id: "sp-07-nov", weekday: "SÁB", day: "07", month: "NOV", monthKey: "nov", city: "São Paulo", venue: "[Local do evento]", time: "23h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 6, status: "on_sale" },
-  { id: "rj-13-nov", weekday: "SEX", day: "13", month: "NOV", monthKey: "nov", city: "Rio de Janeiro", venue: "[Local do evento]", time: "22h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 4, status: "last_batches" },
-  { id: "fl-21-nov", weekday: "SÁB", day: "21", month: "NOV", monthKey: "nov", city: "Florianópolis", venue: "[Local do evento]", time: "23h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 5, status: "on_sale" },
-  { id: "bh-05-dez", weekday: "SÁB", day: "05", month: "DEZ", monthKey: "dez", city: "Belo Horizonte", venue: "[Local do evento]", time: "22h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 3, status: "soon" },
-  { id: "reveillon", weekday: "QUI", day: "31", month: "DEZ", monthKey: "dez", city: "[Réveillon · cidade]", venue: "[Local do evento]", time: "23h59", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 8, status: "soon" },
+  { id: "sp-07-nov", weekday: "SÁB", day: "07", month: "NOV", monthKey: "nov", city: "São Paulo", venue: "[Local do evento]", time: "23h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 6, status: "on_sale", ticketingName: "Ingresse", ticketingUrl: "https://www.ingresse.com/" },
+  { id: "rj-13-nov", weekday: "SEX", day: "13", month: "NOV", monthKey: "nov", city: "Rio de Janeiro", venue: "[Local do evento]", time: "22h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 4, status: "last_batches", ticketingName: "Ingresse", ticketingUrl: "https://www.ingresse.com/" },
+  { id: "fl-21-nov", weekday: "SÁB", day: "21", month: "NOV", monthKey: "nov", city: "Florianópolis", venue: "[Local do evento]", time: "23h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 5, status: "on_sale", ticketingName: "Ingresse", ticketingUrl: "https://www.ingresse.com/" },
+  { id: "bh-05-dez", weekday: "SÁB", day: "05", month: "DEZ", monthKey: "dez", city: "Belo Horizonte", venue: "[Local do evento]", time: "22h", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 3, status: "soon", ticketingName: "Ingresse", ticketingUrl: "https://www.ingresse.com/" },
+  { id: "reveillon", weekday: "QUI", day: "31", month: "DEZ", monthKey: "dez", city: "[Réveillon · cidade]", venue: "[Local do evento]", time: "23h59", address: "[Endereço]", doorsOpen: "[hora]", ageRating: "[18+]", lineup: "[a definir]", giftsCount: 8, status: "soon", ticketingName: "Ingresse", ticketingUrl: "https://www.ingresse.com/" },
 ];
 
 export const vendors: Vendor[] = [
-  { id: "v1", name: "[Ticketeira oficial]", type: "Ingresso pista e camarote", tag: "Oficial", priceLabel: "a partir de R$ [PREÇO]", url: "#" },
+  { id: "v1", name: "Ingresse", type: "Venda oficial de ingressos do show", tag: "Oficial", priceLabel: "a partir de R$ [PREÇO]", url: "https://www.ingresse.com/" },
   { id: "v2", name: "[Agência parceira A]", type: "Pacote ingresso + transfer ida e volta", tag: "Pacote", priceLabel: "a partir de R$ [PREÇO]", url: "#" },
   { id: "v3", name: "[Agência parceira B]", type: "Excursão saindo de Campinas", tag: "Excursão", priceLabel: "a partir de R$ [PREÇO]", url: "#" },
   { id: "v4", name: "[Agência parceira C]", type: "Pacote hotel + ingresso", tag: "Pacote", priceLabel: "a partir de R$ [PREÇO]", url: "#" },

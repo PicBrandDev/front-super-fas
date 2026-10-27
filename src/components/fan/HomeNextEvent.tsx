@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@/components/icons";
 import { formatBRL } from "@/lib/format";
-import { summarize, type PackageChoice } from "@/lib/package-choice";
+import { INGRESSE_URL } from "@/lib/ingresse";
+import { summarize, toggleAddon, type PackageChoice } from "@/lib/package-choice";
 import type { EventPackage, ShowEvent } from "@/lib/types";
 import { BrindeFlow } from "@/app/[artista]/(fan)/eventos/[id]/BrindeFlow";
 import { useArtist } from "./ArtistContext";
@@ -18,9 +19,10 @@ const statusTag: Record<ShowEvent["status"], { label: string; cls: string }> = {
 };
 
 /**
- * "Próximo evento" do Início. Tocar no cartão abre o modal de compra (folha de baixo) com os pacotes do show:
- * o fã escolhe a opção e toca em Comprar ingresso, que leva ao aviso do brinde e ao pagamento, como na tela do show.
- * Sem pacotes cadastrados, o cartão abre a tela do show.
+ * "Próximo evento" do Início. O ingresso é vendido só na Ingresse; no app o fã compra experiências extras.
+ * Com experiências cadastradas, tocar no cartão abre a folha de baixo com elas e o link da Ingresse: o fã marca as
+ * experiências e toca em Levar experiências, que leva ao aviso do brinde e ao pagamento, como na tela do show.
+ * Sem experiências, o cartão abre a tela do show.
  */
 export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; packages: EventPackage[]; demo: boolean }) {
   const { base } = useArtist();
@@ -29,6 +31,8 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
   const [choice, setChoice] = useState<PackageChoice | null>(null);
 
   const picked = summarize(packages, choice);
+  const hasExtras = packages.some((p) => p.addons.length > 0);
+  const ingresseUrl = event.ticketingUrl || INGRESSE_URL;
 
   const card = (
     <>
@@ -52,7 +56,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
           )}
         </span>
         <span className="go">
-          {packages.length > 0 ? "Comprar ingresso" : "Ver evento"}
+          {hasExtras ? "Ingresso na Ingresse e extras" : "Ver evento"}
           <Icon name="arrow" size={16} />
         </span>
       </span>
@@ -63,7 +67,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
 
   return (
     <>
-      {packages.length > 0 ? (
+      {hasExtras ? (
         <button type="button" className={`${cls} cursor-pointer font-grotesk`} onClick={() => setOpen(true)} aria-haspopup="dialog">
           {card}
         </button>
@@ -73,13 +77,13 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
         </Link>
       )}
 
-      <Sheet open={open} onClose={() => setOpen(false)} title={`Comprar ingresso · ${event.city}, ${event.day} ${event.month}`}>
+      <Sheet open={open} onClose={() => setOpen(false)} title={`Experiências extras · ${event.city}, ${event.day} ${event.month}`}>
+        <p className="m-0 text-[14px] leading-5 text-fg-muted">O ingresso é vendido só na Ingresse. Aqui você soma as experiências extras ao seu ingresso.</p>
         <div className="max-h-[52dvh] overflow-y-auto pr-1">
           <PackagePicker
             packages={packages}
             choice={choice}
-            onChoose={(id, item) => setChoice((c) => ({ id, item, addons: c?.id === id ? c.addons : [] }))}
-            onToggleAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.includes(key) ? c.addons.filter((k) => k !== key) : [...c.addons, key] } : c))}
+            onToggleAddon={(id, key) => setChoice((c) => toggleAddon(c, id, key))}
           />
         </div>
         <button
@@ -91,8 +95,12 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
             setBrinde(true);
           }}
         >
-          {picked ? `Comprar ingresso · ${formatBRL(picked.priceCents)}` : "Escolha uma opção"}
+          {picked ? `Levar experiências · ${formatBRL(picked.priceCents)}` : "Escolha uma experiência"}
         </button>
+        <a href={ingresseUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-block">
+          Comprar ingresso na Ingresse
+          <Icon name="arrow" size={16} />
+        </a>
         <Link href={`${base}/eventos/${event.id}`} className="go min-h-11">
           Ver todos os detalhes do show
           <Icon name="arrow" size={14} />
@@ -105,7 +113,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
         event={{ id: event.id, title: `Vintage Culture em ${event.city}`, city: event.city, day: event.day, month: event.month }}
         picked={picked}
         choice={choice}
-        onRemoveAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.filter((k) => k !== key) } : c))}
+        onRemoveAddon={(key) => setChoice((c) => (c ? toggleAddon(c, c.id, key) : c))}
       />
     </>
   );
