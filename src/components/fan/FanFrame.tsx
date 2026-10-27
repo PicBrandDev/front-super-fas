@@ -14,6 +14,7 @@ import { isChatThread } from "./nav";
  * cima. No celular o conteúdo reserva o espaço do menu (--navspace, fixo:
  * não muda quando o menu some). No desktop o menu lateral faz esse papel e a
  * coluna fica centralizada (até 600px). Numa conversa aberta não há barras.
+ * `data-nav-hidden` deixa barras grudadas acima do menu descerem com ele.
  */
 export function FanFrame({ avatar = null, children }: { avatar?: string | null; children: ReactNode }) {
   const { base } = useArtist();
@@ -25,6 +26,7 @@ export function FanFrame({ avatar = null, children }: { avatar?: string | null; 
       <div
         className="pb-navspace relative min-h-dvh w-full min-w-0 flex-1 lg:mx-auto lg:max-w-[600px] lg:border-x lg:border-line lg:pb-12"
         style={chrome ? undefined : ({ "--navspace": "0px" } as CSSProperties)}
+        data-nav-hidden={(chrome && hidden) || undefined}
       >
         {chrome && <FanTopBar avatar={avatar} hidden={hidden} />}
         {children}
