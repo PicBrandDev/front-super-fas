@@ -4,7 +4,7 @@ import { RideCard } from "@/components/fan/carpool/RideCard";
 import { useArtist } from "@/components/fan/ArtistContext";
 import type { MyCarpool } from "@/lib/types";
 
-export function MinhasCaronas({ artist, mine }: { artist: string; mine: MyCarpool }) {
+export function MinhasCaronas({ artist, mine, view }: { artist: string; mine: MyCarpool; view: "reservas" | "ofertas" }) {
   const { base } = useArtist();
   const group = (title: string, items: { id: string; ride: MyCarpool["offered"][number] }[], empty: string) => (
     <section className="flex flex-col gap-3" aria-label={title}>
@@ -22,10 +22,7 @@ export function MinhasCaronas({ artist, mine }: { artist: string; mine: MyCarpoo
       )}
     </section>
   );
-  return (
-    <>
-      {group("Vagas que reservei", mine.booked.filter((b) => b.status !== "cancelled" && b.status !== "refunded").map((b) => ({ id: b.id, ride: { ...b.ride, myBooking: b } })), "Você ainda não reservou nenhuma vaga. Abra um show na agenda e veja as caronas.")}
-      {group("Caronas que ofereço", mine.offered.map((r) => ({ id: r.id, ride: r })), "Você ainda não ofereceu carona.")}
-    </>
-  );
+  return view === "reservas"
+    ? group("Minhas reservas", mine.booked.filter((b) => b.status !== "cancelled" && b.status !== "refunded").map((b) => ({ id: b.id, ride: { ...b.ride, myBooking: b } })), "Você ainda não reservou carona. Abra um show na agenda e veja as caronas.")
+    : group("Minhas caronas", mine.offered.map((r) => ({ id: r.id, ride: r })), "Você ainda não ofereceu carona.");
 }

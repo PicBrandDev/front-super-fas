@@ -13,8 +13,8 @@ export default async function MinhasCaronasPage({ params }: { params: Promise<{ 
   const mine = await getMyCarpool(artista);
   return (
     <div className="flex flex-col gap-5">
-      <PageHead back={`/${artista}/agenda`} backLabel="Agenda" title="Minhas caronas" text="As viagens que você oferece e as vagas que reservou." />
-      <MinhasCaronas artist={artista} mine={mine} />
+      <PageHead back={`/${artista}/agenda`} backLabel="Agenda" title="Minhas caronas" text="As caronas que você oferece e quem reservou com você." />
+      <MinhasCaronas artist={artista} mine={mine} view="ofertas" />
     </div>
   );
 }

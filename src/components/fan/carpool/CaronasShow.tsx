@@ -13,11 +13,16 @@ export function CaronasShow({ artist, eventId, rides, past }: { artist: string; 
   const open = rides.filter((r) => r.status === "open");
   return (
     <>
-      {!past && !offering && (
+      {!offering && (
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn btn-primary" onClick={() => setOffering(true)}>
-            Oferecer carona
-          </button>
+          {!past && (
+            <button type="button" className="btn btn-primary" onClick={() => setOffering(true)}>
+              Oferecer carona
+            </button>
+          )}
+          <Link href={`${base}/caronas/reservas`} className="btn btn-outline">
+            Minhas reservas
+          </Link>
           <Link href={`${base}/caronas`} className="btn btn-outline">
             Minhas caronas
           </Link>
