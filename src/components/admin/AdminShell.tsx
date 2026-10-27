@@ -150,6 +150,7 @@ export function clubNav(slug: string): AdminNavItem[] {
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
     { key: "drops", label: "Drops Hits", href: `${base}/drops`, icon: "music" },
     { key: "pickup", label: "PicKup", href: `${base}/pickup`, icon: "wheel" },
+    { key: "caronas", label: "Caronas", href: `${base}/caronas`, icon: "pin" },
     { key: "vitrines", label: "Vitrines alugadas", href: `${base}/vitrines`, icon: "megaphone" },
   ];
 }

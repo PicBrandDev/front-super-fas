@@ -382,6 +382,24 @@ export type ExperienceBuyer = {
 };
 export type ExperienceBuyerPage = { total: number; page: number; pages: number; pageSize: number; label: string; items: ExperienceBuyer[] };
 
+/** Caronas por show: o fã oferece vagas e preço; outros reservam e pagam (valor retido até a viagem). */
+export type CarpoolWho = { id: string; name: string; handle: string; avatar: string | null };
+export type CarpoolBooking = {
+  id: string; seats: number; amountCents: number; status: "reserved" | "paid" | "completed" | "cancelled" | "refunded";
+  expiresAt: string | null; passenger: CarpoolWho | null;
+};
+export type Ride = {
+  id: string; eventId: string; city: string; originCity: string; meetingPoint: string; departAt: string;
+  seatsTotal: number; seatsLeft: number; priceCents: number; car: string; notes: string; status: string;
+  driver: CarpoolWho; mine: boolean; myBooking: CarpoolBooking | null; passengers: CarpoolBooking[];
+};
+export type MyRideBooking = CarpoolBooking & { ride: Ride };
+export type MyCarpool = { offered: Ride[]; booked: MyRideBooking[] };
+export type CarpoolAdmin = {
+  rides: number; seatsBooked: number; heldCents: number; releasedCents: number; refundedCents: number;
+  items: { ride: Ride; heldCents: number; releasedCents: number; refundedCents: number }[];
+};
+
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {
   fans: number;

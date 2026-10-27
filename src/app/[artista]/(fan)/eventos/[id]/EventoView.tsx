@@ -94,6 +94,17 @@ export function EventoView({
         </section>
       )}
 
+      {!past && (
+        <section className={s.sect} aria-labelledby="caronas-h">
+          <h2 id="caronas-h">Caronas</h2>
+          <p>Vai de carro? Ofereça vagas e divida o custo, ou reserve uma carona de outro fã.</p>
+          <Link href={`${base}/eventos/${event.id}/caronas`} className="btn btn-outline">
+            Ver caronas
+            <Icon name="arrow" size={16} />
+          </Link>
+        </section>
+      )}
+
       {!past && hasExtras && (
         <section id="extras" className={`${s.sect} scroll-mt-4`} aria-labelledby="extras-h">
           <h2 id="extras-h">Experiências extras</h2>

@@ -61,7 +61,10 @@ import type {
   PostDetail,
   ExperienceBuyerPage,
   ExperiencesOverview,
+  CarpoolAdmin,
+  MyCarpool,
   Ranking,
+  Ride,
   VitrinesMap,
   TrackDetail,
   SubscriberActivity,
@@ -405,6 +408,11 @@ export async function getExperienceBuyers(slug: string, eventId: string, key: st
   const res = await request(`/artists/${slug}/manage/events/${eventId}/experiences/${key}/buyers?${qs}`);
   return res.ok ? ((await res.json()) as ExperienceBuyerPage) : null;
 }
+
+/** Caronas: viagens abertas de um show, as minhas e a visão da administração. */
+export const getRides = (slug: string, eventId: string) => get<Ride[]>(`/artists/${slug}/carpool/events/${eventId}/rides`, () => [] as Ride[]);
+export const getMyCarpool = (slug: string) => get<MyCarpool>(`/artists/${slug}/carpool/me`, () => ({ offered: [], booked: [] }));
+export const getCarpoolAdmin = (slug: string) => get<CarpoolAdmin | null>(`/artists/${slug}/manage/carpool`, () => null, { notFound: null });
 
 /** GET /artists/{slug}/subscribers-analytics */
 export const getSubscribersAnalytics = (slug: string) =>
