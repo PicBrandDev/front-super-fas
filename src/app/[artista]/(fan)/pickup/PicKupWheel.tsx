@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { spinPickup } from "@/app/actions/fan";
 import { AdModal } from "@/components/fan/AdModal";
@@ -81,6 +82,10 @@ export function PicKupWheel({
   // Giro esperando o vídeo patrocinado (guarda o crédito escolhido).
   const [pendingSpin, setPendingSpin] = useState<{ creditId?: string } | null>(null);
   const [claimOpen, setClaimOpen] = useState(false);
+  const router = useRouter();
+  // Qual foi o resultado que abriu o anúncio, e se o fã pediu "Ver meus brindes" (só vai depois de fechar o anúncio).
+  const claimWasPrize = useRef(false);
+  const goBrindes = useRef(false);
 
   const mastBox = useRef<HTMLDivElement>(null);
   const rotRef = useRef(rot);
@@ -227,13 +232,22 @@ export function PicKupWheel({
 
   /** Fecha o resultado; se foi brinde, o anúncio de resgate entra depois (não trava o brinde). */
   const closeResult = useCallback(() => {
-    if (result && !isLose(result) && claimAd) setClaimOpen(true);
+    // O anúncio em modal entra depois de qualquer resultado do giro (brinde ou "não foi dessa vez").
+    if (result && claimAd) {
+      claimWasPrize.current = !isLose(result);
+      setClaimOpen(true);
+    }
     setResult(null);
   }, [result, claimAd]);
   const closeClaim = useCallback(() => {
     setClaimOpen(false);
-    toast("Guardado em Meus brindes");
-  }, [toast]);
+    if (claimWasPrize.current) toast("Guardado em Meus brindes");
+    // "Ver meus brindes": só depois de fechar o anúncio é que vai para a tela de brindes.
+    if (goBrindes.current) {
+      goBrindes.current = false;
+      router.push(`${base}/pickup/brindes`);
+    }
+  }, [toast, router, base]);
 
   const keyLabel = spinning ? "Tocando" : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : "Girar o disco";
   const lose = !!result && isLose(result);
@@ -358,17 +372,18 @@ export function PicKupWheel({
               <p>O brinde fica guardado em Meus brindes. Você retira no próximo evento com a sua identidade de fã.</p>
             )}
             <div className="row">
-              <Link
-                href={`${base}/pickup/brindes`}
+              <button
+                type="button"
                 className="btn btn-primary"
                 data-close
                 data-autofocus
                 onClick={() => {
-                  if (!claimAd) toast("Guardado em Meus brindes");
+                  if (claimAd) goBrindes.current = true; // o anúncio abre ao fechar esta folha; os brindes vêm depois dele
+                  else router.push(`${base}/pickup/brindes`);
                 }}
               >
                 Ver meus brindes
-              </Link>
+              </button>
               <button className="btn btn-outline" type="button" data-close>
                 Fechar
               </button>
