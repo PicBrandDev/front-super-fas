@@ -57,6 +57,7 @@ import type {
   PickupWinnerPage,
   PostDetail,
   Ranking,
+  VitrinesMap,
   TrackDetail,
   SubscriberActivity,
   SubscriberPage,
@@ -357,6 +358,12 @@ export async function getTrackDetail(slug: string, id: string): Promise<TrackDet
   const res = await request(`/artists/${slug}/manage/tracks/${id}/detail`);
   return res.ok ? ((await res.json()) as TrackDetail) : null;
 }
+
+/** GET /artists/{slug}/vitrines-map: todas as vitrines, com quem está no ar (admin). */
+export const getVitrinesMap = (slug: string) => get<VitrinesMap | null>(`/artists/${slug}/vitrines-map`, () => null, { notFound: null });
+
+/** GET /sponsor/vitrines-map: todas as vitrines de um cantor (portal do patrocinador). */
+export const getSponsorVitrinesMap = (slug: string) => get<VitrinesMap | null>(`/sponsor/vitrines-map?artist=${encodeURIComponent(slug)}`, () => null, { notFound: null });
 
 /** GET /artists/{slug}/subscribers-analytics */
 export const getSubscribersAnalytics = (slug: string) =>

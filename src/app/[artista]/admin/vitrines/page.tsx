@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { AdminEmpty, Badge, SlotDiagram, tdClass, thClass, type Tone } from "@/components/admin/ui";
-import { getArtist, getRentals } from "@/lib/api";
+import { MapaVitrines } from "@/components/admin/vitrines/MapaVitrines";
+import { getArtist, getRentals, getVitrinesMap } from "@/lib/api";
 import { formatBRL, formatCount } from "@/lib/format";
 import type { Rental } from "@/lib/types";
 
@@ -29,7 +30,10 @@ export default async function VitrinesPage({ params }: { params: Promise<{ artis
   const { artista } = await params;
   const artist = await getArtist(artista);
   if (!artist) notFound();
-  const rentals = await getRentals(artist.slug);
+  const [rentals, map] = await Promise.all([getRentals(artist.slug), getVitrinesMap(artist.slug)]);
+  const cards = map?.cards ?? [];
+  const liveNow = cards.filter((c) => c.live).length;
+  const scheduledNow = cards.filter((c) => !c.live && c.next).length;
   const count = (s: Rental["status"]) => rentals.filter((r) => r.status === s).length;
   const sections: { key: Rental["status"]; title: string }[] = [
     { key: "live", title: "No ar agora" },
@@ -42,8 +46,28 @@ export default async function VitrinesPage({ params }: { params: Promise<{ artis
       <AdminPageHeader
         title="Vitrines alugadas"
         headingId="vitrines-title"
-        description={`Todas as vitrines de anúncio de ${artist.name} e dos fã clubes que têm um patrocinador, e por quanto tempo.`}
+        description={`O mapa de todas as vitrines de ${artist.name} e dos fã clubes: onde cada uma fica no app, qual marca está no ar e por quanto tempo.`}
       />
+
+      {cards.length > 0 && (
+        <>
+          <dl aria-label="Vitrines" className="m-0 flex flex-wrap gap-x-10 gap-y-3 border-y border-adm-line py-4">
+            {[
+              { label: "Vitrines no app", value: cards.length },
+              { label: "No ar agora", value: liveNow },
+              { label: "Agendadas", value: scheduledNow },
+              { label: "Livres", value: cards.length - liveNow - scheduledNow },
+            ].map((k) => (
+              <div key={k.label} className="flex flex-col gap-0.5">
+                <dt className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-muted">{k.label}</dt>
+                <dd className="m-0 font-display text-3xl font-black leading-9">{formatCount(k.value)}</dd>
+              </div>
+            ))}
+          </dl>
+          <MapaVitrines cards={cards} mode="admin" artist={artist.slug} />
+          <h2 className="m-0 mt-4 font-display text-3xl font-black">Aluguéis e períodos</h2>
+        </>
+      )}
 
       <dl aria-label="Resumo" className="m-0 flex flex-wrap gap-x-10 gap-y-3 border-y border-adm-line py-4">
         {sections.map((s) => (

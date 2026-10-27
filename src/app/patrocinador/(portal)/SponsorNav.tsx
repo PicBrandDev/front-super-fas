@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const items = [
   { href: "/patrocinador", label: "Minhas campanhas" },
+  { href: "/patrocinador/vitrines", label: "Vitrines" },
   { href: "/patrocinador/nova", label: "Nova campanha" },
 ];
 

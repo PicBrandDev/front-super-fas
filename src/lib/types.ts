@@ -345,6 +345,19 @@ export type TrackDetail = {
   likes: number; views: number; sharesTotal: number; sharesVerified: number; shares: ShareRow[];
 };
 
+/** Mapa de vitrines (admin e patrocinador): cada vitrine com quem está no ar e quem vem a seguir. */
+export type VitrineBooking = {
+  brand: string; sponsor: string | null; title: string; text: string; cta: string; url: string;
+  art: string | null; video: string | null; start: string | null; end: string | null;
+  status: "live" | "scheduled"; mine: boolean;
+};
+export type VitrineCard = {
+  key: string; name: string; where: string; format: string; group: "entrada" | "roleta" | "feed" | "outras";
+  clubSlug: string | null; clubName: string | null; priceCentsPerWeek: number | null; active: boolean;
+  diagramTop: number; diagramHeight: number; live: VitrineBooking | null; next: VitrineBooking | null;
+};
+export type VitrinesMap = { artist: string; cards: VitrineCard[] };
+
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {
   fans: number;
