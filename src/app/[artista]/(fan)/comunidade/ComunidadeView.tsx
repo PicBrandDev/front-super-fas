@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Masthead } from "@/components/fan/Masthead";
 import { PostCard } from "@/components/fan/PostCard";
+import { SponsoredPost } from "@/components/fan/SponsoredPost";
+import { COMMUNITY_AD_EVERY, type InAppAd } from "@/lib/ads";
 import { initialsOf } from "@/lib/format";
 import { Tabs } from "@/components/fan/Tabs";
 import type { Post, Ranking } from "@/lib/types";
@@ -21,12 +23,25 @@ const tabs: { id: Tab; label: string }[] = [
 export type FollowedClub = { slug: string; name: string; avatar: string | null; isMaster: boolean };
 
 /**
+ * Anúncio que entra depois do post de índice `i` (0-based) do feed já montado, ou null.
+ * Conta pela posição na lista que aparece na tela (filtros e posts novos incluídos), então o
+ * patrocinado é sempre o 8º, 16º, … item. Com paginação, basta concatenar as páginas na mesma
+ * lista antes do map: o índice continua corrido e a conta não reinicia a cada página.
+ */
+function adAfter(i: number, ads: InAppAd[]): InAppAd | null {
+  if (!ads.length || (i + 1) % COMMUNITY_AD_EVERY !== 0) return null;
+  const slot = (i + 1) / COMMUNITY_AD_EVERY - 1; // 0 no 8º item, 1 no 16º…
+  return ads[slot % ads.length]; // rodízio entre as campanhas
+}
+
+/**
  * Tela "Comunidade": o feed só dos fã clubes que o fã segue. "Todos" junta o feed deles e cada botão
  * abre o feed de um fã clube. Os posts oficiais do artista aparecem para quem segue o fã clube master.
  * O botão "+" flutuante publica num dos fã clubes que o fã segue.
  */
 export function ComunidadeView({
   posts,
+  ads = [],
   clubs,
   allClubs,
   ownerView = false,
@@ -36,6 +51,7 @@ export function ComunidadeView({
   demo,
 }: {
   posts: Post[];
+  ads?: InAppAd[]; // campanhas do feed, em rodízio a cada COMMUNITY_AD_EVERY posts
   clubs: FollowedClub[]; // fã clubes que o fã segue
   allClubs: ClubListItem[]; // todos os fã clubes, para entrar em um
   ownerView?: boolean; // dono/equipe: tudo da tela é só do fã clube dele
@@ -144,7 +160,15 @@ export function ComunidadeView({
               {list.length === 0 ? (
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
-                list.map((p, i) => <PostCard key={p.id} post={p} index={i} fresh={fresh.has(p.id)} />)
+                list.map((p, i) => {
+                  const ad = adAfter(i, ads);
+                  return (
+                    <Fragment key={p.id}>
+                      <PostCard post={p} index={i} fresh={fresh.has(p.id)} />
+                      {ad && <SponsoredPost ad={ad} />}
+                    </Fragment>
+                  );
+                })
               )}
             </div>
           </>

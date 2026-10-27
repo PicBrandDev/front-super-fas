@@ -1,0 +1,79 @@
+/* Post patrocinado da Comunidade: um tom acima do feed, régua âmbar de 1px, sem sombra nem gradiente. */
+.card {
+  margin: 0 -16px;
+  border-top: 1px solid var(--fc-amber);
+  border-bottom: 1px solid var(--fc-line);
+  background: var(--fc-surface);
+}
+
+.strip {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--fc-line);
+}
+
+.badge {
+  flex: none;
+  padding: 3px 6px;
+  border: 1px solid var(--fc-amber);
+  border-radius: 2px;
+  color: var(--fc-amber-text);
+  font: 400 11px/12px var(--fc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sponsor {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--fc-fg);
+  font: 700 13px/16px var(--fc-font-grotesk);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.mediaLink {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 2px;
+  background: var(--fc-raised);
+  object-fit: cover;
+}
+.body > .media {
+  margin-bottom: 4px;
+}
+
+.title {
+  margin: 0;
+  color: var(--fc-fg);
+  font: 700 17px/22px var(--fc-font-grotesk);
+  text-wrap: balance;
+}
+
+.text {
+  margin: 0;
+  color: var(--fc-fg-muted);
+  font-size: 15px;
+  line-height: 21px;
+}
+
+.cta {
+  justify-self: start;
+  margin-top: 8px;
+  gap: 8px;
+}

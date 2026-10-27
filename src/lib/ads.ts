@@ -30,6 +30,8 @@ export type InAppAds = Partial<Record<AdPlacement, InAppAd | null>>;
 export const PICKUP_VIDEO_MIN_SECONDS = 30;
 /** O post patrocinado entra depois de cada N cartazes/posts do Mural. */
 export const FEED_AD_EVERY = 4;
+/** Na Comunidade, o post patrocinado entra depois de cada N posts (posições 8, 16, …). */
+export const COMMUNITY_AD_EVERY = 7;
 
 /**
  * Criativos de exemplo (enquanto o back não manda GET /artists/{slug}/ads/in-app).
