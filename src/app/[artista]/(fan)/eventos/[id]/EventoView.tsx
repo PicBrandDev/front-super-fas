@@ -108,7 +108,7 @@ export function EventoView({
       {!past && hasOptions && (
         <section className={s.sect} aria-labelledby="ingressos-h">
           <h2 id="ingressos-h">Experiências do show</h2>
-          <p>O ingresso você compra na ticketeira. Aqui você escolhe as experiências dos pacotes das agências (transfer, jantar, camarim, hotel...) e toca em Comprar. Todos incluem o Photo Finder.</p>
+          <p>O ingresso você compra na ticketeira. Aqui você leva só o transfer, só uma experiência ou várias: marque o que quiser e toque em Comprar. Todas incluem o Photo Finder.</p>
           {packages.length > 0 && (
             <PackagePicker
               packages={packages}

@@ -20,5 +20,5 @@ export function summarize(packages: EventPackage[], choice: PackageChoice | null
   const priceCents = extras.reduce((sum, a) => sum + a.priceCents, 0);
   const name = extras.map((a) => a.label).join(" + ");
   const lines = extras.map((a) => ({ key: a.key, label: a.label, priceCents: a.priceCents }));
-  return { pkg, extras, lines, priceCents, name, label: `${name} · ${formatBRL(priceCents)}` };
+  return { pkg, extras, lines, priceCents, name, label: `${extras.length === 1 ? name : `${extras.length} experiências`} · ${formatBRL(priceCents)}` };
 }
