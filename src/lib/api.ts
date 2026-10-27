@@ -44,6 +44,7 @@ import type {
   Campaign,
   Gift,
   FeedAdItem,
+  AdsAnalytics,
   HomeAd,
   Member,
   MemberPerk,
@@ -501,6 +502,9 @@ export const getClubCampaigns = (slug: string, club: string) =>
 
 /** GET /artists/{slug}/rentals: vitrines alugadas (ambiente e fã clubes), com o patrocinador e o período. */
 export const getRentals = (slug: string) => get<Rental[]>(`/artists/${slug}/rentals`, () => [] as Rental[]);
+
+/** GET /artists/{slug}/ads-analytics: views e cliques dos anúncios por patrocinador e campanha. */
+export const getAdsAnalytics = (slug: string, days = 30) => get<AdsAnalytics | null>(`/artists/${slug}/ads-analytics?days=${days}`, () => null, { notFound: null });
 
 /** GET /artists/{slug}/campaigns (administração do ambiente) */
 export const getEnvCampaigns = (slug: string) => get<Campaign[]>(`/artists/${slug}/campaigns`, () => mock.campaigns);

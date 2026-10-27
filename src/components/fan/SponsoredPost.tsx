@@ -1,5 +1,6 @@
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
+import { AdTrack } from "./AdTrack";
 import { AdMedia, adLinkProps } from "./FeedAd";
 import styles from "./SponsoredPost.module.css";
 
@@ -16,6 +17,7 @@ export function SponsoredPost({ ad }: { ad: InAppAd }) {
   const media = <AdMedia ad={ad} video className={styles.media} />;
 
   return (
+    <AdTrack id={ad.id}>
     <article aria-label={`Patrocinado por ${ad.sponsor}`} className={styles.card}>
       <header className={styles.strip}>
         <span className={styles.badge}>Patrocinado</span>
@@ -39,5 +41,6 @@ export function SponsoredPost({ ad }: { ad: InAppAd }) {
         </a>
       </div>
     </article>
+    </AdTrack>
   );
 }

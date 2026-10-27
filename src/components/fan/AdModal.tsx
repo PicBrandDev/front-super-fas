@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
 import { brandStyle } from "@/lib/brand-style";
+import { useArtist } from "./ArtistContext";
+import { reportAd } from "./AdTrack";
 
 /**
  * Modal de anúncio da área do fã (entrada no app, resgate da roleta).
@@ -23,6 +25,7 @@ export function AdModal({
   lockSeconds?: number;
   closeLabel?: string;
 }) {
+  const { slug } = useArtist();
   const box = useRef<HTMLDivElement>(null);
   const [left, setLeft] = useState(lockSeconds);
   const [wasOpen, setWasOpen] = useState(open);
@@ -38,6 +41,12 @@ export function AdModal({
     const t = setInterval(() => setLeft((s) => (s <= 1 ? (clearInterval(t), 0) : s - 1)), 1000);
     return () => clearInterval(t);
   }, [open, lockSeconds]);
+
+  // Abriu: conta uma visualização do anúncio.
+  const adId = ad.id;
+  useEffect(() => {
+    if (open) reportAd(slug, adId, "view");
+  }, [open, slug, adId]);
 
   // Foco entra no diálogo ao abrir e volta para onde estava ao fechar (só depende de `open`).
   useEffect(() => {
@@ -111,7 +120,7 @@ export function AdModal({
           {ad.title}
         </h2>
         <p>{ad.text}</p>
-        <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" className="btn btn-primary btn-block">
+        <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" onClick={() => reportAd(slug, ad.id, "click")} className="btn btn-primary btn-block">
           {ad.cta}
           <Icon name="external" size={16} className="icon" />
         </a>

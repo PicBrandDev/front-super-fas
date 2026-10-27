@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { reportAd } from "@/components/fan/AdTrack";
+import { useArtist } from "@/components/fan/ArtistContext";
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
 import v from "./PicKupVideoAd.module.css";
@@ -40,7 +42,10 @@ export function PicKupVideoAd({
   onDone: () => void; // "Girar agora"
   onDismiss: (watched: boolean) => void; // "Agora não" ou Esc depois de liberado: fecha sem girar (não gasta o giro)
 }) {
+  const { slug } = useArtist();
   const box = useRef<HTMLDivElement>(null);
+  const adId = ad.id;
+  useEffect(() => reportAd(slug, adId, "view"), [slug, adId]); // abriu: conta uma visualização
   const video = useRef<HTMLVideoElement>(null);
   const [mode, setMode] = useState<Mode>(() => (ad.videoUrl ? "video" : ad.imageUrl ? "image" : "none"));
   const [muted, setMuted] = useState(false);
@@ -320,7 +325,7 @@ export function PicKupVideoAd({
           {ad.text}
         </p>
         <div className={v.pair}>
-          <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" className="btn btn-outline btn-block">
+          <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" onClick={() => reportAd(slug, ad.id, "click")} className="btn btn-outline btn-block">
             {ad.cta}
             <Icon name="external" size={16} className="icon" />
           </a>

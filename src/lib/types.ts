@@ -191,6 +191,7 @@ export type Track = {
 };
 
 export type HomeAd = {
+  id?: string;
   sponsor: string;
   title: string;
   text: string;
@@ -611,4 +612,34 @@ export type PublicFan = ChatUser & {
   rank: number | null;
   isMe: boolean;
   posts: Post[];
+};
+
+/** Um dia de visualizações e cliques de anúncio. */
+export type AdsPoint = { day: string; views: number; clicks: number };
+
+export type AdsCampaignStats = {
+  id: string;
+  title: string;
+  slotName: string;
+  where: string;
+  fanClub: string | null;
+  status: "live" | "scheduled" | "ended";
+  start: string | null;
+  end: string | null;
+  views: number;
+  clicks: number;
+  ctr: number;
+  goalViews: number;
+  goalClicks: number;
+  series: AdsPoint[];
+};
+
+/** GET /artists/{slug}/ads-analytics: desempenho dos anúncios por patrocinador (admin do ambiente). */
+export type AdsAnalytics = {
+  days: number;
+  views: number;
+  clicks: number;
+  ctr: number;
+  series: AdsPoint[];
+  sponsors: { name: string; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[] }[];
 };

@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { AdminEmpty, Badge, SlotDiagram, tdClass, thClass, type Tone } from "@/components/admin/ui";
+import { DesempenhoAnuncios } from "@/components/admin/vitrines/DesempenhoAnuncios";
 import { MapaVitrines } from "@/components/admin/vitrines/MapaVitrines";
-import { getArtist, getRentals, getVitrinesMap } from "@/lib/api";
+import { getAdsAnalytics, getArtist, getRentals, getVitrinesMap } from "@/lib/api";
 import { formatBRL, formatCount } from "@/lib/format";
 import type { Rental } from "@/lib/types";
 
@@ -26,11 +27,13 @@ function duration(days: number | null) {
 }
 
 /** Vitrines alugadas do ambiente e dos fã clubes: qual vitrine, quem alugou e por quanto tempo. */
-export default async function VitrinesPage({ params }: { params: Promise<{ artista: string }> }) {
+export default async function VitrinesPage({ params, searchParams }: { params: Promise<{ artista: string }>; searchParams: Promise<{ dias?: string }> }) {
   const { artista } = await params;
+  const { dias } = await searchParams;
+  const days = [7, 30, 90].includes(Number(dias)) ? Number(dias) : 30;
   const artist = await getArtist(artista);
   if (!artist) notFound();
-  const [rentals, map] = await Promise.all([getRentals(artist.slug), getVitrinesMap(artist.slug)]);
+  const [rentals, map, ads] = await Promise.all([getRentals(artist.slug), getVitrinesMap(artist.slug), getAdsAnalytics(artist.slug, days)]);
   const cards = map?.cards ?? [];
   const liveNow = cards.filter((c) => c.live).length;
   const scheduledNow = cards.filter((c) => !c.live && c.next).length;
@@ -65,6 +68,7 @@ export default async function VitrinesPage({ params }: { params: Promise<{ artis
             ))}
           </dl>
           <MapaVitrines cards={cards} mode="admin" artist={artist.slug} />
+          {ads && <DesempenhoAnuncios data={ads} base={`/${artist.slug}`} />}
           <h2 className="m-0 mt-4 font-display text-3xl font-black">Aluguéis e períodos</h2>
         </>
       )}

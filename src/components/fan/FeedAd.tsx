@@ -1,9 +1,11 @@
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
 import { brandStyle } from "@/lib/brand-style";
+import { AdTrack } from "./AdTrack";
 
 /** O que o card precisa de uma campanha (serve para `HomeAd`, `FeedAd` da API e `InAppAd`). */
 export type AdCreative = {
+  id?: string;
   sponsor: string;
   title: string;
   text: string;
@@ -46,6 +48,7 @@ export function FeedAd({ ad, className = "" }: { ad: AdCreative; className?: str
   const st = brandStyle(ad.sponsor);
   const art = ad.artUrl ?? ad.imageUrl ?? null;
   return (
+    <AdTrack id={ad.id}>
     <aside aria-label={`Anúncio patrocinado: ${ad.title}`} className={`my-4 px-4 ${className}`}>
       <div className="relative overflow-hidden rounded-field" style={{ background: st.bg, color: st.fg }}>
         {art && (
@@ -70,5 +73,6 @@ export function FeedAd({ ad, className = "" }: { ad: AdCreative; className?: str
         <span className="mono absolute right-2 top-2 rounded-hair bg-black/60 px-2 py-0.5 !text-[10px] text-white">Patrocinado</span>
       </div>
     </aside>
+    </AdTrack>
   );
 }
