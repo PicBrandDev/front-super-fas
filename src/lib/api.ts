@@ -55,7 +55,9 @@ import type {
   PickupOverview,
   PickupSpinPage,
   PickupWinnerPage,
+  PostDetail,
   Ranking,
+  TrackDetail,
   SubscriberActivity,
   SubscriberPage,
   RankingFan,
@@ -340,6 +342,20 @@ export async function getPrizeWinners(slug: string, prizeId: string, page: numbe
   if (!API_URL) return null;
   const res = await request(`/artists/${slug}/manage/pickup/prizes/${prizeId}/winners?page=${page}`);
   return res.ok ? ((await res.json()) as PickupWinnerPage) : null;
+}
+
+/** GET /artists/{slug}/manage/posts/{id}/detail: foto, números, comentários e quem compartilhou. */
+export async function getPostDetail(slug: string, id: string): Promise<PostDetail | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/posts/${id}/detail`);
+  return res.ok ? ((await res.json()) as PostDetail) : null;
+}
+
+/** GET /artists/{slug}/manage/tracks/{id}/detail: curtidas, visualizações e quem compartilhou o hit. */
+export async function getTrackDetail(slug: string, id: string): Promise<TrackDetail | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/tracks/${id}/detail`);
+  return res.ok ? ((await res.json()) as TrackDetail) : null;
 }
 
 /** GET /artists/{slug}/subscribers-analytics */

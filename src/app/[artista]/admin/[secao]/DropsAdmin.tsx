@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type CSSProperties } from "react";
 import { deleteContent, saveContent } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
+import { DetalheHitDialog } from "@/components/admin/DetalheDialogs";
 import { ItemForm, type FieldDef, type Item } from "@/components/admin/ResourceManager";
 import { AdminNotice, btnPrimary } from "@/components/admin/ui";
 import { Vinyl } from "@/components/fan/Vinyl";
@@ -11,7 +12,7 @@ import { Icon } from "@/components/icons";
 import { formatShort } from "@/lib/format";
 import s from "@/app/[artista]/(fan)/mural/Mural.module.css";
 
-export type DropTrack = Item & { title: string; meta: string; releaseLabel: string; votes: number };
+export type DropTrack = Item & { title: string; meta: string; releaseLabel: string; votes: number; views?: number };
 
 /**
  * Drops Hits do admin com os mesmos cards que o fã vê (disco de vinil, título, legenda, lançamento e votos).
@@ -31,6 +32,7 @@ export function DropsAdmin({
   const router = useRouter();
   const [editing, setEditing] = useState<DropTrack | "new" | null>(null);
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
 
@@ -106,6 +108,13 @@ export function DropsAdmin({
                       <Icon name="heart" size={20} />
                       <span className="num">{formatShort(t.votes)}</span>
                     </span>
+                    <span className="act like" aria-label={`${t.views ?? 0} visualizações`}>
+                      <Icon name="eye" size={20} />
+                      <span className="num">{formatShort(t.views ?? 0)}</span>
+                    </span>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => setDetail(t.id)}>
+                      Ver detalhes<span className="sr-only"> de {t.title}</span>
+                    </button>
                     <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditing(t)} disabled={!!editing}>
                       Editar<span className="sr-only"> {t.title}</span>
                     </button>
@@ -130,6 +139,7 @@ export function DropsAdmin({
           </div>
         )}
       </div>
+      {detail && <DetalheHitDialog key={detail} artist={slug} id={detail} onClose={() => setDetail(null)} />}
     </>
   );
 }

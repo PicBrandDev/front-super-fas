@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getPersonHistory, getPickupHistory, getPrizeWinners, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
-import type { EventPhoto, PersonHistory, PickupSpinPage, PickupWinnerPage, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
+import { getPersonHistory, getPickupHistory, getPostDetail, getTrackDetail, getPrizeWinners, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, PersonHistory, PostDetail, TrackDetail, PickupSpinPage, PickupWinnerPage, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -258,4 +258,16 @@ export async function setPrizeStock(slug: string, club: string, prizeId: string,
   const res = await send("PATCH", `/artists/${slug}/clubs/${club}/manage/prizes/${prizeId}`, { stock });
   if (res.ok) revalidatePath(`/${slug}/admin/pickup`);
   return res;
+}
+
+// ---------- Detalhes de post e de hit ----------
+
+export async function loadPostDetail(slug: string, id: string): Promise<PostDetail | null> {
+  if (!slugOk(slug) || !idOk(id)) return null;
+  return getPostDetail(slug, id);
+}
+
+export async function loadTrackDetail(slug: string, id: string): Promise<TrackDetail | null> {
+  if (!slugOk(slug) || !idOk(id)) return null;
+  return getTrackDetail(slug, id);
 }

@@ -330,6 +330,21 @@ export type PickupSpinRow = PickupPerson & { at: string; prize: string; kind: st
 export type PickupSpinPage = { total: number; page: number; pages: number; pageSize: number; items: PickupSpinRow[] };
 export type PickupWinnerPage = { total: number; page: number; pages: number; pageSize: number; items: PickupWinner[] };
 
+/** Admin: detalhes de um post do Drop News e de um hit do Drops Hits. */
+export type DetailWho = { userId: string | null; name: string; handle: string; avatar: string | null };
+export type ShareRow = DetailWho & { at: string; status: "started" | "claimed" | "verified"; permalink: string };
+export type CommentRow = DetailWho & { text: string; at: string };
+export type PostDetail = {
+  id: string; kind: string; official: boolean; text: string; image: string | null; url: string;
+  author: DetailWho | null; club: string | null; createdAt: string;
+  likes: number; comments: number; reposts: number; views: number;
+  sharesTotal: number; sharesVerified: number; shares: ShareRow[]; commentList: CommentRow[];
+};
+export type TrackDetail = {
+  id: string; title: string; meta: string; releaseLabel: string; durationSec: number;
+  likes: number; views: number; sharesTotal: number; sharesVerified: number; shares: ShareRow[];
+};
+
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {
   fans: number;

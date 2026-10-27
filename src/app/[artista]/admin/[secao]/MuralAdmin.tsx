@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { deleteContent } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { FeedCard, FeedGrid } from "@/components/admin/FeedCard";
+import { DetalhePostDialog } from "@/components/admin/DetalheDialogs";
 import { AdminEmpty, AdminNotice, btnPrimary } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import type { FeedItem } from "@/lib/types";
@@ -23,6 +24,7 @@ export function MuralAdmin({
   const router = useRouter();
   const [composer, setComposer] = useState(false);
   const [confirm, setConfirm] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [announce, setAnnounce] = useState("");
   const [pending, start] = useTransition();
@@ -76,7 +78,7 @@ export function MuralAdmin({
           <FeedGrid>
             {items.map((p) => (
               <li key={p.id}>
-                <FeedCard item={p}>
+                <FeedCard item={p} onOpen={() => setOpen(p.id)}>
                   {confirm === p.id ? (
                     <div className="flex items-center gap-2">
                       <button
@@ -110,6 +112,8 @@ export function MuralAdmin({
           </FeedGrid>
         )}
       </div>
+
+      {open && <DetalhePostDialog key={open} artist={slug} id={open} onClose={() => setOpen(null)} />}
 
       {composer && (
         <DropComposer
