@@ -11,7 +11,7 @@ import { ToastProvider } from "./Toast";
 
 /**
  * Casca da área do fã: aplica o tema do artista (variáveis --fc-*), o menu
- * lateral no desktop e o deck de baixo no celular (ver FanFrame).
+ * lateral no desktop e, no celular, o topo e o menu de baixo (ver FanFrame).
  */
 export function FanShell({
   artist,
@@ -19,6 +19,7 @@ export function FanShell({
   otherFandoms,
   entryAd = null,
   freshLogin = false,
+  avatar = null,
   children,
 }: {
   artist: Artist;
@@ -28,6 +29,8 @@ export function FanShell({
   entryAd?: InAppAd | null;
   /** Acabou de fazer login/cadastro neste artista (cookie `sf_entry_ad`). */
   freshLogin?: boolean;
+  /** Foto de perfil do fã, no topo do celular. */
+  avatar?: string | null;
   children: React.ReactNode;
 }) {
   return (
@@ -47,7 +50,7 @@ export function FanShell({
       <ToastProvider>
         <div style={themeStyle(artist.theme)} className="fan min-h-dvh bg-night font-grotesk text-base leading-6 text-fg lg:flex">
           <FanSidebar />
-          <FanFrame>{children}</FanFrame>
+          <FanFrame avatar={avatar}>{children}</FanFrame>
           {entryAd && <EntryAd ad={entryAd} slug={artist.slug} fresh={freshLogin} />}
         </div>
       </ToastProvider>

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
-import { FanTopBar } from "@/components/fan/FanTopBar";
 import { FeedAd } from "@/components/fan/FeedAd";
 import { HomeMuralSwitch } from "@/components/fan/HomeMuralSwitch";
 import { Masthead } from "@/components/fan/Masthead";
@@ -44,14 +43,13 @@ export function MuralView({
   posters,
   tracks,
   demo,
-  avatar = null,
   initialTab = "wall",
   feedAd = null,
 }: {
   posters: Poster[];
   tracks: Track[];
   demo: boolean;
-  avatar?: string | null; // foto de perfil no topo
+  avatar?: string | null; // sem uso: o topo (com a foto) agora é global, no FanFrame
   initialTab?: MuralTab;
   feedAd?: InAppAd | null; // post patrocinado entre os cartazes (posição `feed`)
 }) {
@@ -134,7 +132,6 @@ export function MuralView({
 
   return (
     <div className={s.screen}>
-      <FanTopBar avatar={avatar} />
       <HomeMuralSwitch base={base} current="mural" />
       <Masthead word="Mural" steps={2} index={tab === "wall" ? 0 : 1} />
       <Tabs
