@@ -103,9 +103,12 @@ export function RideCard({ artist, base, ride }: { artist: string; base: string;
             </ul>
           )}
           {ride.status === "open" && (
-            <button type="button" className="btn btn-outline btn-sm self-start" disabled={pending} onClick={() => run(() => cancelRide(artist, ride.id))}>
-              Cancelar viagem (devolve o valor aos passageiros)
+            <button type="button" className="btn btn-outline btn-sm h-auto w-full whitespace-normal py-2 text-center" disabled={pending} onClick={() => run(() => cancelRide(artist, ride.id))}>
+              Cancelar viagem
             </button>
+          )}
+          {ride.status === "open" && ride.passengers.some((p) => p.status === "paid") && (
+            <p className="m-0 text-[13px] leading-5 text-fg-muted">O valor pago é devolvido aos passageiros.</p>
           )}
         </div>
       ) : mb ? (
