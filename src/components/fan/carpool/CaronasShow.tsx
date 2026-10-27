@@ -5,7 +5,7 @@ import { useState } from "react";
 import { OfferRideForm } from "@/components/fan/carpool/OfferRideForm";
 import { RideCard } from "@/components/fan/carpool/RideCard";
 import { useArtist } from "@/components/fan/ArtistContext";
-import { PageHead } from "@/components/fan/resale/parts";
+import { Icon } from "@/components/icons";
 import type { Ride } from "@/lib/types";
 
 export function CaronasShow({ artist, eventId, rides, past, back, text }: { artist: string; eventId: string; rides: Ride[]; past: boolean; back: string; text: string }) {
@@ -14,19 +14,22 @@ export function CaronasShow({ artist, eventId, rides, past, back, text }: { arti
   const open = rides.filter((r) => r.status === "open" && !r.mine && !r.myBooking);
   return (
     <>
-      <PageHead
-        back={back}
-        backLabel="Show"
-        title="Caronas"
-        text={text}
-        aside={
-          !past && !offering ? (
-            <button type="button" className="btn btn-primary btn-sm" onClick={() => setOffering(true)}>
-              Oferecer carona
+      <header className="flex flex-col gap-2">
+        <Link href={back} className="back">
+          <Icon name="back" size={18} />
+          Show
+        </Link>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="m-0 font-display text-[40px] font-black leading-[40px]">Caronas</h1>
+          {!past && !offering && (
+            <button type="button" className="btn btn-primary flex-none gap-1.5 whitespace-nowrap px-4" onClick={() => setOffering(true)}>
+              <Icon name="plus" size={16} />
+              Oferecer
             </button>
-          ) : undefined
-        }
-      />
+          )}
+        </div>
+        <p className="m-0 max-w-[40ch] text-[15px] leading-[22px] text-fg-muted">{text}</p>
+      </header>
       <nav aria-label="Caronas" className="flex flex-wrap gap-2">
         <span className="btn btn-primary" aria-current="page">
           Caronas
