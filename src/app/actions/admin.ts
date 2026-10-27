@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getPersonHistory, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
-import type { EventPhoto, PersonHistory, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
+import { getPersonHistory, getPickupHistory, getPrizeWinners, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, PersonHistory, PickupSpinPage, PickupWinnerPage, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -237,4 +237,25 @@ export async function loadSubscribers(slug: string, q: string, page: number): Pr
 export async function loadSubscriberActivity(slug: string, userId: string): Promise<SubscriberActivity | null> {
   if (!slugOk(slug) || !idOk(userId)) return null;
   return getSubscriberActivity(slug, userId);
+}
+
+// ---------- PicKup: histórico, ganhadores e estoque ----------
+
+export async function loadPickupHistory(slug: string, club: string | undefined, q: string, page: number): Promise<PickupSpinPage | null> {
+  if (!slugOk(slug) || (club && !slugOk(club)) || !Number.isInteger(page) || page < 1) return null;
+  return getPickupHistory(slug, club, q.trim().slice(0, 80), page);
+}
+
+export async function loadPrizeWinners(slug: string, prizeId: string, page: number): Promise<PickupWinnerPage | null> {
+  if (!slugOk(slug) || !idOk(prizeId) || !Number.isInteger(page) || page < 1) return null;
+  return getPrizeWinners(slug, prizeId, page);
+}
+
+/** Define quantas unidades de um brinde existem (nulo = sem limite). */
+export async function setPrizeStock(slug: string, club: string, prizeId: string, stock: number | null): Promise<Res> {
+  if (!slugOk(slug) || !slugOk(club) || !idOk(prizeId)) return bad("Pedido inválido.");
+  if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > 1_000_000)) return bad("Digite um número inteiro de 0 a 1.000.000.");
+  const res = await send("PATCH", `/artists/${slug}/clubs/${club}/manage/prizes/${prizeId}`, { stock });
+  if (res.ok) revalidatePath(`/${slug}/admin/pickup`);
+  return res;
 }

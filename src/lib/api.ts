@@ -52,6 +52,9 @@ import type {
   Profile,
   ClubHighlight,
   PersonHistory,
+  PickupOverview,
+  PickupSpinPage,
+  PickupWinnerPage,
   Ranking,
   SubscriberActivity,
   SubscriberPage,
@@ -318,6 +321,25 @@ export async function getSubscriberActivity(slug: string, userId: string): Promi
   if (!API_URL) return null;
   const res = await request(`/artists/${slug}/subscribers/${userId}/activity`);
   return res.ok ? ((await res.json()) as SubscriberActivity) : null;
+}
+
+/** GET /artists/{slug}/manage/pickup: a roleta ativa, estoque e ganhadores de cada brinde. */
+export const getPickup = (slug: string, club?: string) =>
+  get<PickupOverview | null>(`/artists/${slug}/manage/pickup${club ? `?club=${encodeURIComponent(club)}` : ""}`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/manage/pickup/history: quem girou, do último para o primeiro (10 por página). */
+export async function getPickupHistory(slug: string, club: string | undefined, q: string, page: number): Promise<PickupSpinPage | null> {
+  if (!API_URL) return null;
+  const qs = new URLSearchParams({ page: String(page), ...(q ? { q } : {}), ...(club ? { club } : {}) });
+  const res = await request(`/artists/${slug}/manage/pickup/history?${qs}`);
+  return res.ok ? ((await res.json()) as PickupSpinPage) : null;
+}
+
+/** GET /artists/{slug}/manage/pickup/prizes/{id}/winners: quem ganhou uma fatia (10 por página). */
+export async function getPrizeWinners(slug: string, prizeId: string, page: number): Promise<PickupWinnerPage | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/pickup/prizes/${prizeId}/winners?page=${page}`);
+  return res.ok ? ((await res.json()) as PickupWinnerPage) : null;
 }
 
 /** GET /artists/{slug}/subscribers-analytics */

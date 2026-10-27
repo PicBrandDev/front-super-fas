@@ -5,7 +5,7 @@ import { loadSubscriberActivity, loadSubscribers } from "@/app/actions/admin";
 import { ClubAvatar } from "@/components/admin/ClubAvatar";
 import { Badge, inputClass } from "@/components/admin/ui";
 import { formatBRL, formatCount } from "@/lib/format";
-import type { ActivityEvent, SubscriberActivity, SubscriberPage, SubscriberRow } from "@/lib/types";
+import type { ActivityEvent, MemberPerk, SubscriberActivity, SubscriberPage, SubscriberRow } from "@/lib/types";
 
 const day = (iso: string | null) => (iso ? iso.split("-").reverse().join("/") : "—");
 const when = (iso: string) =>
@@ -32,7 +32,7 @@ const GROUP: Record<string, { label: string; tone: "ok" | "warn" | "off" | "info
  * Assinantes ativos, do que assinou por último ao mais antigo, 10 por página, com busca pelo nome.
  * Clicar numa pessoa abre as ações dela: roleta, brindes, cupons, compras, Instagram, posts e comentários.
  */
-export function ListaAssinantes({ artist, initial }: { artist: string; initial: SubscriberPage | null }) {
+export function ListaAssinantes({ artist, initial, perks }: { artist: string; initial: SubscriberPage | null; perks: MemberPerk[] }) {
   const [data, setData] = useState<SubscriberPage | null>(initial);
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
@@ -141,12 +141,12 @@ export function ListaAssinantes({ artist, initial }: { artist: string; initial: 
         )}
       </div>
 
-      {picked && <ActivityDialog artist={artist} person={picked} onClose={() => setPicked(null)} />}
+      {picked && <ActivityDialog artist={artist} person={picked} perks={perks} onClose={() => setPicked(null)} />}
     </section>
   );
 }
 
-function ActivityDialog({ artist, person, onClose }: { artist: string; person: SubscriberRow; onClose: () => void }) {
+function ActivityDialog({ artist, person, perks, onClose }: { artist: string; person: SubscriberRow; perks: MemberPerk[]; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [data, setData] = useState<SubscriberActivity | null>(null);
   const [failed, setFailed] = useState(false);
@@ -214,6 +214,24 @@ function ActivityDialog({ artist, person, onClose }: { artist: string; person: S
                 </div>
               ))}
             </dl>
+
+            <section aria-labelledby="sa-direitos" className="flex flex-col gap-2">
+              <h3 id="sa-direitos" className="m-0 text-base font-bold">
+                O que ele tem direito
+              </h3>
+              {perks.length === 0 ? (
+                <p className="m-0 text-sm text-adm-muted">Nenhuma vantagem cadastrada.</p>
+              ) : (
+                <ul className="m-0 grid list-none gap-2 p-0 sm:grid-cols-2">
+                  {perks.map((p) => (
+                    <li key={p.title} className="flex flex-col rounded-xl border border-adm-line bg-white px-3.5 py-2.5 leading-5">
+                      <strong className="text-sm">{p.title}</strong>
+                      <span className="text-[13px] text-adm-muted">{p.sub}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
 
             <section aria-labelledby="sa-cupons" className="flex flex-col gap-2">
               <h3 id="sa-cupons" className="m-0 text-base font-bold">

@@ -313,6 +313,23 @@ export type SubscriberActivity = {
   events: ActivityEvent[];
 };
 
+/** Admin: PicKup (roleta ativa, estoque, ganhadores e histórico de giros). */
+export type PickupPerson = { userId: string | null; name: string; handle: string; avatar: string | null };
+export type PickupWinner = PickupPerson & { at: string; code: string; status: "" | "available" | "used" | "redeemed" | "expired" };
+export type PickupPrize = {
+  id: string; label: string; kind: string; percent: number; points: number; isRetry: boolean; position: number;
+  stock: number | null; won: number; people: number; remaining: number | null; recent: PickupWinner[];
+};
+export type PickupWheel = { slug: string; name: string; isMaster: boolean };
+export type PickupOverview = {
+  wheel: PickupWheel; wheels: PickupWheel[];
+  summary: { spins: number; spinners: number; spinsLeft: number; rewards: number; lastSpin: (PickupPerson & { at: string; prize: string }) | null };
+  prizes: PickupPrize[];
+};
+export type PickupSpinRow = PickupPerson & { at: string; prize: string; kind: string };
+export type PickupSpinPage = { total: number; page: number; pages: number; pageSize: number; items: PickupSpinRow[] };
+export type PickupWinnerPage = { total: number; page: number; pages: number; pageSize: number; items: PickupWinner[] };
+
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {
   fans: number;
