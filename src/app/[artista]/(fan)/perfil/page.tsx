@@ -10,6 +10,7 @@ import { apiEnabled, getArtist, getClubs, getMyTickets, getProfile, getRanking, 
 import { authEnabled, roleLabel, type Role } from "@/lib/auth";
 import { isPastEvent } from "@/lib/events";
 import { formatBRL, formatPoints } from "@/lib/format";
+import { thumb } from "@/lib/thumb";
 
 export const metadata: Metadata = { title: "Meu perfil" };
 
@@ -126,7 +127,7 @@ export default async function PerfilPage({ params }: { params: Promise<{ artista
                 <li key={c.slug} className="flex items-center gap-3 border-b border-line py-2.5">
                   {c.avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã clube
-                    <img src={c.avatar} alt="" width={32} height={32} className="size-8 flex-none rounded-full object-cover" />
+                    <img src={thumb(c.avatar, 32)} alt="" width={32} height={32} className="size-8 flex-none rounded-full object-cover" />
                   ) : (
                     <span aria-hidden="true" className="avatar flex-none">
                       {c.name.charAt(0)}

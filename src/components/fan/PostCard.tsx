@@ -12,6 +12,7 @@ import { Mark } from "./Mark";
 import { PersonAvatar } from "./PersonAvatar";
 import { ShareInstagram } from "./ShareInstagram";
 import { useToast } from "./Toast";
+import { thumb } from "@/lib/thumb";
 
 const kindLabel: Record<PostKind, string> = { drop: "Mural", galera: "Comunidade", instagram: "Instagram" };
 
@@ -94,7 +95,7 @@ export function PostCard({
           <Link href={`${base}/clubes/${post.club.slug}`} className="tag mb-3 inline-flex items-center gap-1.5 no-underline" aria-label={`Fã clube ${post.club.name}`}>
             {post.club.avatar ? (
               // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube
-              <img src={post.club.avatar} alt="" width={16} height={16} className="size-4 rounded-full object-cover" />
+              <img src={thumb(post.club.avatar, 16)} alt="" width={16} height={16} className="size-4 rounded-full object-cover" />
             ) : (
               <span aria-hidden="true" className="flex size-4 items-center justify-center rounded-full bg-raised text-[9px] font-black">
                 {initialsOf(post.club.name).charAt(0)}
@@ -172,7 +173,7 @@ export function PostCard({
           <div className="relative mt-3 aspect-[4/5] overflow-hidden rounded-hair bg-raised">
             {/* As duas primeiras fotos carregam já; as demais, perto de aparecer na tela. */}
             <img
-              src={image.src}
+              src={thumb(image.src, 360)}
               alt={image.alt}
               loading={index < 2 ? "eager" : "lazy"}
               fetchPriority={index < 2 ? "high" : "auto"}

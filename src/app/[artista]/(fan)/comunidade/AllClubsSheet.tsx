@@ -9,6 +9,7 @@ import { Sheet } from "@/components/fan/Sheet";
 import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
 import { initialsOf } from "@/lib/format";
+import { thumb } from "@/lib/thumb";
 
 export type ClubListItem = {
   slug: string;
@@ -84,7 +85,7 @@ export function AllClubsButton({
               <li key={c.slug} className="flex items-center gap-3 border-t border-line py-3">
                 {c.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã clube
-                  <img src={c.avatar} alt="" width={40} height={40} className="size-10 flex-none rounded-full object-cover" />
+                  <img src={thumb(c.avatar, 40)} alt="" width={40} height={40} className="size-10 flex-none rounded-full object-cover" />
                 ) : (
                   <span aria-hidden="true" className="flex size-10 flex-none items-center justify-center rounded-full bg-raised font-display text-sm font-black">
                     {initialsOf(c.name).charAt(0)}
