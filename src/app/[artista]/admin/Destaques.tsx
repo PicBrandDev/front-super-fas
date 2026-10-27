@@ -43,7 +43,11 @@ const METRICS: Metric[] = [
 const byValue = (m: Metric) => (a: ClubHighlight, b: ClubHighlight) => m.value(b) - m.value(a);
 
 /** Quatro placares (conteúdo, feed, ativos, inscritos): título grande, fã clube líder com foto e o pódio dos seguintes. */
-export function Destaques({ artist, clubs }: { artist: string; clubs: ClubHighlight[] }) {
+export function Destaques({ artist, clubs: all }: { artist: string; clubs: ClubHighlight[] }) {
+  // O fã clube oficial tem todo o conteúdo e todos os inscritos, então venceria os quatro placares sempre:
+  // a disputa é entre os fã clubes dos fãs. Só entra o oficial se não houver nenhum outro.
+  const others = all.filter((c) => !c.isMaster);
+  const clubs = others.length > 0 ? others : all;
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {METRICS.map((m) => {
