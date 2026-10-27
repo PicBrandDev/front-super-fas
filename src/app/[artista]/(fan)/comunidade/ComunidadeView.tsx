@@ -29,9 +29,10 @@ export type FollowedClub = { slug: string; name: string; avatar: string | null; 
  * lista antes do map: o índice continua corrido e a conta não reinicia a cada página.
  */
 function adAfter(i: number, ads: InAppAd[]): InAppAd | null {
-  if (!ads.length || (i + 1) % COMMUNITY_AD_EVERY !== 0) return null;
-  const slot = (i + 1) / COMMUNITY_AD_EVERY - 1; // 0 no 8º item, 1 no 16º…
-  return ads[slot % ads.length]; // rodízio entre as campanhas
+  if (!ads.length) return null;
+  if (i === 0) return ads[0]; // o primeiro anúncio (Spotify) entra logo embaixo do 1º post
+  if ((i + 1) % COMMUNITY_AD_EVERY !== 0) return null;
+  return ads[((i + 1) / COMMUNITY_AD_EVERY) % ads.length]; // depois, a cada COMMUNITY_AD_EVERY posts, em rodízio
 }
 
 /**
