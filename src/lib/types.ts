@@ -389,7 +389,7 @@ export type CarpoolBooking = {
   expiresAt: string | null; passenger: CarpoolWho | null;
 };
 export type Ride = {
-  id: string; eventId: string; city: string; originCity: string; meetingPoint: string; departAt: string;
+  id: string; eventId: string; city: string; venue: string; address: string; originCity: string; meetingPoint: string; departAt: string;
   seatsTotal: number; seatsLeft: number; priceCents: number; car: string; notes: string; status: string;
   driver: CarpoolWho; mine: boolean; myBooking: CarpoolBooking | null; passengers: CarpoolBooking[];
 };

@@ -23,6 +23,7 @@ export function OfferRideForm({ artist, eventId, onDone }: { artist: string; eve
     e.preventDefault();
     const cents = toCents(f.price);
     if (f.originCity.trim().length < 2) return setError("Diga de que cidade você sai.");
+    if (f.meetingPoint.trim().length < 5) return setError("Informe o endereço completo da saída.");
     if (!f.departAt) return setError("Escolha o dia e a hora da saída.");
     if (cents === null) return setError("O preço de cada vaga precisa ser um valor em reais.");
     start(async () => {
@@ -55,8 +56,8 @@ export function OfferRideForm({ artist, eventId, onDone }: { artist: string; eve
         <input className={field} value={f.originCity} onChange={set("originCity")} placeholder="Ex.: Anápolis" />
       </label>
       <label className="flex flex-col gap-1 text-[14px]">
-        Ponto de encontro
-        <input className={field} value={f.meetingPoint} onChange={set("meetingPoint")} placeholder="Ex.: Posto Shell da BR-153" />
+        Endereço completo da saída *
+        <input className={field} value={f.meetingPoint} onChange={set("meetingPoint")} maxLength={160} placeholder="Rua, número, bairro, cidade e estado" />
       </label>
       <label className="flex flex-col gap-1 text-[14px]">
         Dia e hora da saída *

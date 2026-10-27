@@ -47,7 +47,12 @@ export function RideCard({ artist, base, ride }: { artist: string; base: string;
             {ride.originCity} → {ride.city}
           </strong>
           <span className="mono">{when(ride.departAt)}</span>
-          {ride.meetingPoint && <span className="text-[14px] leading-5 text-fg-muted">Saída: {ride.meetingPoint}</span>}
+          <span className="mt-1 text-[14px] leading-5 text-fg-muted">
+            <b className="text-fg">Saída:</b> {ride.meetingPoint}
+          </span>
+          <span className="text-[14px] leading-5 text-fg-muted">
+            <b className="text-fg">Chegada:</b> {[ride.venue, ride.address].filter(Boolean).join(", ") || ride.city}
+          </span>
         </div>
         <div className="flex flex-none flex-col items-end">
           <span className="num text-[20px] font-black leading-6">{formatBRL(ride.priceCents)}</span>
