@@ -1,7 +1,7 @@
 "use server";
 
 import { apiEnabled, fetchJson, send, toChatMessage, type ApiResult } from "@/lib/api";
-import { chatBodyError } from "@/lib/chat";
+import { CHAT_PAGE, chatBodyError } from "@/lib/chat";
 import * as chatMock from "@/lib/chat-mock";
 import type { ChatMessage } from "@/lib/types";
 
@@ -49,6 +49,17 @@ export async function pollMessages(slug: string, convId: number, afterId: number
     return list ? { ok: true, data: list } : { ok: false, error: "Essa conversa não existe mais.", status: 404 };
   }
   const res = await fetchJson<Record<string, unknown>[]>(`${base(slug)}/${convId}/messages?after_id=${afterId}&limit=200`);
+  return res.ok ? { ok: true, data: res.data.map(toChatMessage) } : res;
+}
+
+/** As 50 mensagens anteriores a `beforeId` (carregar o histórico ao rolar para cima). */
+export async function olderChatMessages(slug: string, convId: number, beforeId: number): Promise<ApiResult<ChatMessage[]>> {
+  if (!slugOk(slug) || !convOk(convId) || !Number.isInteger(beforeId) || beforeId < 1) return bad();
+  if (!apiEnabled()) {
+    const list = chatMock.olderMessages(convId, beforeId, CHAT_PAGE);
+    return list ? { ok: true, data: list } : { ok: false, error: "Essa conversa não existe mais.", status: 404 };
+  }
+  const res = await fetchJson<Record<string, unknown>[]>(`${base(slug)}/${convId}/messages?before_id=${beforeId}&limit=${CHAT_PAGE}`);
   return res.ok ? { ok: true, data: res.data.map(toChatMessage) } : res;
 }
 

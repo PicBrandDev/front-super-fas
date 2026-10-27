@@ -12,6 +12,7 @@ import { SESSION_COOKIE, verifySession, type Session } from "./auth";
 import * as mock from "./mock";
 import { exampleInAppAds, type InAppAds } from "./ads";
 import * as resaleMock from "./resale-mock";
+import { CHAT_PAGE } from "./chat";
 import * as chatMock from "./chat-mock";
 import type {
   Eligibility,
@@ -614,7 +615,7 @@ export async function getConversation(slug: string, id: number): Promise<Convers
 
 /** GET /artists/{slug}/chat/conversations/{id}/messages (últimas 50, da mais antiga para a mais nova). */
 export const getMessages = (slug: string, id: number) =>
-  get<Raw[]>(`${chat(slug)}/conversations/${id}/messages?limit=50`, () => (chatMock.listMessages(id) ?? []) as unknown as Raw[], {
+  get<Raw[]>(`${chat(slug)}/conversations/${id}/messages?limit=${CHAT_PAGE}`, () => (chatMock.listMessages(id) ?? []) as unknown as Raw[], {
     notFound: [],
   }).then((rs) => rs.map(toChatMessage));
 

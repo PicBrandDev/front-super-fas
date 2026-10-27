@@ -5,9 +5,15 @@
 
 export const CHAT_MAX = 1000;
 
+/** Quantas mensagens a conversa carrega por vez (ao abrir e a cada "Carregar anteriores"). */
+export const CHAT_PAGE = 50;
+
 export const CHAT_TEXT_ONLY = "Só texto. Fotos e vídeos não são permitidos.";
 
-const MEDIA_LINK = /(https?:\/\/|www\.)\S*\.(jpe?g|png|gif|webp|heic|heif|bmp|svg|avif|tiff?|mp4|mov|webm|m4v|avi|mkv|3gp)(?![a-z0-9])/i;
+// Mesma regra do back (_MEDIA_URL em app/routers/chat.py): link com http(s)://, www. ou barra no caminho que termina
+// numa extensão de foto/vídeo, com ou sem ?query/#âncora.
+const MEDIA_LINK =
+  /(?:https?:\/\/|www\.|\S\/)\S*\.(?:jpe?g|png|gif|webp|heic|heif|bmp|svg|avif|tiff?|mp4|mov|webm|m4v|avi|mkv|3gp)(?:[?#]\S*)?(?=$|[\s)\]}>'".,;!])/i;
 
 /** Mensagem de erro se o texto não pode ser enviado, ou null se pode. */
 export function chatBodyError(raw: string): string | null {

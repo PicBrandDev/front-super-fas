@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from "react";
-import { markChatRead, pollMessages, sendChatMessage } from "@/app/actions/chat";
+import { markChatRead, olderChatMessages, pollMessages, sendChatMessage } from "@/app/actions/chat";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Icon } from "@/components/icons";
-import { CHAT_MAX, CHAT_TEXT_ONLY, chatBodyError, chatClock, chatDay, sameChatDay } from "@/lib/chat";
+import { CHAT_MAX, CHAT_PAGE, CHAT_TEXT_ONLY, chatBodyError, chatClock, chatDay, sameChatDay } from "@/lib/chat";
 import type { ChatMessage, Conversation } from "@/lib/types";
 import { ChatAvatar } from "./ChatAvatar";
 import { refreshChatUnread } from "./useChatUnread";
@@ -70,6 +70,9 @@ export function ChatThread({ conversation, initial }: { conversation: Conversati
   const [offline, setOffline] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [unseen, setUnseen] = useState(false);
+  // Veio a página cheia ao abrir: pode haver mensagens mais antigas para carregar.
+  const [hasOlder, setHasOlder] = useState(initial.length >= CHAT_PAGE);
+  const [loadingOlder, setLoadingOlder] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLOListElement>(null);
@@ -179,6 +182,27 @@ export function ChatThread({ conversation, initial }: { conversation: Conversati
     if (!sc) return;
     atBottom.current = sc.scrollHeight - sc.scrollTop - sc.clientHeight < NEAR_BOTTOM;
     if (atBottom.current && unseen) setUnseen(false);
+  };
+
+  /** Busca as mensagens anteriores à primeira da tela e mantém a rolagem onde a pessoa estava. */
+  const loadOlder = async () => {
+    const first = msgsRef.current[0];
+    const sc = scrollerRef.current;
+    if (!first || loadingOlder) return;
+    setLoadingOlder(true);
+    const res = await olderChatMessages(slug, convId, first.id).catch(() => null);
+    setLoadingOlder(false);
+    if (!res?.ok) {
+      setError("Não deu para carregar as mensagens anteriores. Tente de novo.");
+      return;
+    }
+    if (res.data.length < CHAT_PAGE) setHasOlder(false);
+    if (!res.data.length) return;
+    const from = sc ? sc.scrollHeight - sc.scrollTop : 0;
+    setMessages((prev) => merge(prev, res.data));
+    requestAnimationFrame(() => {
+      if (sc) sc.scrollTop = sc.scrollHeight - from;
+    });
   };
 
   const jumpToEnd = () => {
@@ -317,6 +341,13 @@ export function ChatThread({ conversation, initial }: { conversation: Conversati
           {empty && (
             <li className="m-auto max-w-[30ch] py-8 text-center text-[15px] leading-[22px] text-fg-muted">
               Nenhuma mensagem ainda. Diga oi para {firstName}.
+            </li>
+          )}
+          {hasOlder && !empty && (
+            <li className="flex justify-center pb-2">
+              <button type="button" onClick={loadOlder} disabled={loadingOlder} className="btn btn-ghost min-h-11 text-[13px]">
+                {loadingOlder ? "Carregando…" : "Carregar mensagens anteriores"}
+              </button>
             </li>
           )}
           {messages.map((m, i) => {

@@ -135,6 +135,13 @@ export function listMessages(convId: number, afterId?: number, limit = 50): Chat
   return afterId ? list.filter((m) => m.id > afterId).slice(0, limit) : list.slice(-limit);
 }
 
+/** As `limit` mensagens anteriores a `beforeId` (histórico), da mais antiga para a mais nova. */
+export function olderMessages(convId: number, beforeId: number, limit = 50): ChatMessage[] | null {
+  const s = store();
+  if (!s.convs.some((c) => c.id === convId)) return null;
+  return s.msgs.filter((m) => m.conversationId === convId && m.id < beforeId).slice(-limit);
+}
+
 export function sendMessage(convId: number, raw: string): { ok: true; data: ChatMessage } | { ok: false; error: string; status: number } {
   const s = store();
   if (!s.convs.some((c) => c.id === convId)) return { ok: false, error: "Essa conversa não existe mais.", status: 404 };

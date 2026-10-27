@@ -52,6 +52,11 @@ function onVisibility() {
 }
 
 function start(s: string) {
+  if (s !== slug && count !== 0) {
+    // Outro ambiente: o número do anterior não vale aqui até a próxima busca.
+    count = 0;
+    emit();
+  }
   slug = s;
   if (users++ > 0) return;
   void refreshChatUnread();

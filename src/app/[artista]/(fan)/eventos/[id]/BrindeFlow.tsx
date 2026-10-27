@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buyTicket, myCoupons, quoteTicket } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { NO_CARD, PaymentFields, cardError, payLabel, type Card, type Method } from "@/components/fan/PaymentFields";
@@ -95,6 +95,18 @@ export function BrindeFlow({
     setOptin(false);
     onClose();
   };
+
+  // Tirou a última experiência do carrinho: o pai fecha a folha (sem carrinho), então fecha de vez aqui também,
+  // zerando passo, cupom e opt-in. Sem isso, marcar outra experiência reabriria o carrinho sozinho no pagamento.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (open) wasOpen.current = true;
+    else if (wasOpen.current) {
+      wasOpen.current = false;
+      if (!picked) close();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, picked]);
 
   async function applyCoupon(raw: string) {
     const value = raw.trim().toUpperCase();

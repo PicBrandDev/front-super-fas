@@ -6,8 +6,10 @@ import type { InAppAd } from "@/lib/ads";
 import v from "./PicKupVideoAd.module.css";
 
 const TICK_MS = 250;
-/** Sem progresso por esse tempo (erro, rede travada, vídeo que não carrega): cai na arte parada. */
+/** Depois que o vídeo já tem imagem: sem progresso por esse tempo (erro, rede travada), cai na arte parada. */
 const STALL_MS = 4000;
+/** Antes do primeiro quadro: tempo para carregar em rede de celular lenta antes de desistir do vídeo. */
+const LOAD_MS = 15000;
 /** Arte parada (vídeo falhou ou anúncio sem vídeo): contagem curta antes de liberar. */
 const IMAGE_SECONDS = 5;
 /** Folga no fim: alguns navegadores param o `currentTime` um pouco antes da `duration`. */
@@ -103,16 +105,18 @@ export function PicKupVideoAd({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Vigia: sem avanço por 4 s enquanto deveria estar tocando (erro silencioso, `stalled`, rede travada).
+  // Vigia: sem avanço enquanto deveria estar tocando (erro silencioso, `stalled`, rede travada). Até o primeiro
+  // quadro a folga é maior (LOAD_MS): em 3G o vídeo demora a começar e não deve cair na arte antes de tocar.
   useEffect(() => {
     if (!isVideo || videoDone || needTap) return;
+    const limit = hasFrame ? STALL_MS : LOAD_MS;
     lastProgress.current = Date.now();
     const t = setInterval(() => {
       if (document.hidden) lastProgress.current = Date.now();
-      else if (Date.now() - lastProgress.current > STALL_MS) fallBack();
+      else if (Date.now() - lastProgress.current > limit) fallBack();
     }, 500);
     return () => clearInterval(t);
-  }, [isVideo, videoDone, needTap, fallBack]);
+  }, [isVideo, videoDone, needTap, hasFrame, fallBack]);
 
   // Aba escondida: pausa (o tempo fora não conta) e retoma ao voltar.
   useEffect(() => {
