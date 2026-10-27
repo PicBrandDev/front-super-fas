@@ -267,18 +267,21 @@ export function PicKupWheel({
         )}
         {club && n === 0 && <p className={s.note}>A roleta ainda não tem prêmios. Volte mais tarde.</p>}
 
-        <Turntable
-          prizes={labels}
-          deck
-          live
-          prefix={PFX}
-          on={on}
-          rot={rot}
-          arm={arm}
-          vu={vu}
-          volume={volume}
-          playing={playing}
-        />
+        {/* Em telas baixas (computador) o disco encolhe para a lista de giros e o botão de brindes caberem sem rolar. */}
+        <div style={{ width: "min(100%, 40vh)", margin: "0 auto" }}>
+          <Turntable
+            prizes={labels}
+            deck
+            live
+            prefix={PFX}
+            on={on}
+            rot={rot}
+            arm={arm}
+            vu={vu}
+            volume={volume}
+            playing={playing}
+          />
+        </div>
 
         <button type="button" className={s.startkey} onClick={() => requestSpin()} disabled={cantSpin} aria-busy={spinning || undefined}>
           <i className={s.led} aria-hidden="true" />
