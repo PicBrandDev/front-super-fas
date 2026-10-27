@@ -454,7 +454,7 @@ export type PersonHistory = {
 };
 export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; shares: number; points: number };
 export type RankingScope = {
-  clubSlug: string | null; name: string; leader: RankingFan | null; top: RankingFan | null;
+  clubSlug: string | null; isMaster?: boolean; name: string; leader: RankingFan | null; top: RankingFan | null;
   people: RankingPerson[]; // os 10 primeiros, com o ajuste da administração
   ranked: number; // quantas pessoas já pontuam
 };

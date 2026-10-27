@@ -22,6 +22,7 @@ export function AdminShell({
   className = "",
   style,
   passwordHref = "/conta/senha",
+  sidebarExtra,
   children,
 }: {
   brand?: { mark: ReactNode; title: string; subtitle: string; markClass?: string };
@@ -33,11 +34,12 @@ export function AdminShell({
   className?: string; // ex.: "adm-noite" para o visual do artista
   style?: CSSProperties; // variáveis do tema do artista
   passwordHref?: string; // trocar senha (dentro do ambiente do artista, quando houver)
+  sidebarExtra?: ReactNode; // bloco extra no menu lateral, entre o menu e o usuário
   children: ReactNode;
 }) {
   return (
     <div style={style} className={`flex min-h-dvh flex-wrap bg-adm-bg font-adm text-adm-ink ${className}`}>
-      <aside className="flex flex-[1_1_220px] flex-col gap-[22px] bg-adm-side px-3.5 py-5 text-adm-side-text lg:sticky lg:top-0 lg:h-dvh lg:max-w-[260px]">
+      <aside className="flex flex-[1_1_220px] flex-col gap-[22px] bg-adm-side px-3.5 py-5 text-adm-side-text lg:sticky lg:top-0 lg:h-dvh lg:max-w-[260px] lg:overflow-y-auto">
         <div className="px-1.5">
           {brand ? (
             <div className="flex items-center gap-2.5">
@@ -82,6 +84,7 @@ export function AdminShell({
             {extraLink.label}
           </Link>
         )}
+        {sidebarExtra}
         <div className="mt-auto flex flex-col gap-1 border-t border-adm-side-line pt-2.5">
           <div className="flex items-center gap-2.5 px-1.5 py-1">
             <span className="flex size-8 flex-none items-center justify-center rounded-full bg-adm-side-line text-[13px] font-semibold">
@@ -141,7 +144,6 @@ export function clubNav(slug: string): AdminNavItem[] {
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
     { key: "drops", label: "Drops Hits", href: `${base}/drops`, icon: "music" },
     { key: "vitrines", label: "Vitrines alugadas", href: `${base}/vitrines`, icon: "megaphone" },
-    { key: "ranking", label: "Ranking Fã Super", href: `${base}/ranking`, icon: "star" },
   ];
 }
 

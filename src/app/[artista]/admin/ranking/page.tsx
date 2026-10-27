@@ -8,7 +8,7 @@ import { RankingLeaders } from "./RankingLeaders";
 
 export const metadata: Metadata = { title: "Ranking Fã Super" };
 
-/** Quem é o 1º do ranking geral e de cada fã clube: pelo placar ou escolhido pela administração. */
+/** Quem é o 1º do ranking geral e de cada fã clube. */
 export default async function RankingAdminPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
   const artist = await getArtist(artista);
@@ -19,7 +19,7 @@ export default async function RankingAdminPage({ params }: { params: Promise<{ a
       <AdminPageHeader
         title="Ranking Fã Super"
         headingId="ranking-title"
-        description="Escolha quem fica em 1º lugar no ranking geral e no de cada fã clube. Sem escolha, vale o placar de compartilhamentos."
+        description="Quem está em 1º lugar no ranking geral e no de cada fã clube, pelo placar de compartilhamentos."
       />
       {scopes.length ? (
         <RankingLeaders artist={artist.slug} scopes={scopes} />

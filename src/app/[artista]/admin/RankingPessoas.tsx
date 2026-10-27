@@ -37,7 +37,7 @@ export function RankingPessoas({ artist, scopes }: { artist: string; scopes: Ran
           <p className="m-0 text-[13px] text-adm-muted">Fãs com mais pontos no Fã Super (compartilhamentos confirmados no Instagram). Clique numa pessoa para ver o histórico dela.</p>
         </div>
         <Link href={`/${artist}/admin/ranking`} className="text-[13px] font-semibold text-adm-blue-dark">
-          Escolher quem fica em 1º
+          Ver todos os líderes
         </Link>
       </div>
 
