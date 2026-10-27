@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getPersonHistory, getPickupHistory, getPostDetail, getTrackDetail, getPrizeWinners, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
-import type { EventPhoto, PersonHistory, PostDetail, TrackDetail, PickupSpinPage, PickupWinnerPage, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
+import { getExperienceBuyers, getPersonHistory, getPickupHistory, getPostDetail, getTrackDetail, getPrizeWinners, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, ExperienceBuyerPage, PersonHistory, PostDetail, TrackDetail, PickupSpinPage, PickupWinnerPage, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -270,4 +270,11 @@ export async function loadPostDetail(slug: string, id: string): Promise<PostDeta
 export async function loadTrackDetail(slug: string, id: string): Promise<TrackDetail | null> {
   if (!slugOk(slug) || !idOk(id)) return null;
   return getTrackDetail(slug, id);
+}
+
+// ---------- Experiências do show: compradores ----------
+
+export async function loadExperienceBuyers(slug: string, eventId: string, key: string, q: string, page: number): Promise<ExperienceBuyerPage | null> {
+  if (!slugOk(slug) || !idOk(eventId) || !/^[a-z]{2,12}$/.test(key) || !Number.isInteger(page) || page < 1) return null;
+  return getExperienceBuyers(slug, eventId, key, q.trim().slice(0, 80), page);
 }

@@ -6,7 +6,7 @@ import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { ResourceManager, type Item } from "@/components/admin/ResourceManager";
 import { AdminNotice } from "@/components/admin/ui";
 import type { AgencyAdmin, PackageAdmin } from "@/lib/types";
-import { apiEnabled, getArtist, getEventPhotos, getEvents, getFeed, getManaged } from "@/lib/api";
+import { apiEnabled, getArtist, getEventPhotos, getEvents, getExperiencesOverview, getFeed, getManaged } from "@/lib/api";
 import { productImage } from "@/lib/media";
 import { themeStyle } from "@/lib/themes";
 import { AgendaMosaico } from "./AgendaMosaico";
@@ -14,6 +14,7 @@ import { DropsAdmin, type DropTrack } from "./DropsAdmin";
 import { LojaAdmin, type LojaProduct } from "./LojaAdmin";
 import { MuralAdmin } from "./MuralAdmin";
 import { EventPhotosManager } from "./EventPhotosManager";
+import { CompradoresExperiencias } from "./CompradoresExperiencias";
 import { PackagesManager } from "./PackagesManager";
 import { agencyFields, eventFields, giftFields, sections, vendorFields } from "./sections";
 
@@ -82,15 +83,16 @@ export default async function ClubContentPage({
   const items = await getManaged<Item>(artist.slug, section.resource);
   const { evento } = await searchParams;
   const event = secao === "agenda" && evento ? items.find((e) => e.id === evento) : undefined;
-  const [vendors, gifts, agencies, packages, photos] = event
+  const [vendors, gifts, agencies, packages, photos, overview] = event
     ? await Promise.all([
         getManaged<Item>(artist.slug, "vendors", `?event_id=${event.id}`),
         getManaged<Item>(artist.slug, "gifts", `?event_id=${event.id}`),
         getManaged<AgencyAdmin>(artist.slug, "agencies"),
         getManaged<PackageAdmin>(artist.slug, "packages", `?event_id=${event.id}`),
         getEventPhotos(artist.slug, event.id),
+        getExperiencesOverview(artist.slug, event.id),
       ])
-    : [[], [], [], [], []];
+    : [[], [], [], [], [], null];
 
   return (
     <ClubAdminShell artist={artist} active={secao}>
@@ -121,6 +123,7 @@ export default async function ClubContentPage({
             allowAdd={false}
           />
           <PackagesManager slug={artist.slug} eventId={event.id} agencies={agencies} packages={packages} />
+          <CompradoresExperiencias slug={artist.slug} eventId={event.id} overview={overview} />
           <EventPhotosManager slug={artist.slug} eventId={event.id} photos={photos} />
           <ResourceManager
             section

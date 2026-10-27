@@ -8,7 +8,7 @@ import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
 import { eventName, isPastEvent, statusLabel, statusTagClass } from "@/lib/events";
 import { formatBRL } from "@/lib/format";
-import { summarize, type PackageChoice } from "@/lib/package-choice";
+import { summarize, toggleExperience, type PackageChoice } from "@/lib/package-choice";
 import type { EventPackage, ShowEvent, Vendor } from "@/lib/types";
 import { PackagePicker } from "@/components/fan/PackagePicker";
 import { BrindeFlow } from "./BrindeFlow";
@@ -36,18 +36,14 @@ export function EventoView({
   const title = eventName(artistName, event);
   const photosHref = `${base}/photo-finder?evento=${event.id}`;
   const ticketing = event.ticketingUrl ? { name: event.ticketingName || "Ticketeira oficial", url: event.ticketingUrl } : null;
-  // Pacotes agrupados por agência.
-  const byAgency = packages.reduce<Map<string, EventPackage[]>>((acc, p) => acc.set(p.agencyName, [...(acc.get(p.agencyName) ?? []), p]), new Map());
 
   const [buyOpen, setBuyOpen] = useState(false);
   const [brindeOpen, setBrindeOpen] = useState(false);
-  // Opção escolhida: um ingresso avulso (vai para a ticketeira) ou um pacote de agência (vai para o link do pacote).
+  // Experiências marcadas de um pacote de agência.
   const [choice, setChoice] = useState<PackageChoice | null>(null);
   const hasOptions = packages.length > 0;
-  // Cada opção do pacote é um tipo de ingresso (com ou sem transfer); as experiências marcadas somam ao valor.
+  // O total é a soma das experiências marcadas (o ingresso é da ticketeira).
   const picked = summarize(packages, choice);
-  const chosenPackage = picked?.pkg;
-  const chosenOption = picked?.option;
   const buyLabel = picked?.label ?? "";
 
   return (
@@ -111,14 +107,13 @@ export function EventoView({
 
       {!past && hasOptions && (
         <section className={s.sect} aria-labelledby="ingressos-h">
-          <h2 id="ingressos-h">Pacotes das agências</h2>
-          <p>Escolha o tipo de ingresso do pacote e toque em Comprar ingresso. Todos os pacotes incluem o Photo Finder.</p>
+          <h2 id="ingressos-h">Experiências do show</h2>
+          <p>O ingresso você compra na ticketeira. Aqui você escolhe as experiências dos pacotes das agências (transfer, jantar, camarim, hotel...) e toca em Comprar. Todos incluem o Photo Finder.</p>
           {packages.length > 0 && (
             <PackagePicker
               packages={packages}
               choice={choice}
-              onChoose={(id, item) => setChoice((c) => ({ id, item, addons: c?.id === id ? c.addons : [] }))}
-              onToggleAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.includes(key) ? c.addons.filter((k) => k !== key) : [...c.addons, key] } : c))}
+              onToggleAddon={(id, key) => setChoice((c) => toggleExperience(c, id, key))}
               labelledBy="ingressos-h"
             />
           )}
@@ -146,15 +141,15 @@ export function EventoView({
           </>
         ) : (
           hasOptions ? (
-            choice && chosenOption ? (
+            picked ? (
               <>
                 <span className="mono">{buyLabel}</span>
                 <button type="button" className="btn btn-primary" onClick={() => setBrindeOpen(true)}>
-                  Comprar ingresso
+                  Comprar experiência
                 </button>
               </>
             ) : (
-              <span className="mono">Escolha uma opção do pacote</span>
+              <span className="mono">Escolha as experiências</span>
             )
           ) : (
             <>
@@ -173,7 +168,7 @@ export function EventoView({
         event={{ id: event.id, title, city: event.city, day: event.day, month: event.month }}
         picked={picked}
         choice={choice}
-        onRemoveAddon={(key) => setChoice((c) => (c ? { ...c, addons: c.addons.filter((k) => k !== key) } : c))}
+        onRemoveAddon={(key) => setChoice((c) => (c ? toggleExperience(c, c.id, key) : c))}
       />
 
       <Sheet open={buyOpen} onClose={() => setBuyOpen(false)} title="Onde comprar">
@@ -184,7 +179,7 @@ export function EventoView({
             <SheetOption
               key={p.id}
               title={`${p.agencyName} · ${p.name}`}
-              sub={`${p.items.map((i) => `${i.label} ${formatBRL(i.priceCents)}`).join(" · ")}${p.hasTransfer ? " · com transfer" : ""}`}
+              sub={p.addons.map((a) => `${a.label} ${formatBRL(a.priceCents)}`).join(" · ")}
               href={p.url || undefined}
               onClick={p.url ? undefined : () => toast.show("Link do pacote em breve")}
             />

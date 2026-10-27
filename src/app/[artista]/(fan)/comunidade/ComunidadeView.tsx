@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
+import { FeedAd } from "@/components/fan/FeedAd";
 import { Masthead } from "@/components/fan/Masthead";
 import { PostCard } from "@/components/fan/PostCard";
 import { initialsOf } from "@/lib/format";
 import { Tabs } from "@/components/fan/Tabs";
-import type { Post, Ranking } from "@/lib/types";
+import type { FeedAdItem, Post, Ranking } from "@/lib/types";
 import { AllClubsButton, type ClubListItem } from "./AllClubsSheet";
 import { NewPostFab } from "./NewPostFab";
 import { RankingView } from "./RankingView";
@@ -27,6 +28,8 @@ export type FollowedClub = { slug: string; name: string; avatar: string | null; 
  */
 export function ComunidadeView({
   posts,
+  feedAds = [],
+  clubFeedAds = {},
   clubs,
   allClubs,
   ownerView = false,
@@ -36,6 +39,8 @@ export function ComunidadeView({
   demo,
 }: {
   posts: Post[];
+  feedAds?: FeedAdItem[]; // posts patrocinados do feed do cantor (depois do 4º, 8º, 12º, 16º post)
+  clubFeedAds?: Record<string, FeedAdItem[]>; // o mesmo, por fã clube
   clubs: FollowedClub[]; // fã clubes que o fã segue
   allClubs: ClubListItem[]; // todos os fã clubes, para entrar em um
   ownerView?: boolean; // dono/equipe: tudo da tela é só do fã clube dele
@@ -144,7 +149,14 @@ export function ComunidadeView({
               {list.length === 0 ? (
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
-                list.map((p, i) => <PostCard key={p.id} post={p} index={i} fresh={fresh.has(p.id)} />)
+                list.map((p, i) => (
+                  <Fragment key={p.id}>
+                    <PostCard post={p} index={i} fresh={fresh.has(p.id)} />
+                    {(clube ? (clubFeedAds[clube] ?? []) : feedAds).filter((a) => a.position === i + 1).map((a) => (
+                      <FeedAd key={`ad-${a.position}`} ad={a} className="!px-0" />
+                    ))}
+                  </Fragment>
+                ))
               )}
             </div>
           </>

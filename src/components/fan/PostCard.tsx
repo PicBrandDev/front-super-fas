@@ -9,6 +9,7 @@ import { formatShort, initialsOf } from "@/lib/format";
 import type { Post, PostKind } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
 import { Mark } from "./Mark";
+import { PersonAvatar } from "./PersonAvatar";
 import { ShareInstagram } from "./ShareInstagram";
 import { useToast } from "./Toast";
 
@@ -111,9 +112,7 @@ export function PostCard({
             <Mark size={18} />
           </div>
         ) : (
-          <div className="avatar text-chrome" aria-hidden="true">
-            {initialsOf(post.author.name)}
-          </div>
+          <PersonAvatar src={post.author.avatar} name={post.author.name} className="text-chrome" />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { AdCard } from "@/components/fan/AdCard";
 import { ClubCard } from "@/components/fan/ClubCard";
 import { Mark } from "@/components/fan/Mark";
 import { FanTopBar } from "@/components/fan/FanTopBar";
@@ -10,7 +11,7 @@ import { Masthead } from "@/components/fan/Masthead";
 import { EmptyState } from "@/components/fan/states";
 import { Vinyl } from "@/components/fan/Vinyl";
 import { Icon } from "@/components/icons";
-import { apiEnabled, getArtist, getClubs, getEvents, getMe, getPackages, getPrizes, getProducts, getTracks, getViewer } from "@/lib/api";
+import { apiEnabled, getArtist, getClubs, getEvents, getHomeAd, getMe, getPackages, getPrizes, getProducts, getTracks, getViewer } from "@/lib/api";
 import { isPastEvent } from "@/lib/events";
 import { mediaFor, productImage } from "@/lib/media";
 
@@ -31,7 +32,7 @@ function Block({ title, children, flush = false }: { title: string; children: Re
  */
 export default async function HomePage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
-  const [artist, viewer, events, clubs, tracks, products, prizes, me] = await Promise.all([
+  const [artist, viewer, events, clubs, tracks, products, prizes, me, homeAd] = await Promise.all([
     getArtist(artista),
     getViewer(artista),
     getEvents(artista),
@@ -40,6 +41,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
     getProducts(artista),
     getPrizes(artista),
     getMe(),
+    getHomeAd(artista),
   ]);
   if (!artist) notFound();
 
@@ -135,6 +137,12 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
           )}
         </div>
       </div>
+
+      {homeAd && (
+        <div className="px-4">
+          <AdCard ad={homeAd} />
+        </div>
+      )}
 
       <Block title="Próximo evento" flush>
         {next ? (

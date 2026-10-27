@@ -82,6 +82,7 @@ export type Viewer = {
   pendingGifts: number;
   isMember: boolean;
   clubs?: string[]; // fã clubes (slugs) em que entrou neste cantor
+  avatar?: string | null; // foto de perfil
 };
 
 export type PostKind = "drop" | "galera" | "instagram";
@@ -89,7 +90,7 @@ export type PostKind = "drop" | "galera" | "instagram";
 export type Post = {
   id: string;
   kind: PostKind;
-  author: { name: string; handle: string; initial: string; official?: boolean; badge?: string | null };
+  author: { name: string; handle: string; initial: string; official?: boolean; badge?: string | null; avatar?: string | null };
   timeLabel: string;
   text: string;
   hasImage?: boolean;
@@ -187,7 +188,11 @@ export type HomeAd = {
   text: string;
   cta: string;
   url: string;
+  artUrl?: string | null;
 };
+
+/** Post patrocinado do feed: aparece depois do 4º, 8º, 12º ou 16º post. */
+export type FeedAdItem = HomeAd & { position: number };
 
 export type AdSlot = {
   id: string;
@@ -357,6 +362,17 @@ export type VitrineCard = {
   diagramTop: number; diagramHeight: number; live: VitrineBooking | null; next: VitrineBooking | null;
 };
 export type VitrinesMap = { artist: string; cards: VitrineCard[] };
+
+/** Admin: experiências de um show e quem comprou cada uma. */
+export type ExperienceStat = { key: string; label: string; offeredIn: string[]; purchases: number; people: number; soldOut: boolean };
+export type ExperiencesOverview = {
+  eventId: string; city: string; date: string; purchases: number; people: number; revenueCents: number; experiences: ExperienceStat[];
+};
+export type ExperienceBuyer = {
+  userId: string | null; name: string; handle: string; email: string; avatar: string | null;
+  package: string; agency: string; at: string; paidCents: number; coupon: string; experiences: string[];
+};
+export type ExperienceBuyerPage = { total: number; page: number; pages: number; pageSize: number; label: string; items: ExperienceBuyer[] };
 
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {

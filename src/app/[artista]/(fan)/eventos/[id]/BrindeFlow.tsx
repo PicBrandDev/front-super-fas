@@ -15,7 +15,7 @@ type Step = "intro" | "pay" | "done";
 type Cart = NonNullable<ReturnType<typeof summarize>>;
 
 /**
- * Fluxo de compra com brinde: avisa que comprar o ingresso dá um prêmio, mostra o carrinho (ingresso, experiências,
+ * Fluxo de compra com brinde: avisa que comprar dá um prêmio, mostra o carrinho (experiências,
  * Photo Finder incluso, cupom de desconto e total), simula o pagamento e, depois de pagar, o fã ganha 1 tentativa
  * na roleta (com o motivo registrado). O botão "Tentar" abre o PicKup, onde ele gira.
  * O pagamento é uma simulação: acontece fora do app. O valor com cupom vem da API (nunca só da tela).
@@ -138,7 +138,7 @@ export function BrindeFlow({
       {step === "intro" && picked && (
         <>
           <p>
-            Comprando este ingresso você ganha um prêmio: <strong>depois do pagamento, o seu brinde é liberado aqui</strong>.
+            Comprando você ganha um prêmio: <strong>depois do pagamento, o seu brinde é liberado aqui</strong>.
           </p>
           <p className="mono">{picked.label}</p>
           <button type="button" className="btn btn-primary btn-block" onClick={() => setStep("pay")}>
@@ -164,21 +164,17 @@ export function BrindeFlow({
               <li key={l.key} className="flex items-center gap-3 py-3">
                 <span className="flex min-w-0 flex-1 flex-col">
                   <strong className="text-[15px] leading-5 text-fg">{l.label}</strong>
-                  <span className="mono">{l.key === "ticket" ? "Ingresso" : "Experiência"}</span>
+                  <span className="mono">Experiência</span>
                 </span>
                 <span className="num flex-none text-[15px] text-fg">{formatBRL(l.priceCents)}</span>
-                {l.key !== "ticket" ? (
-                  <button
-                    type="button"
-                    onClick={() => onRemoveAddon(l.key)}
-                    aria-label={`Remover ${l.label} do carrinho`}
-                    className="flex size-11 flex-none cursor-pointer items-center justify-center border border-line bg-transparent text-fg-muted"
-                  >
-                    <Icon name="close" size={14} />
-                  </button>
-                ) : (
-                  <span className="size-11 flex-none" aria-hidden="true" />
-                )}
+                <button
+                  type="button"
+                  onClick={() => onRemoveAddon(l.key)}
+                  aria-label={`Remover ${l.label} do carrinho`}
+                  className="flex size-11 flex-none cursor-pointer items-center justify-center border border-line bg-transparent text-fg-muted"
+                >
+                  <Icon name="close" size={14} />
+                </button>
               </li>
             ))}
             <li className="flex items-center gap-3 py-3">
@@ -299,7 +295,7 @@ export function BrindeFlow({
       {step === "done" && (
         <>
           <p>
-            Pagamento de <strong>{formatBRL(paidTotal)}</strong> confirmado. O ingresso já está em <strong>Meus ingressos</strong> e você ganhou{" "}
+            Pagamento de <strong>{formatBRL(paidTotal)}</strong> confirmado. A compra já está em <strong>Meus ingressos</strong> e você ganhou{" "}
             <strong>1 tentativa na roleta</strong>, que já está na sua lista de giros.
           </p>
           <button

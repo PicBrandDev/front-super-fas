@@ -1,15 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Compose } from "@/app/[artista]/(fan)/comunidade/Composer";
 import { useArtist } from "@/components/fan/ArtistContext";
+import { FeedAd } from "@/components/fan/FeedAd";
 import { PostCard } from "@/components/fan/PostCard";
 import { Icon } from "@/components/icons";
-import type { Post } from "@/lib/types";
+import type { FeedAdItem, Post } from "@/lib/types";
 
 /** Mural de um fã clube: campo de escrever (só quem entrou) e os posts do clube. */
-export function ClubWall({ club, joined, posts }: { club: { slug: string; name: string }; joined: boolean; posts: Post[] }) {
+export function ClubWall({
+  club,
+  joined,
+  posts,
+  feedAds = [],
+}: {
+  club: { slug: string; name: string };
+  joined: boolean;
+  posts: Post[];
+  feedAds?: FeedAdItem[]; // posts patrocinados do clube (depois do 4º, 8º e 12º post)
+}) {
   const { base } = useArtist();
   const [extra, setExtra] = useState<Post[]>([]);
   const [seen, setSeen] = useState(posts);
@@ -38,7 +49,14 @@ export function ClubWall({ club, joined, posts }: { club: { slug: string; name: 
             {joined ? "Ninguém postou ainda. Seja o primeiro do fã clube a postar." : "Ninguém postou ainda. Entre no clube e seja o primeiro."}
           </p>
         ) : (
-          list.map((p, i) => <PostCard key={p.id} post={p} index={i} showClub={false} fresh={fresh.has(p.id)} />)
+          list.map((p, i) => (
+            <Fragment key={p.id}>
+              <PostCard post={p} index={i} showClub={false} fresh={fresh.has(p.id)} />
+              {feedAds.filter((a) => a.position === i + 1).map((a) => (
+                <FeedAd key={`ad-${a.position}`} ad={a} className="!px-0" />
+              ))}
+            </Fragment>
+          ))
         )}
       </div>
 

@@ -7,7 +7,7 @@ import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass } 
 import { Icon } from "@/components/icons";
 import { EXPERIENCES, experienceLabel, type ExperienceKey } from "@/lib/experiences";
 import { formatBRL } from "@/lib/format";
-import type { AgencyAdmin, PackageAdmin, PackageItem } from "@/lib/types";
+import type { AgencyAdmin, PackageAdmin } from "@/lib/types";
 
 type Draft = {
   agencyId: string;
@@ -17,7 +17,6 @@ type Draft = {
   url: string;
   active: boolean;
   addons: { key: ExperienceKey; on: boolean; price: string; soldOut: boolean }[];
-  items: { kind: "ticket" | "transfer" | "seal"; label: string; price: string; soldOut: boolean }[];
 };
 
 const priceText = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
@@ -41,7 +40,6 @@ const blank = (agencyId: string): Draft => ({
   url: "",
   active: true,
   addons: toAddons([]),
-  items: [{ kind: "ticket", label: "", price: "", soldOut: false }],
 });
 
 const toDraft = (p: PackageAdmin): Draft => ({
@@ -52,12 +50,11 @@ const toDraft = (p: PackageAdmin): Draft => ({
   url: p.url,
   active: p.active,
   addons: toAddons(p.addons ?? []),
-  items: p.items.map((i) => ({ kind: i.kind === "photo" ? "seal" : i.kind, label: i.label, price: priceText(i.priceCents), soldOut: i.soldOut })),
 });
 
 /**
- * Agências e pacotes de um show: cada agência distribui pacotes com vários tipos de ingresso
- * (cada um com o seu preço) e opções de transfer, e pode ter o link de venda próprio.
+ * Agências e pacotes de um show: cada agência distribui pacotes de EXPERIÊNCIAS (transfer, jantar, camarim, pré-esquenta,
+ * after e hotel), cada uma com o seu preço, e pode ter o link de venda próprio. O ingresso é da ticketeira.
  */
 export function PackagesManager({
   slug,
@@ -80,8 +77,6 @@ export function PackagesManager({
   const showAgencyId = packages[0]?.agencyId ?? null;
 
   const setDraft = (patch: Partial<Draft>) => setEditing((e) => (e ? { ...e, draft: { ...e.draft, ...patch } } : e));
-  const setItem = (i: number, patch: Partial<Draft["items"][number]>) =>
-    setEditing((e) => (e ? { ...e, draft: { ...e.draft, items: e.draft.items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)) } } : e));
 
   const save = (ev: FormEvent) => {
     ev.preventDefault();
@@ -89,20 +84,13 @@ export function PackagesManager({
     const d = editing.draft;
     if (!d.agencyId) return setError("Escolha a agência.");
     if (d.name.trim().length < 1) return setError("Dê um nome ao pacote.");
-    if (d.items.length === 0) return setError("Inclua pelo menos um ingresso ou transfer.");
-    const items: PackageItem[] = [];
-    for (const [i, it] of d.items.entries()) {
-      const cents = parsePrice(it.price);
-      if (!it.label.trim()) return setError(`Descreva o item ${i + 1} (ex.: Pista, Camarote, Ônibus ida e volta).`);
-      if (cents === null) return setError(`O preço do item “${it.label}” precisa ser um valor em reais.`);
-      items.push({ kind: it.kind, label: it.label.trim(), priceCents: cents, soldOut: it.soldOut });
-    }
     const addons: { key: ExperienceKey; priceCents: number; soldOut: boolean }[] = [];
     for (const a of d.addons.filter((x) => x.on)) {
       const cents = parsePrice(a.price);
       if (cents === null) return setError(`Informe o preço de “${experienceLabel(a.key)}” em reais.`);
       addons.push({ key: a.key, priceCents: cents, soldOut: a.soldOut });
     }
+    if (addons.length === 0) return setError("Marque pelo menos uma experiência para vender neste pacote.");
     start(async () => {
       const res = await saveContent(
         slug,
@@ -117,7 +105,7 @@ export function PackagesManager({
           url: d.url.trim(),
           active: d.active,
           addons,
-          items,
+          items: [], // não se vende mais ingresso pelo app
         },
       );
       if (!res.ok) return setError(res.error);
@@ -142,7 +130,7 @@ export function PackagesManager({
           <h2 id="pk-title" className="m-0 text-lg font-bold">
             Agências e pacotes
           </h2>
-          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes. Em cada pacote, cada tipo de ingresso tem o seu valor: só ingresso, ingresso + transfer ou + selo no app. O Photo Finder já vem em todos os pacotes. O fã pode somar ao ingresso as experiências que você marcar no pacote (jantar, camarim, pré-esquenta, after, hotel), cada uma com o seu valor.</p>
+          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes de experiências: transfer, jantar, camarim, pré-esquenta, after e hotel, cada uma com o seu valor. O ingresso não é vendido aqui (a ticketeira faz isso). O Photo Finder já vem em todos os pacotes.</p>
         </div>
         <button
           type="button"
@@ -200,67 +188,8 @@ export function PackagesManager({
             </div>
           </div>
 
-          <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
-            <legend className="mb-1 p-0 text-[13px] font-semibold">Opções do pacote: cada tipo de ingresso com o seu valor *</legend>
-            {editing.draft.items.map((it, i) => (
-              <div key={i} className="grid items-end gap-2 rounded-lg border border-adm-line-soft p-3 sm:grid-cols-[130px_minmax(0,1fr)_120px_auto_auto]">
-                <div className="flex flex-col gap-1">
-                  <label htmlFor={`pk-k-${i}`} className="text-xs font-semibold">
-                    Tipo
-                  </label>
-                  <select id={`pk-k-${i}`} value={it.kind} onChange={(e) => setItem(i, { kind: e.target.value as "ticket" | "transfer" | "seal" })} className={inputClass}>
-                    <option value="ticket">Somente ingresso</option>
-                    <option value="transfer">Ingresso + transfer</option>
-                    <option value="seal">Ingresso + transfer + selo</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label htmlFor={`pk-l-${i}`} className="text-xs font-semibold">
-                    {it.kind === "ticket" ? "Tipo de ingresso" : it.kind === "transfer" ? "Ingresso com transfer" : "Ingresso com transfer e selo"}
-                  </label>
-                  <input
-                    id={`pk-l-${i}`}
-                    value={it.label}
-                    onChange={(e) => setItem(i, { label: e.target.value })}
-                    placeholder={it.kind === "ticket" ? "Pista, Camarote, VIP…" : it.kind === "transfer" ? "Pista + transfer" : "Pista + transfer + selo"}
-                    className={inputClass}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label htmlFor={`pk-p-${i}`} className="text-xs font-semibold">
-                    Preço (R$)
-                  </label>
-                  <input id={`pk-p-${i}`} inputMode="decimal" value={it.price} onChange={(e) => setItem(i, { price: e.target.value })} placeholder="0,00" className={inputClass} />
-                </div>
-                <label className="flex min-h-11 items-center gap-2 text-[13px]">
-                  <input type="checkbox" checked={it.soldOut} onChange={(e) => setItem(i, { soldOut: e.target.checked })} />
-                  Esgotado
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setDraft({ items: editing.draft.items.filter((_, idx) => idx !== i) })}
-                  aria-label={`Remover item ${i + 1}`}
-                  className="flex size-11 cursor-pointer items-center justify-center rounded-lg border border-adm-line bg-white"
-                >
-                  <Icon name="close" size={14} strokeWidth={2.6} />
-                </button>
-              </div>
-            ))}
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setDraft({ items: [...editing.draft.items, { kind: "ticket", label: "", price: "", soldOut: false }] })} className={btnSecondary}>
-                + Só ingresso
-              </button>
-              <button type="button" onClick={() => setDraft({ items: [...editing.draft.items, { kind: "transfer", label: "", price: "", soldOut: false }] })} className={btnSecondary}>
-                + Ingresso + transfer
-              </button>
-              <button type="button" onClick={() => setDraft({ items: [...editing.draft.items, { kind: "seal", label: "", price: "", soldOut: false }] })} className={btnSecondary}>
-                + Ingresso + transfer + selo
-              </button>
-            </div>
-          </fieldset>
-
           <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
-            <legend className="mb-1 p-0 text-[13px] font-semibold">Experiências que o fã pode adicionar ao ingresso (o Photo Finder já vem em todos)</legend>
+            <legend className="mb-1 p-0 text-[13px] font-semibold">Experiências vendidas neste pacote, cada uma com o seu valor *</legend>
             {editing.draft.addons.map((a, i) => {
               const x = EXPERIENCES.find((e) => e.key === a.key)!;
               const setAddon = (patch: Partial<Draft["addons"][number]>) =>
@@ -276,7 +205,7 @@ export function PackagesManager({
                   </label>
                   <div className="flex flex-col gap-1">
                     <label htmlFor={`pk-a-${a.key}`} className="text-xs font-semibold">
-                      Valor extra (R$)
+                      Valor (R$)
                     </label>
                     <input id={`pk-a-${a.key}`} inputMode="decimal" disabled={!a.on} value={a.price} onChange={(e) => setAddon({ price: e.target.value })} placeholder="0,00" className={inputClass} />
                   </div>
@@ -318,7 +247,7 @@ export function PackagesManager({
       )}
 
       {packages.length === 0 && !editing ? (
-        <AdminEmpty title="Nenhum pacote neste show" text="Crie o primeiro pacote de uma agência: ingressos de vários tipos e, se houver, transfer." />
+        <AdminEmpty title="Nenhum pacote neste show" text="Crie o primeiro pacote de uma agência: marque as experiências que ela vende (transfer, jantar, camarim, hotel...) e o valor de cada uma." />
       ) : (
         <ul className="m-0 grid list-none gap-4 p-0 lg:grid-cols-2">
           {packages.map((p) => (
@@ -331,26 +260,19 @@ export function PackagesManager({
                     {p.description && <p className="m-0 text-[13px] text-adm-muted">{p.description}</p>}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {p.items.some((i) => i.kind !== "ticket") && <Badge tone="info">Com transfer</Badge>}
-                    {p.items.some((i) => i.kind === "seal" || i.kind === "photo") && <Badge tone="ok">Selo no app</Badge>}
                     <Badge tone="ok">Photo Finder</Badge>
-                    {(p.addons ?? []).map((x) => (
-                      <Badge key={x.key} tone="info">
-                        {experienceLabel(x.key)} +{formatBRL(x.priceCents)}
-                      </Badge>
-                    ))}
                     {!p.active && <Badge tone="off">Inativo</Badge>}
                   </div>
                 </header>
-                <ul className="m-0 flex list-none flex-col divide-y divide-adm-line-soft p-0 text-sm">
-                  {p.items.map((i, idx) => (
-                    <li key={idx} className="flex items-center justify-between gap-3 py-1.5">
+                <ul className="m-0 flex list-none flex-col divide-y divide-adm-line-soft p-0 text-sm" aria-label={`Experiências de ${p.name}`}>
+                  {(p.addons ?? []).length === 0 && <li className="py-1.5 text-adm-muted">Sem experiências: este pacote não vende nada ainda.</li>}
+                  {(p.addons ?? []).map((x) => (
+                    <li key={x.key} className="flex items-center justify-between gap-3 py-1.5">
                       <span className="flex min-w-0 items-center gap-2">
-                        <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">{i.kind === "ticket" ? "Só ingresso" : i.kind === "transfer" ? "Com transfer" : "Transfer + selo"}</span>
-                        <span className={`truncate ${i.soldOut ? "line-through opacity-60" : ""}`}>{i.label}</span>
-                        {i.soldOut && <Badge tone="warn">Esgotado</Badge>}
+                        <span className={`truncate ${x.soldOut ? "line-through opacity-60" : ""}`}>{experienceLabel(x.key)}</span>
+                        {x.soldOut && <Badge tone="warn">Esgotada</Badge>}
                       </span>
-                      <strong className="flex-none font-adm-mono text-[13px]">{formatBRL(i.priceCents)}</strong>
+                      <strong className="flex-none font-adm-mono text-[13px]">{formatBRL(x.priceCents)}</strong>
                     </li>
                   ))}
                 </ul>

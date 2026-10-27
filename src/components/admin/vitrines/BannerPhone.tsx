@@ -1,22 +1,9 @@
 import type { ReactNode } from "react";
+import { FALLBACK_BRAND as FALLBACK, brandStyle } from "@/lib/brand-style";
 import type { VitrineBooking } from "@/lib/types";
-
-/** Cor de fundo e do texto do banner de cada marca (a arte oficial só entra quando o projeto já tem). */
-const BRAND: Record<string, { bg: string; fg: string; accent: string }> = {
-  "coca-cola": { bg: "#E41E2B", fg: "#fff", accent: "#fff" },
-  sprite: { bg: "#00A650", fg: "#fff", accent: "#F5E216" },
-  nike: { bg: "#111111", fg: "#fff", accent: "#F26B21" },
-  spotify: { bg: "#1DB954", fg: "#08140c", accent: "#08140c" },
-  "red bull": { bg: "#1B2A6B", fg: "#fff", accent: "#E3002B" },
-  heineken: { bg: "#00762D", fg: "#fff", accent: "#E3002B" },
-  adidas: { bg: "#111111", fg: "#fff", accent: "#fff" },
-};
-const FALLBACK = { bg: "#2F5BD3", fg: "#fff", accent: "#fff" };
 
 /** O desenho de posição das vitrines usa pixels de um celular de 96 px de altura: aqui vira porcentagem da tela. */
 const pct = (px: number) => Math.round((px / 96) * 100);
-
-export const brandStyle = (brand: string) => BRAND[brand.trim().toLowerCase()] ?? FALLBACK;
 
 /** O anúncio em si: a arte da marca (ou o fundo na cor dela), o título, o texto e o botão. */
 export function AdBanner({ b, compact = false }: { b: VitrineBooking; compact?: boolean }) {
