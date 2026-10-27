@@ -160,7 +160,7 @@ export function DesempenhoAnuncios({ data, base }: { data: AdsAnalytics; base: s
           {PERIODS.map((d) => (
             <Link
               key={d}
-              href={`${base}/admin/vitrines?dias=${d}`}
+              href={`${base}/admin/vitrines?aba=desempenho&dias=${d}`}
               scroll={false}
               aria-current={data.days === d ? "true" : undefined}
               className={`rounded-lg border px-3 py-1.5 text-sm font-semibold no-underline ${data.days === d ? "border-adm-ink bg-adm-ink text-white" : "border-adm-line bg-white text-adm-ink"}`}
