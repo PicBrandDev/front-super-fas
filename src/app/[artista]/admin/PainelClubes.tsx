@@ -105,7 +105,7 @@ export function PainelClubes({ artist, artistName, clubs, highlights, ranking }:
                 </div>
 
                 <div className="flex items-center gap-2.5 rounded-lg bg-adm-bg px-3 py-2">
-                  <Icon name="user" size={16} />
+                  {c.ownerName ? <ClubAvatar src={c.ownerAvatar} name={c.ownerName} size={32} /> : <Icon name="user" size={16} />}
                   {c.ownerName ? (
                     <span className="flex min-w-0 flex-col leading-4">
                       <span className="font-adm-mono text-[10px] font-semibold uppercase tracking-wider text-adm-muted">Dono</span>

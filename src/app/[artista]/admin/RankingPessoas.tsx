@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { loadPersonHistory } from "@/app/actions/admin";
 import { ClubAvatar } from "@/components/admin/ClubAvatar";
 import { Badge } from "@/components/admin/ui";
-import { formatCount } from "@/lib/format";
+import { formatCount, formatPoints } from "@/lib/format";
 import type { PersonHistory, PersonShare, RankingPerson, RankingScope } from "@/lib/types";
 
 const when = (iso: string | null) =>
@@ -34,7 +34,7 @@ export function RankingPessoas({ artist, scopes }: { artist: string; scopes: Ran
           <h2 id="rkp-title" className="m-0 font-display text-3xl font-black">
             Ranking de pessoas
           </h2>
-          <p className="m-0 text-[13px] text-adm-muted">Fãs com mais compartilhamentos confirmados no Instagram (Fã Super). Clique numa pessoa para ver o histórico dela.</p>
+          <p className="m-0 text-[13px] text-adm-muted">Fãs com mais pontos no Fã Super (compartilhamentos confirmados no Instagram). Clique numa pessoa para ver o histórico dela.</p>
         </div>
         <Link href={`/${artist}/admin/ranking`} className="text-[13px] font-semibold text-adm-blue-dark">
           Escolher quem fica em 1º
@@ -83,8 +83,8 @@ export function RankingPessoas({ artist, scopes }: { artist: string; scopes: Ran
                     <span className="truncate text-[13px] text-adm-muted">{p.handle}</span>
                   </span>
                   <span className="text-right font-adm-mono text-sm font-semibold">
-                    {formatCount(p.shares)}
-                    <span className="block text-[11px] font-normal text-adm-muted">compart.</span>
+                    {formatPoints(p.points)}
+                    <span className="block text-[11px] font-normal text-adm-muted">pts · {formatCount(p.shares)} compart.</span>
                   </span>
                 </button>
               </li>
@@ -141,10 +141,11 @@ function PersonDialog({ artist, person, onClose }: { artist: string; person: Ran
 
         {data && (
           <>
-            <dl className="m-0 grid grid-cols-3 gap-3">
+            <dl className="m-0 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { label: "Posição no geral", value: data.position ? `${data.position}º` : "—" },
-                { label: "Pontos no ranking", value: formatCount(data.points) },
+                { label: "Pontos no ranking", value: formatPoints(data.points) },
+                { label: "Compartilhamentos confirmados", value: formatCount(data.sharesConfirmed) },
                 { label: "Aguardando conferência", value: formatCount(data.pending) },
               ].map((k) => (
                 <div key={k.label} className="rounded-xl border border-adm-line bg-white px-3.5 py-3">
@@ -158,7 +159,7 @@ function PersonDialog({ artist, person, onClose }: { artist: string; person: Ran
               <h3 id="ph-shares" className="m-0 text-base font-bold">
                 Compartilhamentos da hashtag
               </h3>
-              <p className="m-0 text-[13px] text-adm-muted">Cada compartilhamento confirmado vale 1 ponto no ranking. O giro da roleta vem quando o fã diz que postou.</p>
+              <p className="m-0 text-[13px] text-adm-muted">Cada compartilhamento confirmado vale 1 ponto inteiro; a parte decimal (sempre menor que 1) mede a qualidade deles: quanto o post bombou e quão recente é o compartilhamento. Quem compartilhou mais fica na frente e o decimal desempata. O giro da roleta vem quando o fã diz que postou.</p>
               {data.shares.length === 0 ? (
                 <p className="m-0 text-sm text-adm-muted">Ainda não compartilhou nenhum post.</p>
               ) : (
@@ -190,9 +191,9 @@ function PersonDialog({ artist, person, onClose }: { artist: string; person: Ran
                           <td className="px-2.5 py-2">
                             <Badge tone={STATUS[s.status].tone}>{STATUS[s.status].label}</Badge>
                           </td>
-                          <td className="px-2.5 py-2 font-adm-mono font-semibold">{s.rankingPoints ? `+${s.rankingPoints}` : "0"}</td>
+                          <td className="px-2.5 py-2 font-adm-mono font-semibold">{s.rankingPoints ? `+${formatPoints(s.rankingPoints)}` : "0"}</td>
                           <td className="px-2.5 py-2 font-adm-mono">{s.spins ? "+1" : "0"}</td>
-                          <td className="px-2.5 py-2 font-adm-mono">{s.totalPoints}</td>
+                          <td className="px-2.5 py-2 font-adm-mono">{formatPoints(s.totalPoints)}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -84,9 +84,7 @@ function PhotoPost({ p }: { p: FeedItem }) {
   return (
     <article className="border-b border-adm-line-soft pb-2.5">
       <div className="flex items-center gap-2 px-2.5 py-2">
-        <span aria-hidden="true" className="flex size-6 flex-none items-center justify-center rounded-full bg-adm-blue-soft font-display text-[11px] font-black text-adm-blue-dark">
-          {p.author.charAt(0).toUpperCase()}
-        </span>
+        <ClubAvatar src={p.authorAvatar} name={p.author} size={28} />
         <span className="flex min-w-0 flex-col leading-4">
           <strong className="truncate text-[12px]">{p.author}</strong>
           <span className="font-adm-mono text-[10px] text-adm-muted">
@@ -109,9 +107,7 @@ function PhotoPost({ p }: { p: FeedItem }) {
 function TextPost({ p }: { p: FeedItem }) {
   return (
     <article className="flex gap-2 border-b border-adm-line-soft px-2.5 py-3">
-      <span aria-hidden="true" className="flex size-8 flex-none items-center justify-center rounded-full bg-adm-blue-soft font-display text-[12px] font-black text-adm-blue-dark">
-        {p.author.charAt(0).toUpperCase()}
-      </span>
+      <ClubAvatar src={p.authorAvatar} name={p.author} size={32} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 leading-4">
           <strong className="truncate text-[12px]">{p.author}</strong>

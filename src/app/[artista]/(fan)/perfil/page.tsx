@@ -9,7 +9,7 @@ import { Icon } from "@/components/icons";
 import { apiEnabled, getArtist, getClubs, getMyTickets, getProfile, getRanking, getSpinCredits, getViewer } from "@/lib/api";
 import { authEnabled, roleLabel, type Role } from "@/lib/auth";
 import { isPastEvent } from "@/lib/events";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, formatPoints } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Meu perfil" };
 
@@ -184,6 +184,7 @@ export default async function PerfilPage({ params }: { params: Promise<{ artista
           <Section title="Fã Super do Vintage">
             <dl className="m-0">
               <Row label="Posição no ranking" value={ranking.me.position ? `${ranking.me.position}º` : "—"} />
+              <Row label="Pontos no ranking" value={formatPoints(ranking.me.points ?? ranking.me.shares)} />
               <Row label="Compartilhamentos confirmados" value={String(ranking.me.shares)} />
               <Row label="Aguardando confirmação" value={String(ranking.me.pending)} />
               <Row label="Seu código" value={ranking.myCode} />

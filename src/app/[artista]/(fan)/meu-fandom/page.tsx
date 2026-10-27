@@ -7,7 +7,7 @@ import { Masthead } from "@/components/fan/Masthead";
 import { MiniBars, RowBars } from "@/components/fan/MiniBars";
 import { Icon } from "@/components/icons";
 import { getArtist, getClubAnalytics, getClubFeed, getClubs, getRanking } from "@/lib/api";
-import { formatShort, initialsOf } from "@/lib/format";
+import { formatPoints, formatShort, initialsOf } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Meu fandom" };
 
@@ -133,7 +133,7 @@ export default async function MeuFandomPage({
                     </span>
                   )}
                   <span className="min-w-0 flex-1 truncate text-[15px]">{r.name}</span>
-                  <strong className="num flex-none">{r.shares}</strong>
+                  <strong className="num flex-none">{formatPoints(r.points ?? r.shares)}</strong>
                 </li>
               ))}
             </ol>

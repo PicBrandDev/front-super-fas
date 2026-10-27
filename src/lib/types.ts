@@ -262,6 +262,7 @@ export type ClubOverview = {
   avatar: string | null; // foto de perfil (/uploads/...)
   ownerName: string | null;
   ownerEmail: string | null;
+  ownerAvatar?: string | null; // foto de perfil do dono
   members: number;
   newMembersMonth: number;
   posts: number;
@@ -270,8 +271,16 @@ export type ClubOverview = {
 };
 
 /** Analytics de um fã clube (últimos 30 dias em `series`). */
+/** Perfil do dono do fã clube (card do analytics). */
+export type OwnerCard = {
+  userId: string; name: string; handle: string; email: string; avatar: string | null;
+  city: string; state: string; roleLabel: string; since: string;
+  posts: number; shares: number; points: number; position: number | null; ranked: number;
+};
+
 export type ClubAnalytics = {
   club: ClubOverview;
+  owner?: OwnerCard | null;
   subscribers: number;
   likes: number;
   comments: number;
@@ -281,7 +290,7 @@ export type ClubAnalytics = {
   approvedCampaigns: number;
   series: { day: string; newMembers: number; posts: number }[];
   topCities: { city: string; members: number }[];
-  topPosts: { id: string; text: string; author: string; likes: number; comments: number; reposts: number }[];
+  topPosts: { id: string; text: string; author: string; image?: string | null; likes: number; comments: number; reposts: number }[];
   staffNames: string[];
 };
 
@@ -307,6 +316,7 @@ export type FeedItem = {
   image: string | null; // caminho servido pelo próprio front (/uploads/...)
   author: string;
   handle: string; // @ do autor (vazio para o artista)
+  authorAvatar?: string | null; // foto de perfil do autor
   clubName: string | null;
   timeLabel: string;
   date: string;
@@ -387,8 +397,8 @@ export type MyTicket = {
 export type EventPhoto = { id: string; src: string; indexed: boolean; faces: number };
 
 /** Ranking "Fã Super do Vintage" (compartilhamentos no Instagram com a hashtag). */
-type RankRow = { position: number; name: string; handle: string; avatar?: string | null; shares: number; me: boolean };
-type MyRank = { position: number | null; shares: number; pending: number };
+type RankRow = { position: number; name: string; handle: string; avatar?: string | null; shares: number; points?: number; me: boolean };
+type MyRank = { position: number | null; shares: number; points?: number; pending: number };
 
 export type Ranking = {
   hashtag: string;
@@ -412,7 +422,7 @@ export type RankingFan = { userId: string; name: string; handle: string; avatar?
 export type PersonShare = {
   id: string; what: string; status: "started" | "claimed" | "verified";
   startedAt: string; verifiedAt: string | null; permalink: string;
-  rankingPoints: number; spins: number; totalPoints: number;
+  rankingPoints: number; spins: number; totalPoints: number; // pontos com casas decimais
 };
 export type PersonPost = {
   id: string; kind: string; club: string | null; text: string; hasImage: boolean; image: string | null;
@@ -421,9 +431,9 @@ export type PersonPost = {
 /** Admin: histórico de um fã (posts, compartilhamentos da hashtag e pontos de cada um). */
 export type PersonHistory = {
   userId: string; name: string; handle: string; avatar: string | null; position: number | null;
-  points: number; pending: number; shares: PersonShare[]; posts: PersonPost[];
+  points: number; sharesConfirmed: number; pending: number; shares: PersonShare[]; posts: PersonPost[];
 };
-export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; shares: number };
+export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; shares: number; points: number };
 export type RankingScope = {
   clubSlug: string | null; name: string; leader: RankingFan | null; top: RankingFan | null;
   people: RankingPerson[]; // os 10 primeiros, com o ajuste da administração
