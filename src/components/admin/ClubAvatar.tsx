@@ -1,10 +1,11 @@
 import { initialsOf } from "@/lib/format";
+import { thumb } from "@/lib/thumb";
 
 /** Foto de perfil do fã clube; sem foto, as iniciais em serifa. */
 export function ClubAvatar({ src, name, size = 56 }: { src?: string | null; name: string; size?: number }) {
   const box = { width: size, height: size };
   return src ? (
-    <img src={src} alt="" width={size} height={size} style={box} className="block flex-none rounded-full border border-adm-line object-cover" />
+    <img src={thumb(src, size)} alt="" width={size} height={size} style={box} className="block flex-none rounded-full border border-adm-line object-cover" />
   ) : (
     <span
       aria-hidden="true"

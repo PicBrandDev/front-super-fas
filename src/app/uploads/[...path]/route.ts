@@ -18,7 +18,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ path: st
     const value = req.headers.get(h);
     if (value) ask.set(h, value);
   }
-  const res = await fetch(`${base}/uploads/${path.join("/")}`, { headers: ask, cache: "no-store" });
+  // `w` pede a foto reduzida (a API só aceita 96, 256, 720 e 1080; qualquer outro valor entrega o original).
+  const w = new URL(req.url).searchParams.get("w");
+  const query = w && /^\d{2,4}$/.test(w) ? `?w=${w}` : "";
+  const res = await fetch(`${base}/uploads/${path.join("/")}${query}`, { headers: ask, cache: "no-store" });
 
   if (res.status === 416) {
     // Faixa fora do arquivo: repassa o tamanho real para o player pedir de novo.

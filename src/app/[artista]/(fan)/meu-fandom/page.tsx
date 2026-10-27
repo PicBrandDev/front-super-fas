@@ -8,6 +8,7 @@ import { MiniBars, RowBars } from "@/components/fan/MiniBars";
 import { Icon } from "@/components/icons";
 import { getArtist, getClubAnalytics, getClubFeed, getClubs, getRanking } from "@/lib/api";
 import { formatPoints, formatShort, initialsOf } from "@/lib/format";
+import { thumb } from "@/lib/thumb";
 
 export const metadata: Metadata = { title: "Meu fandom" };
 
@@ -126,7 +127,7 @@ export default async function MeuFandomPage({
                   <span className="num w-7 flex-none font-display text-xl font-black">{r.position}</span>
                   {r.avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã
-                    <img src={r.avatar} alt="" width={36} height={36} className="size-9 flex-none rounded-full object-cover" />
+                    <img src={thumb(r.avatar, 36)} alt="" width={36} height={36} className="size-9 flex-none rounded-full object-cover" />
                   ) : (
                     <span className="avatar flex-none" aria-hidden="true">
                       {initialsOf(r.name)}

@@ -13,6 +13,7 @@ import type { Post, Ranking } from "@/lib/types";
 import { AllClubsButton, type ClubListItem } from "./AllClubsSheet";
 import { NewPostFab } from "./NewPostFab";
 import { RankingView } from "./RankingView";
+import { thumb } from "@/lib/thumb";
 
 const PAGE = 12;
 
@@ -139,7 +140,7 @@ export function ComunidadeView({
                 <button key={c.slug} type="button" className="btn btn-outline btn-sm chip flex-none" aria-pressed={clube === c.slug} onClick={() => setClube(c.slug)}>
                   {c.avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube
-                    <img src={c.avatar} alt="" width={18} height={18} className="size-[18px] rounded-full object-cover" />
+                    <img src={thumb(c.avatar, 18)} alt="" width={18} height={18} className="size-[18px] rounded-full object-cover" />
                   ) : (
                     <span aria-hidden="true" className="flex size-[18px] items-center justify-center rounded-full bg-raised text-[10px] font-black">
                       {initialsOf(c.name).charAt(0)}

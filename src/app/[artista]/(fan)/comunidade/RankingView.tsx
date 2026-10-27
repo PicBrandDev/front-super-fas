@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { formatPoints, initialsOf } from "@/lib/format";
 import type { Ranking } from "@/lib/types";
+import { thumb } from "@/lib/thumb";
 
 type Row = Ranking["top"][number];
 
@@ -14,7 +15,7 @@ function Person({ row }: { row: Row }) {
   const href = row.me ? `${base}/perfil` : row.userId ? `${base}/fas/${encodeURIComponent(row.userId)}` : null;
   const face = row.avatar ? (
     // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã
-    <img src={row.avatar} alt="" width={44} height={44} className="size-11 flex-none rounded-full border border-line-strong object-cover" />
+    <img src={thumb(row.avatar, 44)} alt="" width={44} height={44} className="size-11 flex-none rounded-full border border-line-strong object-cover" />
   ) : (
     <span className="avatar !size-11 flex-none" aria-hidden="true">
       {initialsOf(row.name)}
@@ -88,7 +89,7 @@ export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope
           <button key={c.slug} type="button" className="btn btn-outline btn-sm chip flex-none" aria-pressed={board === c.slug} onClick={() => setBoard(c.slug)}>
             {c.avatar ? (
               // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube
-              <img src={c.avatar} alt="" width={18} height={18} className="size-[18px] rounded-full object-cover" />
+              <img src={thumb(c.avatar, 18)} alt="" width={18} height={18} className="size-[18px] rounded-full object-cover" />
             ) : (
               <span aria-hidden="true" className="flex size-[18px] items-center justify-center rounded-full bg-raised text-[10px] font-black text-fg">
                 {initialsOf(c.name).charAt(0)}

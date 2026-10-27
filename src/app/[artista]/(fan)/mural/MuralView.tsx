@@ -19,6 +19,7 @@ import { Icon } from "@/components/icons";
 import type { FeedAdItem, Track } from "@/lib/types";
 import s from "./Mural.module.css";
 import { fmtShort, type Poster } from "./posters";
+import { thumb } from "@/lib/thumb";
 
 export type MuralTab = "wall" | "drops";
 
@@ -287,7 +288,7 @@ function Plate({ p }: { p: Poster }) {
     return (
       <div className={`${s.pst} ${s["p-culture"]}`} style={{ "--hl": fit(20, 140, p.headline) } as CSSProperties}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {p.image && <img className={s.art} src={p.image.src} alt={p.image.alt} />}
+        {p.image && <img className={s.art} src={thumb(p.image.src, 360)} alt={p.image.alt} />}
         {cap(s.t1, p.credits[0])}
         {cap(s.t2, p.credits[1])}
         <div className={s.hl} aria-hidden="true">

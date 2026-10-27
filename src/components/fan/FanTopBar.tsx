@@ -6,6 +6,7 @@ import { Icon } from "@/components/icons";
 import { initialsOf } from "@/lib/format";
 import { useArtist } from "./ArtistContext";
 import { Mark } from "./Mark";
+import { thumb } from "@/lib/thumb";
 
 /**
  * Topo do celular, em todas as telas do fã: a marca e o nome do ambiente
@@ -40,7 +41,7 @@ export function FanTopBar({ avatar, hidden = false }: { avatar: string | null; h
           <Link href={`${base}/perfil`} aria-label="Meu perfil" className="flex size-11 items-center justify-center">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element -- foto de perfil
-              <img src={avatar} alt="" width={32} height={32} className="size-8 rounded-full border border-line-strong object-cover" />
+              <img src={thumb(avatar, 32)} alt="" width={32} height={32} className="size-8 rounded-full border border-line-strong object-cover" />
             ) : (
               <span aria-hidden="true" className="avatar !size-8 !text-[11px]">
                 {initialsOf(viewer.name)}
