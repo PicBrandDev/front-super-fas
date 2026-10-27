@@ -50,8 +50,11 @@ export function BrindeFlow({
   const [paidTotal, setPaidTotal] = useState(0);
   const [card, setCard] = useState<Card>(NO_CARD);
   const [installments, setInstallments] = useState(1);
-  // Confirmação de que o ingresso é (ou será) comprado na Ingresse: sem ela o botão de pagar fica desligado.
-  const [optin, setOptin] = useState(false);
+  // Validação do ingresso (comprado na Ingresse): sem ingresso validado não se compra transfer nem experiência.
+  // Por enquanto qualquer código vale (simulação); depois entra a consulta real à Ingresse.
+  const [ticketCode, setTicketCode] = useState("");
+  const [validated, setValidated] = useState(false);
+  const [validating, setValidating] = useState(false);
 
   const cartKey = picked ? `${choice?.id}|${choice?.addons.join(",")}` : "";
 
@@ -92,7 +95,8 @@ export function BrindeFlow({
     setApplied(null);
     setCard(NO_CARD); // os dados do cartão não ficam guardados
     setInstallments(1);
-    setOptin(false);
+    setTicketCode("");
+    setValidated(false);
     onClose();
   };
 
@@ -103,10 +107,19 @@ export function BrindeFlow({
     if (open) wasOpen.current = true;
     else if (wasOpen.current) {
       wasOpen.current = false;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- fecha o fluxo quando o carrinho esvazia
       if (!picked) close();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, picked]);
+
+  async function validateTicket() {
+    if (!ticketCode.trim() || validating) return;
+    setValidating(true);
+    await new Promise((r) => setTimeout(r, 600)); // simula a consulta ao código
+    setValidating(false);
+    setValidated(true);
+  }
 
   async function applyCoupon(raw: string) {
     const value = raw.trim().toUpperCase();
@@ -130,7 +143,7 @@ export function BrindeFlow({
   const total = applied ? applied.totalCents : subtotal;
 
   async function paid() {
-    if (paying || !picked || !choice || !optin) return;
+    if (paying || !picked || !choice || !validated) return;
     if (method === "card") {
       const bad = cardError(card);
       if (bad) return setError(bad);
@@ -156,7 +169,7 @@ export function BrindeFlow({
           <p>
             Levando estas experiências extras você ganha um prêmio: <strong>depois do pagamento, o seu brinde é liberado aqui</strong>.
           </p>
-          <p className="text-[14px] leading-5 text-fg-muted">O ingresso do show não está neste carrinho: ele é vendido só na Ingresse.</p>
+          <p className="text-[14px] leading-5 text-fg-muted">O ingresso do show não está neste carrinho: ele é vendido só na Ingresse. Antes de pagar, você valida o código do seu ingresso.</p>
           <p className="mono">{picked.label}</p>
           <button type="button" className="btn btn-primary btn-block" onClick={() => setStep("pay")}>
             Ir para o carrinho
@@ -169,6 +182,59 @@ export function BrindeFlow({
 
       {step === "pay" && picked && (
         <>
+          <section aria-labelledby="valida-h" className={`flex flex-col gap-2 border p-3 ${validated ? "border-amber bg-raised" : "border-line bg-surface"}`}>
+            <span id="valida-h" className="mono">
+              1 · Valide o seu ingresso
+            </span>
+            {validated ? (
+              <div className="flex items-center gap-3">
+                <Icon name="check" size={18} />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <strong className="text-[16px] leading-5 text-fg">Ingresso validado</strong>
+                  <span className="mono">Código {ticketCode.trim().toUpperCase()}</span>
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setValidated(false);
+                    setTicketCode("");
+                  }}
+                >
+                  Trocar
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="m-0 text-[14px] leading-5 text-fg-muted">
+                  Transfer e experiências só valem com ingresso. Digite o código do ingresso que você comprou na Ingresse.
+                </p>
+                <form
+                  className="flex gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void validateTicket();
+                  }}
+                >
+                  <input
+                    value={ticketCode}
+                    onChange={(e) => setTicketCode(e.target.value)}
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    placeholder="Código do ingresso"
+                    aria-label="Código do ingresso"
+                    autoComplete="off"
+                    className="min-h-12 min-w-0 flex-1 border border-line bg-night px-3 font-mono text-[15px] uppercase text-fg"
+                  />
+                  <button type="submit" className="btn btn-primary" disabled={!ticketCode.trim() || validating} aria-busy={validating}>
+                    {validating ? "Validando…" : "Validar"}
+                  </button>
+                </form>
+                <span className="tag tag-demo self-start">Simulação: por enquanto qualquer código vale</span>
+              </>
+            )}
+          </section>
+
           <div className="flex flex-col gap-1 border-b border-line pb-3">
             <strong className="text-[16px] leading-5 text-fg">{event.title}</strong>
             <span className="mono">
@@ -300,20 +366,8 @@ export function BrindeFlow({
               {error}
             </p>
           )}
-          <div className="flex min-h-11 items-start gap-2.5">
-            <input
-              id="optin-ingresse"
-              type="checkbox"
-              checked={optin}
-              onChange={(e) => setOptin(e.target.checked)}
-              className="m-0 mt-0.5 size-5 flex-none cursor-pointer accent-amber"
-            />
-            <label htmlFor="optin-ingresse" className="cursor-pointer text-[14px] leading-5 text-fg">
-              Confirmo que já comprei ou vou comprar meu ingresso na Ingresse. As experiências extras só valem com ingresso válido para este evento.
-            </label>
-          </div>
-          <button type="button" className="btn btn-primary btn-block" onClick={paid} disabled={paying || !optin} aria-busy={paying}>
-            {paying ? "Confirmando…" : payLabel(method, installments, total)}
+          <button type="button" className="btn btn-primary btn-block" onClick={paid} disabled={paying || !validated} aria-busy={paying}>
+            {paying ? "Confirmando…" : validated ? payLabel(method, installments, total) : "Valide o ingresso para comprar"}
           </button>
           <button type="button" className="btn btn-ghost" data-close>
             Cancelar

@@ -36,7 +36,6 @@ export function PicKupWheel({
   prizes,
   initialSpins,
   initialCredits,
-  rewardsCount = 0,
   club,
   demo,
   videoAd = null,
@@ -67,7 +66,7 @@ export function PicKupWheel({
   const [spun, setSpun] = useState(false);
   const [spins, setSpins] = useState(initialSpins);
   // Sem API (modo exemplo) a lista nasce dos giros que o fã tem.
-  const [credits, setCredits] = useState<SpinCredit[]>(() =>
+  const [, setCredits] = useState<SpinCredit[]>(() =>
     initialCredits.length > 0
       ? initialCredits
       : Array.from({ length: initialSpins }, (_, i) => ({ id: `demo-${i}`, reason: "Bônus de boas-vindas", used: false, prizeLabel: null, date: "" })),
@@ -75,7 +74,7 @@ export function PicKupWheel({
   const [error, setError] = useState("");
   const [result, setResult] = useState<Prize | null>(null);
   const [reward, setReward] = useState<Reward | null>(null); // o brinde guardado em Meus brindes
-  const [newRewards, setNewRewards] = useState(0);
+  const [, setNewRewards] = useState(0);
   const [mastShift, setMastShift] = useState(0);
   const [mastMs, setMastMs] = useState<number | undefined>(undefined);
   // Giro esperando o vídeo patrocinado (guarda o crédito escolhido).
@@ -290,49 +289,13 @@ export function PicKupWheel({
             {error}
           </p>
         ) : (
-          <p className={s.note}>
-            {club && n > 0 && <span className="num">{spins === 1 ? "1 giro. " : `${spins} giros. `}</span>}
-            {demo ? "Prêmios de exemplo. " : ""}O resultado é definido no servidor; ninguém ganha garantido.
-          </p>
+          club &&
+          n > 0 && (
+            <p className={s.note} aria-live="polite">
+              <span className="num">{spins === 1 ? "1 giro" : `${spins} giros`}</span>
+            </p>
+          )
         )}
-
-        <section className={s.mine} aria-labelledby="girosH">
-          <h3 id="girosH">Seus giros</h3>
-          {credits.length === 0 ? (
-            <p className={s.empty}>Nenhum giro por enquanto. Comprando um ingresso, você ganha uma tentativa.</p>
-          ) : (
-            <ul className={s.giros}>
-              {credits.map((c) => (
-                <li key={c.id} className={s.giro}>
-                  <span className={s.why}>
-                    <strong>{c.reason}</strong>
-                    {c.date && <span className="mono">{c.date}</span>}
-                  </span>
-                  {c.used ? (
-                    <span className="tag">{c.prizeLabel ? `Saiu: ${c.prizeLabel}` : "Usado"}</span>
-                  ) : (
-                    <button type="button" className="btn btn-outline btn-sm" onClick={() => requestSpin(c.id)} disabled={cantSpin}>
-                      Girar roleta
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className={s.mine} aria-labelledby="mineH">
-          <h3 id="mineH">Meus brindes</h3>
-          <Link href={`${base}/pickup/brindes`} className={`${s.won} no-underline`}>
-            <span className="flex min-w-0 flex-1 flex-col">
-              <strong>Ver todos os brindes que ganhei</strong>
-              <span className="mono" style={{ color: "inherit", opacity: 0.75 }}>
-                Cupons, ingresso, camiseta e boné, com o código e como retirar
-              </span>
-            </span>
-            {rewardsCount + newRewards > 0 && <span className="tag tag-key">{rewardsCount + newRewards}</span>}
-          </Link>
-        </section>
       </div>
 
       <Sheet open={!!result} onClose={closeResult} title={result ? (noPrize ? "Não foi dessa vez" : lose ? "Quase" : result.label) : ""}>
