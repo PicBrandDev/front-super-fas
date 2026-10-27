@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { deleteContent, saveContent } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { AdminEmpty, AdminNotice, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
@@ -295,6 +295,7 @@ export function ItemForm({
   resource,
   onCancel,
   onSave,
+  children,
 }: {
   resource: string;
   fields: FieldDef[];
@@ -303,6 +304,8 @@ export function ItemForm({
   feminine: boolean;
   onCancel: () => void;
   onSave: (data: Record<string, unknown>) => Promise<string | null>;
+  /** Campos a mais, abaixo dos campos comuns (ex.: a foto do produto). */
+  children?: ReactNode;
 }) {
   const [values, setValues] = useState<Record<string, string | boolean>>(() =>
     Object.fromEntries(fields.map((f) => [f.name, toInput(f, item?.[f.name])])),
@@ -424,6 +427,7 @@ export function ItemForm({
           );
         })}
       </div>
+      {children}
       <div className="flex justify-end gap-2.5">
         <button type="button" onClick={onCancel} className={btnSecondary}>
           Cancelar

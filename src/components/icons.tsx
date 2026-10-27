@@ -14,11 +14,16 @@ const paths = {
       <path d="M3 10h18M8 3v4M16 3v4" />
     </>
   ),
+  // Toca-discos (PicKup): disco com selo, um sulco e a agulha no canto.
   wheel: (
     <>
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="2" />
-      <path d="M12 3v7M12 14v7M3 12h7M14 12h7" />
+      <circle cx="10.5" cy="13" r="9" />
+      <circle cx="10.5" cy="13" r="3.2" />
+      <circle cx="10.5" cy="13" r="0.4" />
+      <path d="M5.2 10.1A6 6 0 0 1 9.2 7.1" />
+      <path d="M21.5 2v4.5l-2.7 8.7" />
+      <rect x="16.6" y="14.7" width="2" height="3.4" rx="0.5" transform="rotate(45 17.6 16.4)" />
+      <path d="M16.4 17.6l-1.2 1.2" />
     </>
   ),
   bag: (
