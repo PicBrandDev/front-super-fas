@@ -169,8 +169,16 @@ export function PostCard({
           </blockquote>
         )}
         {image && (
-          <div className="relative mt-3 aspect-[4/5] overflow-hidden rounded-hair">
-            <img src={image.src} alt={image.alt} loading="lazy" className="block h-full w-full object-cover" />
+          <div className="relative mt-3 aspect-[4/5] overflow-hidden rounded-hair bg-raised">
+            {/* As duas primeiras fotos carregam já; as demais, perto de aparecer na tela. */}
+            <img
+              src={image.src}
+              alt={image.alt}
+              loading={index < 2 ? "eager" : "lazy"}
+              fetchPriority={index < 2 ? "high" : "auto"}
+              decoding="async"
+              className="block h-full w-full object-cover"
+            />
           </div>
         )}
         {post.kind === "instagram" && post.url && (

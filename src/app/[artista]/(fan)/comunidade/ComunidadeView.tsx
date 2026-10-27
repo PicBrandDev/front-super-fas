@@ -14,6 +14,8 @@ import { AllClubsButton, type ClubListItem } from "./AllClubsSheet";
 import { NewPostFab } from "./NewPostFab";
 import { RankingView } from "./RankingView";
 
+const PAGE = 12;
+
 type Tab = "feed" | "ranking";
 const tabs: { id: Tab; label: string }[] = [
   { id: "feed", label: "Feed" },
@@ -67,6 +69,8 @@ export function ComunidadeView({
   const [clube, setClube] = useState<string | null>(initialClub);
   const [tab, setTab] = useState<Tab>(initialTab);
   const [extra, setExtra] = useState<Post[]>([]);
+  // O feed abre com poucos posts (cada um traz foto) e o resto vem em "Ver mais": 100 de uma vez deixava a tela lenta.
+  const [shown, setShown] = useState(PAGE);
   const [seen, setSeen] = useState(posts);
   // Quando a página recarrega com o post de verdade, os simulados saem de cena.
   if (seen !== posts) {
@@ -164,7 +168,7 @@ export function ComunidadeView({
               {list.length === 0 ? (
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
-                list.map((p, i) => {
+                list.slice(0, shown).map((p, i) => {
                   const ad = adAfter(i, pool);
                   return (
                     <Fragment key={p.id}>
@@ -173,6 +177,11 @@ export function ComunidadeView({
                     </Fragment>
                   );
                 })
+              )}
+              {list.length > shown && (
+                <button type="button" className="btn btn-outline btn-block my-4" onClick={() => setShown((n) => n + PAGE)}>
+                  Ver mais posts
+                </button>
               )}
             </div>
           </>
