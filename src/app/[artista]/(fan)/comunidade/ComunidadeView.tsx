@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
-import { FeedAd } from "@/components/fan/FeedAd";
 import { Masthead } from "@/components/fan/Masthead";
 import { PostCard } from "@/components/fan/PostCard";
+import { SponsoredPost } from "@/components/fan/SponsoredPost";
+import { COMMUNITY_AD_EVERY, type InAppAd } from "@/lib/ads";
 import { initialsOf } from "@/lib/format";
 import { Tabs } from "@/components/fan/Tabs";
-import type { FeedAdItem, Post, Ranking } from "@/lib/types";
+import type { Post, Ranking } from "@/lib/types";
 import { AllClubsButton, type ClubListItem } from "./AllClubsSheet";
 import { NewPostFab } from "./NewPostFab";
 import { RankingView } from "./RankingView";
@@ -22,14 +23,26 @@ const tabs: { id: Tab; label: string }[] = [
 export type FollowedClub = { slug: string; name: string; avatar: string | null; isMaster: boolean };
 
 /**
+ * Anúncio que entra depois do post de índice `i` (0-based) do feed já montado, ou null.
+ * Conta pela posição na lista que aparece na tela (filtros e posts novos incluídos), então o
+ * patrocinado é sempre o 8º, 16º, … item. Com paginação, basta concatenar as páginas na mesma
+ * lista antes do map: o índice continua corrido e a conta não reinicia a cada página.
+ */
+function adAfter(i: number, ads: InAppAd[]): InAppAd | null {
+  if (!ads.length || (i + 1) % COMMUNITY_AD_EVERY !== 0) return null;
+  const slot = (i + 1) / COMMUNITY_AD_EVERY - 1; // 0 no 8º item, 1 no 16º…
+  return ads[slot % ads.length]; // rodízio entre as campanhas
+}
+
+/**
  * Tela "Comunidade": o feed só dos fã clubes que o fã segue. "Todos" junta o feed deles e cada botão
  * abre o feed de um fã clube. Os posts oficiais do artista aparecem para quem segue o fã clube master.
  * O botão "+" flutuante publica num dos fã clubes que o fã segue.
  */
 export function ComunidadeView({
   posts,
-  feedAds = [],
-  clubFeedAds = {},
+  ads = [],
+  clubAds = {},
   clubs,
   allClubs,
   ownerView = false,
@@ -39,8 +52,8 @@ export function ComunidadeView({
   demo,
 }: {
   posts: Post[];
-  feedAds?: FeedAdItem[]; // posts patrocinados do feed do cantor (depois do 4º, 8º, 12º, 16º post)
-  clubFeedAds?: Record<string, FeedAdItem[]>; // o mesmo, por fã clube
+  ads?: InAppAd[]; // campanhas do feed, em rodízio a cada COMMUNITY_AD_EVERY posts
+  clubAds?: Record<string, InAppAd[]>; // as do feed de cada fã clube (filtro por fã clube)
   clubs: FollowedClub[]; // fã clubes que o fã segue
   allClubs: ClubListItem[]; // todos os fã clubes, para entrar em um
   ownerView?: boolean; // dono/equipe: tudo da tela é só do fã clube dele
@@ -69,6 +82,7 @@ export function ComunidadeView({
     return !!c && followed.has(c);
   });
   const list = clube ? all.filter((p) => clubOf(p) === clube) : all;
+  const pool = clube && clubAds[clube]?.length ? clubAds[clube] : ads;
   const countOf = (slug: string) => all.filter((p) => clubOf(p) === slug).length;
   const current = clubs.find((c) => c.slug === clube) ?? null;
   const fresh = new Set(extra.map((p) => p.id));
@@ -149,14 +163,15 @@ export function ComunidadeView({
               {list.length === 0 ? (
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
-                list.map((p, i) => (
-                  <Fragment key={p.id}>
-                    <PostCard post={p} index={i} fresh={fresh.has(p.id)} />
-                    {(clube ? (clubFeedAds[clube] ?? []) : feedAds).filter((a) => a.position === i + 1).map((a) => (
-                      <FeedAd key={`ad-${a.position}`} ad={a} className="!px-0" />
-                    ))}
-                  </Fragment>
-                ))
+                list.map((p, i) => {
+                  const ad = adAfter(i, pool);
+                  return (
+                    <Fragment key={p.id}>
+                      <PostCard post={p} index={i} fresh={fresh.has(p.id)} />
+                      {ad && <SponsoredPost ad={ad} />}
+                    </Fragment>
+                  );
+                })
               )}
             </div>
           </>

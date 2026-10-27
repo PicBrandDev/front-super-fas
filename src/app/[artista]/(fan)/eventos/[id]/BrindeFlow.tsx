@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buyTicket, myCoupons, quoteTicket } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { NO_CARD, PaymentFields, cardError, payLabel, type Card, type Method } from "@/components/fan/PaymentFields";
@@ -15,9 +15,10 @@ type Step = "intro" | "pay" | "done";
 type Cart = NonNullable<ReturnType<typeof summarize>>;
 
 /**
- * Fluxo de compra com brinde: avisa que comprar dá um prêmio, mostra o carrinho (experiências,
- * Photo Finder incluso, cupom de desconto e total), simula o pagamento e, depois de pagar, o fã ganha 1 tentativa
- * na roleta (com o motivo registrado). O botão "Tentar" abre o PicKup, onde ele gira.
+ * Fluxo de compra das experiências extras com brinde. O ingresso é vendido só na Ingresse, então o carrinho tem apenas
+ * as experiências (mais o Photo Finder incluso), cupom de desconto e total. Antes de pagar, o fã confirma que já
+ * comprou ou vai comprar o ingresso na Ingresse (opt-in obrigatório, registrado na API). Depois de pagar, ganha
+ * 1 tentativa na roleta (com o motivo registrado); o botão "Tentar" abre o PicKup, onde ele gira.
  * O pagamento é uma simulação: acontece fora do app. O valor com cupom vem da API (nunca só da tela).
  */
 export function BrindeFlow({
@@ -49,8 +50,10 @@ export function BrindeFlow({
   const [paidTotal, setPaidTotal] = useState(0);
   const [card, setCard] = useState<Card>(NO_CARD);
   const [installments, setInstallments] = useState(1);
+  // Confirmação de que o ingresso é (ou será) comprado na Ingresse: sem ela o botão de pagar fica desligado.
+  const [optin, setOptin] = useState(false);
 
-  const cartKey = picked ? `${choice?.id}|${choice?.item}|${choice?.addons.join(",")}` : "";
+  const cartKey = picked ? `${choice?.id}|${choice?.addons.join(",")}` : "";
 
   // Meus cupons (ex.: o de 10% ganho na roleta), carregados quando o carrinho abre.
   useEffect(() => {
@@ -67,7 +70,7 @@ export function BrindeFlow({
   useEffect(() => {
     if (!appliedCode || !choice || !picked) return;
     let alive = true;
-    void quoteTicket(slug, event.id, picked.pkg.id, choice.item, choice.addons, appliedCode).then((res) => {
+    void quoteTicket(slug, event.id, picked.pkg.id, choice.addons, appliedCode).then((res) => {
       if (!alive) return;
       if (res.ok) setApplied(res.data);
       else {
@@ -89,15 +92,28 @@ export function BrindeFlow({
     setApplied(null);
     setCard(NO_CARD); // os dados do cartão não ficam guardados
     setInstallments(1);
+    setOptin(false);
     onClose();
   };
+
+  // Tirou a última experiência do carrinho: o pai fecha a folha (sem carrinho), então fecha de vez aqui também,
+  // zerando passo, cupom e opt-in. Sem isso, marcar outra experiência reabriria o carrinho sozinho no pagamento.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (open) wasOpen.current = true;
+    else if (wasOpen.current) {
+      wasOpen.current = false;
+      if (!picked) close();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, picked]);
 
   async function applyCoupon(raw: string) {
     const value = raw.trim().toUpperCase();
     if (!value || !choice || !picked || applying) return;
     setApplying(true);
     setCouponError("");
-    const res = await quoteTicket(slug, event.id, picked.pkg.id, choice.item, choice.addons, value);
+    const res = await quoteTicket(slug, event.id, picked.pkg.id, choice.addons, value);
     setApplying(false);
     if (res.ok) {
       setApplied(res.data);
@@ -114,14 +130,14 @@ export function BrindeFlow({
   const total = applied ? applied.totalCents : subtotal;
 
   async function paid() {
-    if (paying || !picked || !choice) return;
+    if (paying || !picked || !choice || !optin) return;
     if (method === "card") {
       const bad = cardError(card);
       if (bad) return setError(bad);
     }
     setPaying(true);
     setError("");
-    const res = await buyTicket(slug, event.id, picked.pkg.id, choice.item, choice.addons, applied?.coupon ?? "");
+    const res = await buyTicket(slug, event.id, picked.pkg.id, choice.addons, applied?.coupon ?? "");
     setPaying(false);
     // Sem API (modo exemplo, status 0) só avança na tela.
     if (!res.ok && res.status !== 0) return setError(res.error);
@@ -138,8 +154,9 @@ export function BrindeFlow({
       {step === "intro" && picked && (
         <>
           <p>
-            Comprando você ganha um prêmio: <strong>depois do pagamento, o seu brinde é liberado aqui</strong>.
+            Levando estas experiências extras você ganha um prêmio: <strong>depois do pagamento, o seu brinde é liberado aqui</strong>.
           </p>
+          <p className="text-[14px] leading-5 text-fg-muted">O ingresso do show não está neste carrinho: ele é vendido só na Ingresse.</p>
           <p className="mono">{picked.label}</p>
           <button type="button" className="btn btn-primary btn-block" onClick={() => setStep("pay")}>
             Ir para o carrinho
@@ -164,7 +181,7 @@ export function BrindeFlow({
               <li key={l.key} className="flex items-center gap-3 py-3">
                 <span className="flex min-w-0 flex-1 flex-col">
                   <strong className="text-[15px] leading-5 text-fg">{l.label}</strong>
-                  <span className="mono">Experiência</span>
+                  <span className="mono">Experiência extra</span>
                 </span>
                 <span className="num flex-none text-[15px] text-fg">{formatBRL(l.priceCents)}</span>
                 <button
@@ -283,7 +300,19 @@ export function BrindeFlow({
               {error}
             </p>
           )}
-          <button type="button" className="btn btn-primary btn-block" onClick={paid} disabled={paying} aria-busy={paying}>
+          <div className="flex min-h-11 items-start gap-2.5">
+            <input
+              id="optin-ingresse"
+              type="checkbox"
+              checked={optin}
+              onChange={(e) => setOptin(e.target.checked)}
+              className="m-0 mt-0.5 size-5 flex-none cursor-pointer accent-amber"
+            />
+            <label htmlFor="optin-ingresse" className="cursor-pointer text-[14px] leading-5 text-fg">
+              Confirmo que já comprei ou vou comprar meu ingresso na Ingresse. As experiências extras só valem com ingresso válido para este evento.
+            </label>
+          </div>
+          <button type="button" className="btn btn-primary btn-block" onClick={paid} disabled={paying || !optin} aria-busy={paying}>
             {paying ? "Confirmando…" : payLabel(method, installments, total)}
           </button>
           <button type="button" className="btn btn-ghost" data-close>
@@ -295,7 +324,7 @@ export function BrindeFlow({
       {step === "done" && (
         <>
           <p>
-            Pagamento de <strong>{formatBRL(paidTotal)}</strong> confirmado. A compra já está em <strong>Meus ingressos</strong> e você ganhou{" "}
+            Pagamento de <strong>{formatBRL(paidTotal)}</strong> confirmado. As experiências extras já estão em <strong>Meus ingressos</strong> e você ganhou{" "}
             <strong>1 tentativa na roleta</strong>, que já está na sua lista de giros.
           </p>
           <button

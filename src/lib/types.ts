@@ -90,7 +90,15 @@ export type PostKind = "drop" | "galera" | "instagram";
 export type Post = {
   id: string;
   kind: PostKind;
-  author: { name: string; handle: string; initial: string; official?: boolean; badge?: string | null; avatar?: string | null };
+  author: {
+    name: string;
+    handle: string;
+    initial: string;
+    official?: boolean;
+    badge?: string | null;
+    id?: string | null; // id do fã autor: abre o perfil público e o chat (vazio no post oficial)
+    avatar?: string | null; // foto de perfil do fã autor (/uploads/...)
+  };
   timeLabel: string;
   text: string;
   hasImage?: boolean;
@@ -123,7 +131,7 @@ export type ShowEvent = {
   lineup: string;
   giftsCount: number;
   status: EventStatus;
-  ticketingName?: string; // ticketeira oficial (ex.: Sympla)
+  ticketingName?: string; // ticketeira oficial (Ingresse)
   ticketingUrl?: string; // link de compra na ticketeira
 };
 
@@ -465,7 +473,7 @@ export type MyTicket = {
   packageName: string;
   agencyName: string;
   label: string;
-  kind: "ticket" | "transfer" | "seal" | "photo";
+  kind: "ticket" | "transfer" | "seal" | "photo" | "extras"; // "extras": compra só de experiências (ingresso na Ingresse)
   priceCents: number;
   includesTransfer: boolean;
   includesSeal: boolean;
@@ -553,4 +561,36 @@ export type Rental = {
   status: "live" | "scheduled" | "ended";
   priceCentsPerWeek: number | null;
   estimatedTotalCents: number | null;
+};
+
+// ---------- Chat privado entre fãs ----------
+
+/** A outra pessoa de uma conversa (ou o autor de um post). */
+export type ChatUser = { id: string; name: string; handle: string | null; avatar: string | null };
+
+export type ChatMessage = {
+  id: number;
+  conversationId: number;
+  senderId: string;
+  body: string;
+  createdAt: string; // ISO 8601
+  readAt: string | null; // quando o outro leu
+  mine: boolean; // enviada por quem está vendo
+};
+
+export type Conversation = {
+  id: number;
+  other: ChatUser;
+  lastMessage: ChatMessage | null;
+  lastMessageAt: string | null;
+  unread: number; // mensagens do outro ainda não lidas
+};
+
+/** Perfil público de um fã neste ambiente (aberto ao tocar no autor de um post). */
+export type PublicFan = ChatUser & {
+  club: { slug: string; name: string; avatar: string | null } | null;
+  points: number | null;
+  rank: number | null;
+  isMe: boolean;
+  posts: Post[];
 };

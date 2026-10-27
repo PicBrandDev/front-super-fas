@@ -13,7 +13,7 @@ export const deckNav: NavItem[] = [
   { href: "", label: "Início", icon: "home", match: ["/mural", "/drops"] },
   { href: "/comunidade", label: "Comunidade", icon: "comment", match: ["/clubes"] },
   { href: "/pickup", label: "PicKup", icon: "wheel" },
-  { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos", "/photo-finder", "/revenda"] },
+  { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos", "/photo-finder"] },
   { href: "/loja", label: "Loja", icon: "bag" },
 ];
 
@@ -22,13 +22,18 @@ export const sideNav: NavItem[] = [
   { href: "", label: "Início", icon: "home" },
   { href: "/mural", label: "Mural", icon: "news", match: ["/drops"] },
   { href: "/comunidade", label: "Comunidade", icon: "comment" },
+  { href: "/conversas", label: "Conversas", icon: "comment" },
   { href: "/clubes", label: "Fã clubes", icon: "users" },
   { href: "/pickup", label: "PicKup da sorte", icon: "wheel" },
   { href: "/agenda", label: "Agenda", icon: "calendar", match: ["/eventos"] },
-  { href: "/revenda", label: "Revenda entre fãs", icon: "repost" },
   { href: "/photo-finder", label: "Photo finder", icon: "camera" },
   { href: "/loja", label: "Loja Vintage", icon: "bag" },
 ];
+
+/** A conversa aberta (`/conversas/<id>`) ocupa a tela inteira: sem topo nem menu de baixo. */
+export function isChatThread(pathname: string, base: string) {
+  return pathname.startsWith(`${base}/conversas/`) && pathname.length > `${base}/conversas/`.length;
+}
 
 export function isActive(pathname: string, base: string, item: NavItem) {
   if (item.href === "" && !item.match) return pathname === base || pathname === `${base}/`;

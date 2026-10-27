@@ -33,20 +33,20 @@ export async function spinPickup(slug: string, club: string, creditId?: string):
   return send<SpinResult>("POST", `/artists/${slug}/clubs/${club}/pickup/spin`, creditId ? { creditId } : undefined);
 }
 
-const cartOk = (slug: string, eventId: string, packageId: string, item: number, addons: string[], coupon: string) =>
-  slugOk(slug) && idOk(eventId) && idOk(packageId) && Number.isInteger(item) && item >= 0 && addons.every((a) => /^[a-z]{2,12}$/.test(a)) && /^[A-Za-z0-9_-]{0,30}$/.test(coupon);
+// O ingresso é vendido só na Ingresse: o carrinho do app tem de 1 a 10 experiências extras de um pacote.
+const cartOk = (slug: string, eventId: string, packageId: string, addons: string[], coupon: string) =>
+  slugOk(slug) &&
+  idOk(eventId) &&
+  idOk(packageId) &&
+  addons.length >= 1 &&
+  addons.length <= 10 &&
+  addons.every((a) => /^[a-z]{2,12}$/.test(a)) &&
+  /^[A-Za-z0-9_-]{0,30}$/.test(coupon);
 
-/** Valor do carrinho (ingresso + experiências) e do cupom, calculado pela API, sem comprar. */
-export async function quoteTicket(
-  slug: string,
-  eventId: string,
-  packageId: string,
-  item: number,
-  addons: string[],
-  coupon: string,
-): Promise<ApiResult<Quote>> {
-  if (!cartOk(slug, eventId, packageId, item, addons, coupon)) return bad();
-  return send<Quote>("POST", `/artists/${slug}/events/${eventId}/quote`, { packageId, item, addons, coupon });
+/** Valor das experiências extras e do cupom, calculado pela API, sem comprar. */
+export async function quoteTicket(slug: string, eventId: string, packageId: string, addons: string[], coupon: string): Promise<ApiResult<Quote>> {
+  if (!cartOk(slug, eventId, packageId, addons, coupon)) return bad();
+  return send<Quote>("POST", `/artists/${slug}/events/${eventId}/quote`, { packageId, addons, coupon });
 }
 
 /** Cupons pessoais do fã que ainda valem (lista vazia sem API ou sem login). */
@@ -56,17 +56,13 @@ export async function myCoupons(slug: string): Promise<MyCoupon[]> {
   return res.ok ? res.data : [];
 }
 
-/** Compra de ingresso (simulada): registra o ingresso em Meus ingressos e dá 1 giro da roleta, com o motivo. */
-export async function buyTicket(
-  slug: string,
-  eventId: string,
-  packageId: string,
-  item: number,
-  addons: string[] = [],
-  coupon = "",
-): Promise<ApiResult<MyTicket>> {
-  if (!cartOk(slug, eventId, packageId, item, addons, coupon)) return bad();
-  const res = await send<MyTicket>("POST", `/artists/${slug}/events/${eventId}/purchases`, { packageId, item, addons, coupon });
+/**
+ * Compra (simulada) das experiências extras: registra em Meus ingressos e dá 1 giro da roleta, com o motivo.
+ * Só é chamada depois que o fã marca a confirmação de que o ingresso é da Ingresse; a API registra esse opt-in.
+ */
+export async function buyTicket(slug: string, eventId: string, packageId: string, addons: string[], coupon = ""): Promise<ApiResult<MyTicket>> {
+  if (!cartOk(slug, eventId, packageId, addons, coupon)) return bad();
+  const res = await send<MyTicket>("POST", `/artists/${slug}/events/${eventId}/purchases`, { packageId, addons, coupon, ticketOptin: true });
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
 }
