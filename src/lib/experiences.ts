@@ -1,5 +1,5 @@
-/** Experiências que um pacote pode incluir além do ingresso (o Photo Finder vem em todos os pacotes). */
-export type ExperienceKey = "jantar" | "camarim" | "pre" | "after" | "hotel";
+/** Experiências que um pacote vende (o ingresso é da ticketeira; o Photo Finder vem em todos os pacotes). */
+export type ExperienceKey = "jantar" | "camarim" | "pre" | "after" | "hotel" | "transfer";
 
 export const EXPERIENCES: { key: ExperienceKey; label: string; hint: string }[] = [
   { key: "jantar", label: "Jantar com o Vintage", hint: "Jantar exclusivo com o artista antes do show" },
@@ -7,6 +7,7 @@ export const EXPERIENCES: { key: ExperienceKey; label: string; hint: string }[] 
   { key: "pre", label: "Pré-esquenta", hint: "Festa antes da abertura dos portões" },
   { key: "after", label: "After", hint: "After party depois do show" },
   { key: "hotel", label: "Hotel com hospedagem", hint: "Diária em hotel parceiro perto do show, com café da manhã" },
+  { key: "transfer", label: "Transfer ida e volta", hint: "Ônibus em grupo até o show e de volta, com saída e horário combinados" },
 ];
 
 export const experienceLabel = (key: string) => EXPERIENCES.find((e) => e.key === key)?.label ?? key;

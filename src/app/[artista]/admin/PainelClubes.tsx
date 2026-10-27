@@ -7,12 +7,14 @@ import { ClubAvatar } from "@/components/admin/ClubAvatar";
 import { AdminEmpty, Badge, btnPrimary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import { formatCount } from "@/lib/format";
-import type { ClubOverview } from "@/lib/types";
+import type { ClubHighlight, ClubOverview, RankingScope } from "@/lib/types";
+import { Destaques } from "./Destaques";
+import { RankingPessoas } from "./RankingPessoas";
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 /** Todos os fã clubes do ambiente (sem limite) em cards: foto, dono e números. Clicar abre o analytics. */
-export function PainelClubes({ artist, artistName, clubs }: { artist: string; artistName: string; clubs: ClubOverview[] }) {
+export function PainelClubes({ artist, artistName, clubs, highlights, ranking }: { artist: string; artistName: string; clubs: ClubOverview[]; highlights: ClubHighlight[]; ranking: RankingScope[] }) {
   const [q, setQ] = useState("");
   const shown = useMemo(() => {
     const t = norm(q.trim());
@@ -50,6 +52,17 @@ export function PainelClubes({ artist, artistName, clubs }: { artist: string; ar
           </div>
         ))}
       </dl>
+
+      {highlights.length > 0 && (
+        <section aria-labelledby="destaques-title" className="flex flex-col gap-3">
+          <h2 id="destaques-title" className="m-0 font-display text-3xl font-black">
+            Destaques dos fã clubes
+          </h2>
+          <Destaques artist={artist} clubs={highlights} />
+        </section>
+      )}
+
+      {ranking.length > 0 && <RankingPessoas artist={artist} scopes={ranking} />}
 
       <div className="flex flex-wrap items-center gap-3">
         <label htmlFor="painel-busca" className="sr-only">
@@ -92,7 +105,7 @@ export function PainelClubes({ artist, artistName, clubs }: { artist: string; ar
                 </div>
 
                 <div className="flex items-center gap-2.5 rounded-lg bg-adm-bg px-3 py-2">
-                  <Icon name="user" size={16} />
+                  {c.ownerName ? <ClubAvatar src={c.ownerAvatar} name={c.ownerName} size={32} /> : <Icon name="user" size={16} />}
                   {c.ownerName ? (
                     <span className="flex min-w-0 flex-col leading-4">
                       <span className="font-adm-mono text-[10px] font-semibold uppercase tracking-wider text-adm-muted">Dono</span>

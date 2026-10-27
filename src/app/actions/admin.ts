@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { send, type ApiResult } from "@/lib/api";
-import type { EventPhoto } from "@/lib/types";
+import { getExperienceBuyers, getPersonHistory, getPickupHistory, getPostDetail, getTrackDetail, getPrizeWinners, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, ExperienceBuyerPage, PersonHistory, PostDetail, TrackDetail, PickupSpinPage, PickupWinnerPage, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -204,4 +204,77 @@ export type InstagramSync = { enabled: boolean; found: number; verified: number;
 export async function syncInstagram(slug: string): Promise<Res<InstagramSync>> {
   if (!slugOk(slug)) return bad("Pedido inválido.");
   return send<InstagramSync>("POST", `/artists/${slug}/manage/instagram/sync`);
+}
+
+// ---------- Ranking Fã Super: quem lidera ----------
+
+export async function findRankingFans(slug: string, q: string, club?: string): Promise<RankingFan[]> {
+  if (!slugOk(slug) || (club && !slugOk(club)) || q.trim().length < 2) return [];
+  return searchRankingFans(slug, q.trim(), club);
+}
+
+/** Fixa um fã em 1º no ranking geral (club vazio) ou no de um fã clube; `userId` nulo volta ao placar. */
+export async function setRankingLeader(slug: string, club: string | null, userId: string | null): Promise<Res<RankingScope>> {
+  if (!slugOk(slug) || (club && !slugOk(club)) || (userId && !idOk(userId))) return bad("Pedido inválido.");
+  const res = await send<RankingScope>("PUT", `/artists/${slug}/manage/ranking/leader`, { clubSlug: club, userId });
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+/** Histórico de um fã no ranking: posts, quando compartilhou a hashtag e os pontos de cada compartilhamento. */
+export async function loadPersonHistory(slug: string, userId: string): Promise<PersonHistory | null> {
+  if (!slugOk(slug) || !idOk(userId)) return null;
+  return getPersonHistory(slug, userId);
+}
+
+// ---------- Assinantes: lista e ações ----------
+
+export async function loadSubscribers(slug: string, q: string, page: number): Promise<SubscriberPage | null> {
+  if (!slugOk(slug) || !Number.isInteger(page) || page < 1) return null;
+  return getSubscribers(slug, q.trim().slice(0, 80), page);
+}
+
+export async function loadSubscriberActivity(slug: string, userId: string): Promise<SubscriberActivity | null> {
+  if (!slugOk(slug) || !idOk(userId)) return null;
+  return getSubscriberActivity(slug, userId);
+}
+
+// ---------- PicKup: histórico, ganhadores e estoque ----------
+
+export async function loadPickupHistory(slug: string, club: string | undefined, q: string, page: number): Promise<PickupSpinPage | null> {
+  if (!slugOk(slug) || (club && !slugOk(club)) || !Number.isInteger(page) || page < 1) return null;
+  return getPickupHistory(slug, club, q.trim().slice(0, 80), page);
+}
+
+export async function loadPrizeWinners(slug: string, prizeId: string, page: number): Promise<PickupWinnerPage | null> {
+  if (!slugOk(slug) || !idOk(prizeId) || !Number.isInteger(page) || page < 1) return null;
+  return getPrizeWinners(slug, prizeId, page);
+}
+
+/** Define quantas unidades de um brinde existem (nulo = sem limite). */
+export async function setPrizeStock(slug: string, club: string, prizeId: string, stock: number | null): Promise<Res> {
+  if (!slugOk(slug) || !slugOk(club) || !idOk(prizeId)) return bad("Pedido inválido.");
+  if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > 1_000_000)) return bad("Digite um número inteiro de 0 a 1.000.000.");
+  const res = await send("PATCH", `/artists/${slug}/clubs/${club}/manage/prizes/${prizeId}`, { stock });
+  if (res.ok) revalidatePath(`/${slug}/admin/pickup`);
+  return res;
+}
+
+// ---------- Detalhes de post e de hit ----------
+
+export async function loadPostDetail(slug: string, id: string): Promise<PostDetail | null> {
+  if (!slugOk(slug) || !idOk(id)) return null;
+  return getPostDetail(slug, id);
+}
+
+export async function loadTrackDetail(slug: string, id: string): Promise<TrackDetail | null> {
+  if (!slugOk(slug) || !idOk(id)) return null;
+  return getTrackDetail(slug, id);
+}
+
+// ---------- Experiências do show: compradores ----------
+
+export async function loadExperienceBuyers(slug: string, eventId: string, key: string, q: string, page: number): Promise<ExperienceBuyerPage | null> {
+  if (!slugOk(slug) || !idOk(eventId) || !/^[a-z]{2,12}$/.test(key) || !Number.isInteger(page) || page < 1) return null;
+  return getExperienceBuyers(slug, eventId, key, q.trim().slice(0, 80), page);
 }

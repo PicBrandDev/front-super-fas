@@ -1,5 +1,17 @@
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
+import { brandStyle } from "@/lib/brand-style";
+
+/** O que o card precisa de uma campanha (serve para `HomeAd`, `FeedAd` da API e `InAppAd`). */
+export type AdCreative = {
+  sponsor: string;
+  title: string;
+  text: string;
+  cta: string;
+  url: string;
+  artUrl?: string | null;
+  imageUrl?: string | null;
+};
 
 /**
  * Atributos do link de um anúncio. Endereço externo (http/https) abre em nova aba com
@@ -27,25 +39,36 @@ export function AdMedia({ ad, className = "", video = false }: { ad: InAppAd; cl
 }
 
 /**
- * Post patrocinado do feed (posição `feed`): uma linha só, bem menor que um cartaz.
- * Miniatura 64px, "Patrocinado" + marca em mono, título de uma linha e um link `.go`.
- * Sem manchete em serifa, sem fundo âmbar: o anúncio não disputa com o conteúdo.
+ * Anúncio patrocinado no feed e nos cards do app: a arte da marca (ou o fundo na cor dela com o nome),
+ * título, texto, botão de chamada e o rótulo "Patrocinado". O clique abre a campanha em outra aba.
  */
-export function FeedAd({ ad, className = "" }: { ad: InAppAd; className?: string }) {
+export function FeedAd({ ad, className = "" }: { ad: AdCreative; className?: string }) {
+  const st = brandStyle(ad.sponsor);
+  const art = ad.artUrl ?? ad.imageUrl ?? null;
   return (
-    <aside aria-label={`Anúncio patrocinado: ${ad.title}`} className={`flex items-center gap-3 border-y border-line px-4 py-3 ${className}`}>
-      <AdMedia ad={ad} className="h-[60px] w-24 flex-none rounded-hair bg-surface object-cover" />
-      <div className="grid min-w-0 flex-1 gap-1">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="tag tag-demo flex-none">Patrocinado</span>
-          <span className="mono">{ad.sponsor}</span>
+    <aside aria-label={`Anúncio patrocinado: ${ad.title}`} className={`my-4 px-4 ${className}`}>
+      <div className="relative overflow-hidden rounded-field" style={{ background: st.bg, color: st.fg }}>
+        {art && (
+          // eslint-disable-next-line @next/next/no-img-element -- arte do anunciante (/ads ou /uploads)
+          <img src={art} alt="" loading="lazy" className="block max-h-64 w-full object-contain" />
+        )}
+        <div className="grid gap-1.5 p-4">
+          {!art && <span className="text-xs font-black uppercase tracking-[0.12em]">{ad.sponsor}</span>}
+          <strong className="text-lg font-extrabold leading-[22px]">{ad.title}</strong>
+          {ad.text && <p className="m-0 text-sm leading-5 opacity-90">{ad.text}</p>}
+          <a
+            href={ad.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex min-h-11 items-center gap-2 self-start rounded-full px-5 text-sm font-bold no-underline"
+            style={{ background: st.accent, color: st.bg }}
+          >
+            {ad.cta}
+            <Icon name="external" size={14} />
+          </a>
         </div>
-        <strong className="truncate text-sm font-semibold leading-5 text-fg">{ad.title}</strong>
+        <span className="mono absolute right-2 top-2 rounded-hair bg-black/60 px-2 py-0.5 !text-[10px] text-white">Patrocinado</span>
       </div>
-      <a {...adLinkProps(ad.url)} className="go min-h-11 flex-none">
-        {ad.cta}
-        <Icon name="external" size={14} />
-      </a>
     </aside>
   );
 }

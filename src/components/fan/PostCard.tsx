@@ -9,6 +9,7 @@ import { formatShort, initialsOf } from "@/lib/format";
 import type { Post, PostKind } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
 import { Mark } from "./Mark";
+import { PersonAvatar } from "./PersonAvatar";
 import { ShareInstagram } from "./ShareInstagram";
 import { useToast } from "./Toast";
 
@@ -114,12 +115,7 @@ export function PostCard({
           </div>
         ) : (
           (() => {
-            const face = post.author.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã
-              <img src={post.author.avatar} alt="" width={32} height={32} className="avatar overflow-hidden object-cover" />
-            ) : (
-              <div className="avatar text-chrome">{initialsOf(post.author.name)}</div>
-            );
+            const face = <PersonAvatar src={post.author.avatar} name={post.author.name} className="text-chrome" />;
             return profileHref ? (
               <Link href={profileHref} tabIndex={-1} aria-hidden="true" className="flex-none no-underline">
                 {face}

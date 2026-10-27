@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
+import { brandStyle } from "@/lib/brand-style";
 
 /**
  * Modal de anúncio da área do fã (entrada no app, resgate da roleta).
@@ -97,6 +98,14 @@ export function AdModal({
         {ad.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- arte do anunciante, URL externa ou /uploads
           <img src={ad.imageUrl} alt="" className="aspect-[16/10] w-full rounded-hair border border-line object-cover" />
+        )}
+        {!ad.imageUrl && (
+          <div
+            className="flex aspect-[16/6] w-full items-center justify-center rounded-hair text-2xl font-black uppercase tracking-wide"
+            style={{ background: brandStyle(ad.sponsor).bg, color: brandStyle(ad.sponsor).fg }}
+          >
+            {ad.sponsor}
+          </div>
         )}
         <h2 id="ad-title" className="!text-[28px] !leading-[30px]">
           {ad.title}

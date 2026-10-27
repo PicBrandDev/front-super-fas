@@ -9,6 +9,7 @@ import { Notice } from "@/components/fan/states";
 import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
 import { initialsOf } from "@/lib/format";
+import { PersonAvatar } from "@/components/fan/PersonAvatar";
 import type { Post } from "@/lib/types";
 import { CameraCapture } from "./CameraCapture";
 
@@ -116,7 +117,7 @@ export function NewPostFab({
         : {
             id: `n-${Date.now()}`,
             kind: "galera",
-            author: { name: "Você", handle: viewer.handle, initial: viewer.initial },
+            author: { name: "Você", handle: viewer.handle, initial: viewer.initial, avatar: viewer.avatar },
             timeLabel: "agora",
             text: trimmed,
             club: { slug: picked.slug, name: picked.name },
@@ -221,9 +222,7 @@ export function NewPostFab({
                 </section>
 
                 <div className="grid grid-cols-[40px_1fr] gap-3 px-4 py-4">
-                  <div className="avatar" aria-hidden="true">
-                    {initialsOf(viewer.name)}
-                  </div>
+                  <PersonAvatar src={viewer.avatar} name={viewer.name} />
                   <div className="min-w-0">
                     <label htmlFor={`${uid}-text`} className="sr-only">
                       Texto do post

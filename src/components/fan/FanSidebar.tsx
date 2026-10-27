@@ -6,7 +6,7 @@ import { logout } from "@/app/actions/auth";
 import { UnreadBadge } from "@/components/chat/ChatIconButton";
 import { useChatUnread } from "@/components/chat/useChatUnread";
 import { Icon } from "@/components/icons";
-import { initialsOf } from "@/lib/format";
+import { PersonAvatar } from "./PersonAvatar";
 import { useArtist } from "./ArtistContext";
 import { FandomSwitcher } from "./FandomSwitcher";
 import { Mark } from "./Mark";
@@ -67,9 +67,7 @@ export function FanSidebar() {
       )}
 
       <div className={`${viewer.isMember ? "mt-auto" : ""} flex items-center gap-3 border-t border-line pt-4`}>
-        <span className="avatar" aria-hidden="true">
-          {initialsOf(viewer.name)}
-        </span>
+        <PersonAvatar src={viewer.avatar} name={viewer.name} />
         <div className="flex min-w-0 flex-col">
           <strong className="truncate text-[15px] leading-5">{viewer.name}</strong>
           <span className="mono num">{viewer.luckPoints.toLocaleString("pt-BR")} pts da sorte</span>

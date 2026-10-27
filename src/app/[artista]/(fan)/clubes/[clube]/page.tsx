@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AdCard } from "@/components/fan/AdCard";
 import { JoinButton } from "@/components/fan/ClubCard";
 import { Icon } from "@/components/icons";
-import { getArtist, getClub, getClubHomeAd, getClubPosts, getClubStaff } from "@/lib/api";
+import { getArtist, getClub, getClubFeedAds, getClubHomeAd, getClubPosts, getClubStaff } from "@/lib/api";
 import { ClubWall } from "./ClubWall";
 
 type Params = Promise<{ artista: string; clube: string }>;
@@ -21,9 +21,10 @@ export default async function ClubPage({ params }: { params: Params }) {
   const [artist, club] = await Promise.all([getArtist(artista), getClub(artista, clube)]);
   if (!artist || !club) notFound();
   // A equipe só é visível para quem é da equipe (a API responde 403 para os outros).
-  const [posts, ad, staff] = await Promise.all([
+  const [posts, ad, feedAds, staff] = await Promise.all([
     getClubPosts(artista, clube),
     getClubHomeAd(artista, clube),
+    getClubFeedAds(artista, clube),
     club.myRole ? getClubStaff(artista, clube) : Promise.resolve([]),
   ]);
   const base = `/${artist.slug}`;
@@ -81,7 +82,7 @@ export default async function ClubPage({ params }: { params: Params }) {
           </section>
         )}
 
-        <ClubWall club={{ slug: club.slug, name: club.name }} joined={club.joined} posts={posts} />
+        <ClubWall club={{ slug: club.slug, name: club.name }} joined={club.joined} posts={posts} feedAds={feedAds} />
       </div>
     </>
   );

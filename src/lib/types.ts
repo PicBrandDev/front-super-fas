@@ -82,6 +82,7 @@ export type Viewer = {
   pendingGifts: number;
   isMember: boolean;
   clubs?: string[]; // fã clubes (slugs) em que entrou neste cantor
+  avatar?: string | null; // foto de perfil
 };
 
 export type PostKind = "drop" | "galera" | "instagram";
@@ -195,7 +196,11 @@ export type HomeAd = {
   text: string;
   cta: string;
   url: string;
+  artUrl?: string | null;
 };
+
+/** Post patrocinado do feed: aparece depois do 4º, 8º, 12º ou 16º post. */
+export type FeedAdItem = HomeAd & { position: number };
 
 export type AdSlot = {
   id: string;
@@ -270,6 +275,7 @@ export type ClubOverview = {
   avatar: string | null; // foto de perfil (/uploads/...)
   ownerName: string | null;
   ownerEmail: string | null;
+  ownerAvatar?: string | null; // foto de perfil do dono
   members: number;
   newMembersMonth: number;
   posts: number;
@@ -278,8 +284,16 @@ export type ClubOverview = {
 };
 
 /** Analytics de um fã clube (últimos 30 dias em `series`). */
+/** Perfil do dono do fã clube (card do analytics). */
+export type OwnerCard = {
+  userId: string; name: string; handle: string; email: string; avatar: string | null;
+  city: string; state: string; roleLabel: string; since: string;
+  posts: number; shares: number; points: number; position: number | null; ranked: number;
+};
+
 export type ClubAnalytics = {
   club: ClubOverview;
+  owner?: OwnerCard | null;
   subscribers: number;
   likes: number;
   comments: number;
@@ -289,9 +303,84 @@ export type ClubAnalytics = {
   approvedCampaigns: number;
   series: { day: string; newMembers: number; posts: number }[];
   topCities: { city: string; members: number }[];
-  topPosts: { id: string; text: string; author: string; likes: number; comments: number; reposts: number }[];
+  topPosts: { id: string; text: string; author: string; image?: string | null; likes: number; comments: number; reposts: number }[];
   staffNames: string[];
 };
+
+/** Admin: lista de assinantes (10 por página) e as ações de cada um. */
+export type SubscriberRow = {
+  userId: string; name: string; handle: string; email: string; avatar: string | null;
+  city: string; state: string; status: string; since: string | null; payment: string;
+  luckPoints: number; spinsLeft: number;
+};
+export type SubscriberPage = { total: number; page: number; pages: number; pageSize: number; items: SubscriberRow[] };
+export type ActivityEvent = { at: string; kind: string; title: string; detail: string };
+export type SubscriberActivity = {
+  profile: SubscriberRow;
+  summary: {
+    spinsUsed: number; spinsLeft: number; luckPoints: number; rewards: number; rewardsRedeemed: number;
+    coupons: number; couponsUsed: number; purchases: number; spentCents: number;
+    sharesConfirmed: number; posts: number; comments: number;
+  };
+  coupons: { code: string; source: string; kind: "percent" | "fixed"; value: number; used: boolean; expiresOn: string | null }[];
+  events: ActivityEvent[];
+};
+
+/** Admin: PicKup (roleta ativa, estoque, ganhadores e histórico de giros). */
+export type PickupPerson = { userId: string | null; name: string; handle: string; avatar: string | null };
+export type PickupWinner = PickupPerson & { at: string; code: string; status: "" | "available" | "used" | "redeemed" | "expired" };
+export type PickupPrize = {
+  id: string; label: string; kind: string; percent: number; points: number; isRetry: boolean; position: number;
+  stock: number | null; won: number; people: number; remaining: number | null; recent: PickupWinner[];
+};
+export type PickupWheel = { slug: string; name: string; isMaster: boolean };
+export type PickupOverview = {
+  wheel: PickupWheel; wheels: PickupWheel[];
+  summary: { spins: number; spinners: number; spinsLeft: number; rewards: number; lastSpin: (PickupPerson & { at: string; prize: string }) | null };
+  prizes: PickupPrize[];
+};
+export type PickupSpinRow = PickupPerson & { at: string; prize: string; kind: string };
+export type PickupSpinPage = { total: number; page: number; pages: number; pageSize: number; items: PickupSpinRow[] };
+export type PickupWinnerPage = { total: number; page: number; pages: number; pageSize: number; items: PickupWinner[] };
+
+/** Admin: detalhes de um post do Drop News e de um hit do Drops Hits. */
+export type DetailWho = { userId: string | null; name: string; handle: string; avatar: string | null };
+export type ShareRow = DetailWho & { at: string; status: "started" | "claimed" | "verified"; permalink: string };
+export type CommentRow = DetailWho & { text: string; at: string };
+export type PostDetail = {
+  id: string; kind: string; official: boolean; text: string; image: string | null; url: string;
+  author: DetailWho | null; club: string | null; createdAt: string;
+  likes: number; comments: number; reposts: number; views: number;
+  sharesTotal: number; sharesVerified: number; shares: ShareRow[]; commentList: CommentRow[];
+};
+export type TrackDetail = {
+  id: string; title: string; meta: string; releaseLabel: string; durationSec: number;
+  likes: number; views: number; sharesTotal: number; sharesVerified: number; shares: ShareRow[];
+};
+
+/** Mapa de vitrines (admin e patrocinador): cada vitrine com quem está no ar e quem vem a seguir. */
+export type VitrineBooking = {
+  brand: string; sponsor: string | null; title: string; text: string; cta: string; url: string;
+  art: string | null; video: string | null; start: string | null; end: string | null;
+  status: "live" | "scheduled"; mine: boolean;
+};
+export type VitrineCard = {
+  key: string; name: string; where: string; format: string; group: "entrada" | "roleta" | "feed" | "outras";
+  clubSlug: string | null; clubName: string | null; priceCentsPerWeek: number | null; active: boolean;
+  diagramTop: number; diagramHeight: number; live: VitrineBooking | null; next: VitrineBooking | null;
+};
+export type VitrinesMap = { artist: string; cards: VitrineCard[] };
+
+/** Admin: experiências de um show e quem comprou cada uma. */
+export type ExperienceStat = { key: string; label: string; offeredIn: string[]; purchases: number; people: number; soldOut: boolean };
+export type ExperiencesOverview = {
+  eventId: string; city: string; date: string; purchases: number; people: number; revenueCents: number; experiences: ExperienceStat[];
+};
+export type ExperienceBuyer = {
+  userId: string | null; name: string; handle: string; email: string; avatar: string | null;
+  package: string; agency: string; at: string; paidCents: number; coupon: string; experiences: string[];
+};
+export type ExperienceBuyerPage = { total: number; page: number; pages: number; pageSize: number; label: string; items: ExperienceBuyer[] };
 
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {
@@ -315,6 +404,7 @@ export type FeedItem = {
   image: string | null; // caminho servido pelo próprio front (/uploads/...)
   author: string;
   handle: string; // @ do autor (vazio para o artista)
+  authorAvatar?: string | null; // foto de perfil do autor
   clubName: string | null;
   timeLabel: string;
   date: string;
@@ -395,8 +485,8 @@ export type MyTicket = {
 export type EventPhoto = { id: string; src: string; indexed: boolean; faces: number };
 
 /** Ranking "Fã Super do Vintage" (compartilhamentos no Instagram com a hashtag). */
-type RankRow = { position: number; name: string; handle: string; avatar?: string | null; shares: number; me: boolean };
-type MyRank = { position: number | null; shares: number; pending: number };
+type RankRow = { position: number; name: string; handle: string; avatar?: string | null; shares: number; points?: number; me: boolean };
+type MyRank = { position: number | null; shares: number; points?: number; pending: number };
 
 export type Ranking = {
   hashtag: string;
@@ -405,6 +495,37 @@ export type Ranking = {
   me: MyRank;
   top: RankRow[]; // geral: todos os fã clubes juntos
   clubs: { slug: string; name: string; avatar?: string | null; ranked: number; me: MyRank | null; top: RankRow[] }[]; // um ranking por fã clube
+};
+
+/** Admin: números que comparam os fã clubes (30 dias, exceto totais). */
+export type ClubHighlight = {
+  slug: string; name: string; city: string; isMaster: boolean; avatar?: string | null;
+  posts: number; postsWithPhoto: number; prizes: number; content: number;
+  postsMonth: number; likes: number; comments: number; reposts: number; views: number; buzz: number;
+  members: number; newMembersMonth: number; subscribers: number; activeMembers: number; activeRate: number;
+};
+
+/** Admin: quem lidera o ranking geral (clubSlug nulo) e o de cada fã clube. */
+export type RankingFan = { userId: string; name: string; handle: string; avatar?: string | null };
+export type PersonShare = {
+  id: string; what: string; status: "started" | "claimed" | "verified";
+  startedAt: string; verifiedAt: string | null; permalink: string;
+  rankingPoints: number; spins: number; totalPoints: number; // pontos com casas decimais
+};
+export type PersonPost = {
+  id: string; kind: string; club: string | null; text: string; hasImage: boolean; image: string | null;
+  likes: number; comments: number; reposts: number; createdAt: string;
+};
+/** Admin: histórico de um fã (posts, compartilhamentos da hashtag e pontos de cada um). */
+export type PersonHistory = {
+  userId: string; name: string; handle: string; avatar: string | null; position: number | null;
+  points: number; sharesConfirmed: number; pending: number; shares: PersonShare[]; posts: PersonPost[];
+};
+export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; shares: number; points: number };
+export type RankingScope = {
+  clubSlug: string | null; isMaster?: boolean; name: string; leader: RankingFan | null; top: RankingFan | null;
+  people: RankingPerson[]; // os 10 primeiros, com o ajuste da administração
+  ranked: number; // quantas pessoas já pontuam
 };
 
 /** Perfil de quem está logado (tela Perfil). */

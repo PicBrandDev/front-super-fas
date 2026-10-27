@@ -4,8 +4,10 @@ import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { DayBars, HBars } from "@/components/admin/charts";
 import { AdminEmpty } from "@/components/admin/ui";
-import { formatBRL, getArtist, getSubscribersAnalytics } from "@/lib/api";
+import { Icon } from "@/components/icons";
+import { formatBRL, getArtist, getMemberPerks, getSubscribers, getSubscribersAnalytics } from "@/lib/api";
 import { formatCount } from "@/lib/format";
+import { ListaAssinantes } from "./ListaAssinantes";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
   const { artista } = await params;
@@ -13,19 +15,19 @@ export async function generateMetadata({ params }: { params: Promise<{ artista: 
   return { title: artist ? `Assinantes — ${artist.name}` : "Assinantes" };
 }
 
-/** Quantos assinantes o ambiente tem e de onde são. Não lista pessoas. */
+/** Quantos assinantes o ambiente tem e de onde são, e a lista de quem são (10 por página, com busca). */
 export default async function MembrosPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
   const artist = await getArtist(artista);
   if (!artist) notFound();
-  const data = await getSubscribersAnalytics(artist.slug);
+  const [data, list, perks] = await Promise.all([getSubscribersAnalytics(artist.slug), getSubscribers(artist.slug), getMemberPerks(artist.slug).catch(() => [])]);
 
   return (
     <ClubAdminShell artist={artist} active="membros">
       <AdminPageHeader
         title="Assinantes"
         headingId="assinantes-title"
-        description={`Quantos assinantes ${artist.name} tem e de onde eles são.`}
+        description={`Quantos assinantes ${artist.name} tem, de onde eles são e quem são, do que assinou por último ao mais antigo.`}
       />
       {!data ? (
         <AdminEmpty title="Analytics indisponível" text="Ligue o front à API para ver os números dos assinantes." />
@@ -45,6 +47,34 @@ export default async function MembrosPage({ params }: { params: Promise<{ artist
               </div>
             ))}
           </section>
+
+          <section aria-labelledby="direitos-title" className="flex flex-col gap-3 rounded-xl border border-adm-line bg-white px-4 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="direitos-title" className="m-0 font-display text-3xl font-black">
+                O que os assinantes têm direito
+              </h2>
+              <span className="font-adm-mono text-[13px] text-adm-muted">{formatBRL(artist.memberPriceCents)} por mês</span>
+            </div>
+            {perks.length === 0 ? (
+              <p className="m-0 text-sm text-adm-muted">Nenhuma vantagem cadastrada ainda.</p>
+            ) : (
+              <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 xl:grid-cols-3">
+                {perks.map((p) => (
+                  <li key={p.title} className="flex items-start gap-3 rounded-lg bg-adm-bg px-3.5 py-3">
+                    <span aria-hidden="true" className="mt-0.5 flex size-5 flex-none items-center justify-center rounded-full bg-adm-blue-soft text-adm-blue-dark">
+                      <Icon name="check" size={13} strokeWidth={3} />
+                    </span>
+                    <span className="flex min-w-0 flex-col leading-5">
+                      <strong className="text-sm">{p.title}</strong>
+                      <span className="text-[13px] text-adm-muted">{p.sub}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <ListaAssinantes artist={artist.slug} initial={list} perks={perks} />
 
           <section aria-labelledby="g-novas" className="flex flex-col gap-2 rounded-xl border border-adm-line bg-white px-4 py-3">
             <h2 id="g-novas" className="m-0 text-sm font-bold">

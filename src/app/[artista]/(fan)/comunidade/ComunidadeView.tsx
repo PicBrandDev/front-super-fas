@@ -42,6 +42,7 @@ function adAfter(i: number, ads: InAppAd[]): InAppAd | null {
 export function ComunidadeView({
   posts,
   ads = [],
+  clubAds = {},
   clubs,
   allClubs,
   ownerView = false,
@@ -52,6 +53,7 @@ export function ComunidadeView({
 }: {
   posts: Post[];
   ads?: InAppAd[]; // campanhas do feed, em rodízio a cada COMMUNITY_AD_EVERY posts
+  clubAds?: Record<string, InAppAd[]>; // as do feed de cada fã clube (filtro por fã clube)
   clubs: FollowedClub[]; // fã clubes que o fã segue
   allClubs: ClubListItem[]; // todos os fã clubes, para entrar em um
   ownerView?: boolean; // dono/equipe: tudo da tela é só do fã clube dele
@@ -80,6 +82,7 @@ export function ComunidadeView({
     return !!c && followed.has(c);
   });
   const list = clube ? all.filter((p) => clubOf(p) === clube) : all;
+  const pool = clube && clubAds[clube]?.length ? clubAds[clube] : ads;
   const countOf = (slug: string) => all.filter((p) => clubOf(p) === slug).length;
   const current = clubs.find((c) => c.slug === clube) ?? null;
   const fresh = new Set(extra.map((p) => p.id));
@@ -161,7 +164,7 @@ export function ComunidadeView({
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
                 list.map((p, i) => {
-                  const ad = adAfter(i, ads);
+                  const ad = adAfter(i, pool);
                   return (
                     <Fragment key={p.id}>
                       <PostCard post={p} index={i} fresh={fresh.has(p.id)} />

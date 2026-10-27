@@ -16,8 +16,7 @@ import { PRIZES, Turntable, TT, recAngleFor } from "@/components/fan/Turntable";
 import { Vinyl } from "@/components/fan/Vinyl";
 import { EmptyState } from "@/components/fan/states";
 import { Icon } from "@/components/icons";
-import { FEED_AD_EVERY, type InAppAd } from "@/lib/ads";
-import type { Track } from "@/lib/types";
+import type { FeedAdItem, Track } from "@/lib/types";
 import s from "./Mural.module.css";
 import { fmtShort, type Poster } from "./posters";
 
@@ -34,24 +33,20 @@ const longest = (words: string[]) => Math.max(1, ...words.map((w) => w.length));
 const fit = (max: number, perChar: number, words: string[]) => `${Math.min(max, perChar / longest(words)).toFixed(1)}cqw`;
 
 const PICK_ON = 4; // "Ingresso" sob a agulha, como no protótipo
-const FEED_AD_MAX = 2;
-
-/** Post patrocinado depois do cartaz `i`? A cada FEED_AD_EVERY cartazes, nunca em primeiro nem depois do último, no máximo FEED_AD_MAX. */
-const adAfter = (i: number) => (i + 1) % FEED_AD_EVERY === 0 && (i + 1) / FEED_AD_EVERY <= FEED_AD_MAX;
 
 export function MuralView({
   posters,
   tracks,
   demo,
   initialTab = "wall",
-  feedAd = null,
+  feedAds = [],
 }: {
   posters: Poster[];
   tracks: Track[];
   demo: boolean;
   avatar?: string | null; // sem uso: o topo (com a foto) agora é global, no FanFrame
   initialTab?: MuralTab;
-  feedAd?: InAppAd | null; // post patrocinado entre os cartazes (posição `feed`)
+  feedAds?: FeedAdItem[]; // posts patrocinados: depois do 4º, 8º, 12º e 16º cartaz
 }) {
   const { base } = useArtist();
   const router = useRouter();
@@ -187,7 +182,9 @@ export function MuralView({
                   </div>
                 </div>
               </article>
-              {feedAd && adAfter(i) && i < posters.length - 1 && <FeedAd ad={feedAd} className={s.feedAd} />}
+              {feedAds.filter((a) => a.position === i + 1).map((a) => (
+                <FeedAd key={`ad-${a.position}`} ad={a} className={s.feedAd} />
+              ))}
             </Fragment>
           ))}
         </div>

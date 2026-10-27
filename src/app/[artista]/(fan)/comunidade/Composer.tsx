@@ -7,7 +7,7 @@ import { fanPost } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Notice } from "@/components/fan/states";
 import { useToast } from "@/components/fan/Toast";
-import { initialsOf } from "@/lib/format";
+import { PersonAvatar } from "@/components/fan/PersonAvatar";
 import type { Post } from "@/lib/types";
 
 /*
@@ -69,7 +69,7 @@ export function Compose({
         {
           id: `n-${Date.now()}`,
           kind: "galera",
-          author: { name: "Você", handle: viewer.handle, initial: viewer.initial },
+          author: { name: "Você", handle: viewer.handle, initial: viewer.initial, avatar: viewer.avatar },
           timeLabel: "agora",
           text: trimmed,
           club: { slug: club, name: clubName },
@@ -92,9 +92,7 @@ export function Compose({
         submit();
       }}
     >
-      <div className="avatar" aria-hidden="true">
-        {initialsOf(viewer.name)}
-      </div>
+      <PersonAvatar src={viewer.avatar} name={viewer.name} />
       <div>
         {clubs.length > 1 && (
           <div className="mb-2 flex items-center gap-2">

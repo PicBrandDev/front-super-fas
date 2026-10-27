@@ -4,15 +4,15 @@ import { formatCount } from "@/lib/format";
 import type { FeedItem } from "@/lib/types";
 
 /** Card de uma publicação: foto (ou a legenda em destaque), legenda e os números dela. */
-export function FeedCard({ item, children }: { item: FeedItem; children?: ReactNode }) {
+export function FeedCard({ item, children, onOpen }: { item: FeedItem; children?: ReactNode; onOpen?: () => void }) {
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-xl border border-adm-line bg-white">
-      {item.image ? (
-        <img src={item.image} alt="" loading="lazy" className="block aspect-[4/5] w-full object-cover" />
+      {onOpen ? (
+        <button type="button" onClick={onOpen} aria-label="Abrir detalhes e comentários da publicação" className="m-0 block w-full cursor-pointer border-0 bg-transparent p-0 text-left text-inherit">
+          <Media item={item} />
+        </button>
       ) : (
-        <div className="flex aspect-[4/5] w-full items-end bg-adm-bg p-4">
-          <p className="m-0 line-clamp-6 font-display text-xl font-black leading-6">{item.text}</p>
-        </div>
+        <Media item={item} />
       )}
       <div className="flex flex-1 flex-col gap-2 p-3">
         {item.image && <p className="m-0 line-clamp-3 text-sm leading-5">{item.text}</p>}
@@ -34,6 +34,11 @@ export function FeedCard({ item, children }: { item: FeedItem; children?: ReactN
             </div>
           ))}
         </dl>
+        {onOpen && (
+          <button type="button" onClick={onOpen} className="min-h-10 cursor-pointer self-start rounded-lg border border-adm-line bg-adm-bg px-3 text-[13px] font-semibold text-adm-blue-dark">
+            Ver detalhes e comentários
+          </button>
+        )}
         {children}
       </div>
     </article>
@@ -43,4 +48,14 @@ export function FeedCard({ item, children }: { item: FeedItem; children?: ReactN
 /** Grade de cards (usada no Drop News e no analytics do fã clube). */
 export function FeedGrid({ children }: { children: ReactNode }) {
   return <ul className="m-0 grid list-none gap-4 p-0 [grid-template-columns:repeat(auto-fill,minmax(210px,1fr))]">{children}</ul>;
+}
+
+function Media({ item }: { item: FeedItem }) {
+  return item.image ? (
+    <img src={item.image} alt="" loading="lazy" className="block aspect-[4/5] w-full object-cover" />
+  ) : (
+    <div className="flex aspect-[4/5] w-full items-end bg-adm-bg p-4">
+      <p className="m-0 line-clamp-6 font-display text-xl font-black leading-6">{item.text}</p>
+    </div>
+  );
 }

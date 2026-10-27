@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/fan/Toast";
-import { initialsOf } from "@/lib/format";
+import { formatPoints, initialsOf } from "@/lib/format";
 import type { Ranking } from "@/lib/types";
 
 type Row = Ranking["top"][number];
@@ -27,8 +27,8 @@ function Person({ row }: { row: Row }) {
         {row.handle && <span className="mono truncate">{row.handle}</span>}
       </span>
       <span className="flex flex-none flex-col items-end leading-5">
-        <strong className="num">{row.shares}</strong>
-        <span className="mono">{row.shares === 1 ? "post" : "posts"}</span>
+        <strong className="num">{formatPoints(row.points ?? row.shares)}</strong>
+        <span className="mono">pts</span>
       </span>
     </li>
   );

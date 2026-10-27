@@ -42,6 +42,7 @@ import type {
   Artist,
   Campaign,
   Gift,
+  FeedAdItem,
   HomeAd,
   Member,
   MemberPerk,
@@ -51,7 +52,21 @@ import type {
   Product,
   ShowEvent,
   Profile,
+  ClubHighlight,
+  PersonHistory,
+  PickupOverview,
+  PickupSpinPage,
+  PickupWinnerPage,
+  PostDetail,
+  ExperienceBuyerPage,
+  ExperiencesOverview,
   Ranking,
+  VitrinesMap,
+  TrackDetail,
+  SubscriberActivity,
+  SubscriberPage,
+  RankingFan,
+  RankingScope,
   Rental,
   Sponsor,
   SpinCredit,
@@ -232,6 +247,26 @@ export const getTracks = (slug: string) => get<Track[]>(`/artists/${slug}/tracks
 /** GET /artists/{slug}/ads/home — anúncio ativo no card da Home */
 export const getHomeAd = (slug: string) => get<HomeAd | null>(`/artists/${slug}/ads/home`, () => mock.homeAd);
 
+/** GET /artists/{slug}/ads/feed — posts patrocinados do feed do cantor (posições 4, 8, 12 e 16) */
+export async function getFeedAds(slug: string): Promise<FeedAdItem[]> {
+  try {
+    return await get<FeedAdItem[]>(`/artists/${slug}/ads/feed`, () => [], { notFound: [] });
+  } catch (e) {
+    unstable_rethrow(e);
+    return []; // anúncio nunca derruba a página
+  }
+}
+
+/** GET /artists/{slug}/clubs/{club}/ads/feed — posts patrocinados do feed do fã clube (posições 4, 8 e 12) */
+export async function getClubFeedAds(slug: string, club: string): Promise<FeedAdItem[]> {
+  try {
+    return await get<FeedAdItem[]>(`/artists/${slug}/clubs/${club}/ads/feed`, () => [], { notFound: [] });
+  } catch (e) {
+    unstable_rethrow(e);
+    return [];
+  }
+}
+
 /**
  * GET /artists/{slug}/ads/in-app — criativos do modal de entrada, da roleta e do Mural.
  * Enquanto o back não tem a rota (ou ela falha), usa os exemplos de ./ads: anúncio nunca derruba a página.
@@ -282,6 +317,93 @@ export const getFeed = (slug: string, kind: "drop" | "galera") =>
 /** GET /artists/{slug}/clubs/{club}/feed: todas as publicações de um fã clube, com os números. */
 export const getClubFeed = (slug: string, club: string) =>
   get<FeedItem[]>(`/artists/${slug}/clubs/${club}/feed`, () => [] as FeedItem[]);
+
+/** GET /artists/{slug}/manage/ranking/people/{id}: histórico de um fã no ranking. */
+export async function getPersonHistory(slug: string, userId: string): Promise<PersonHistory | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/ranking/people/${userId}`);
+  return res.ok ? ((await res.json()) as PersonHistory) : null;
+}
+
+/** GET /artists/{slug}/clubs-highlights: comparação dos fã clubes. */
+export const getClubsHighlights = (slug: string) => get<ClubHighlight[]>(`/artists/${slug}/clubs-highlights`, () => []);
+
+/** GET /artists/{slug}/manage/ranking: quem lidera o ranking geral e o de cada fã clube. */
+export const getRankingLeaders = (slug: string) => get<RankingScope[]>(`/artists/${slug}/manage/ranking`, () => []);
+
+/** Busca fãs do ambiente para escolher quem fica em 1º (usada pela ação do admin). */
+export async function searchRankingFans(slug: string, q: string, club?: string): Promise<RankingFan[]> {
+  if (!API_URL) return [];
+  const qs = new URLSearchParams({ q, ...(club ? { club } : {}) });
+  const res = await request(`/artists/${slug}/manage/ranking/fans?${qs}`);
+  return res.ok ? ((await res.json()) as RankingFan[]) : [];
+}
+
+/** GET /artists/{slug}/subscribers: assinantes, do mais recente ao mais antigo, 10 por página. */
+export async function getSubscribers(slug: string, q = "", page = 1): Promise<SubscriberPage | null> {
+  if (!API_URL) return null;
+  const qs = new URLSearchParams({ page: String(page), ...(q ? { q } : {}) });
+  const res = await request(`/artists/${slug}/subscribers?${qs}`);
+  return res.ok ? ((await res.json()) as SubscriberPage) : null;
+}
+
+/** GET /artists/{slug}/subscribers/{id}/activity: ações de um assinante. */
+export async function getSubscriberActivity(slug: string, userId: string): Promise<SubscriberActivity | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/subscribers/${userId}/activity`);
+  return res.ok ? ((await res.json()) as SubscriberActivity) : null;
+}
+
+/** GET /artists/{slug}/manage/pickup: a roleta ativa, estoque e ganhadores de cada brinde. */
+export const getPickup = (slug: string, club?: string) =>
+  get<PickupOverview | null>(`/artists/${slug}/manage/pickup${club ? `?club=${encodeURIComponent(club)}` : ""}`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/manage/pickup/history: quem girou, do último para o primeiro (10 por página). */
+export async function getPickupHistory(slug: string, club: string | undefined, q: string, page: number): Promise<PickupSpinPage | null> {
+  if (!API_URL) return null;
+  const qs = new URLSearchParams({ page: String(page), ...(q ? { q } : {}), ...(club ? { club } : {}) });
+  const res = await request(`/artists/${slug}/manage/pickup/history?${qs}`);
+  return res.ok ? ((await res.json()) as PickupSpinPage) : null;
+}
+
+/** GET /artists/{slug}/manage/pickup/prizes/{id}/winners: quem ganhou uma fatia (10 por página). */
+export async function getPrizeWinners(slug: string, prizeId: string, page: number): Promise<PickupWinnerPage | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/pickup/prizes/${prizeId}/winners?page=${page}`);
+  return res.ok ? ((await res.json()) as PickupWinnerPage) : null;
+}
+
+/** GET /artists/{slug}/manage/posts/{id}/detail: foto, números, comentários e quem compartilhou. */
+export async function getPostDetail(slug: string, id: string): Promise<PostDetail | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/posts/${id}/detail`);
+  return res.ok ? ((await res.json()) as PostDetail) : null;
+}
+
+/** GET /artists/{slug}/manage/tracks/{id}/detail: curtidas, visualizações e quem compartilhou o hit. */
+export async function getTrackDetail(slug: string, id: string): Promise<TrackDetail | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/tracks/${id}/detail`);
+  return res.ok ? ((await res.json()) as TrackDetail) : null;
+}
+
+/** GET /artists/{slug}/vitrines-map: todas as vitrines, com quem está no ar (admin). */
+export const getVitrinesMap = (slug: string) => get<VitrinesMap | null>(`/artists/${slug}/vitrines-map`, () => null, { notFound: null });
+
+/** GET /sponsor/vitrines-map: todas as vitrines de um cantor (portal do patrocinador). */
+export const getSponsorVitrinesMap = (slug: string) => get<VitrinesMap | null>(`/sponsor/vitrines-map?artist=${encodeURIComponent(slug)}`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/manage/events/{id}/experiences: quantas compras e pessoas cada experiência do show tem. */
+export const getExperiencesOverview = (slug: string, eventId: string) =>
+  get<ExperiencesOverview | null>(`/artists/${slug}/manage/events/${eventId}/experiences`, () => null, { notFound: null });
+
+/** GET .../experiences/{key}/buyers: quem comprou uma experiência, 10 por página. */
+export async function getExperienceBuyers(slug: string, eventId: string, key: string, q: string, page: number): Promise<ExperienceBuyerPage | null> {
+  if (!API_URL) return null;
+  const qs = new URLSearchParams({ page: String(page), ...(q ? { q } : {}) });
+  const res = await request(`/artists/${slug}/manage/events/${eventId}/experiences/${key}/buyers?${qs}`);
+  return res.ok ? ((await res.json()) as ExperienceBuyerPage) : null;
+}
 
 /** GET /artists/{slug}/subscribers-analytics */
 export const getSubscribersAnalytics = (slug: string) =>
