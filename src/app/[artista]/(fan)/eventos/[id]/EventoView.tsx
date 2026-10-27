@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Sheet, SheetOption } from "@/components/fan/Sheet";
-import { useToast } from "@/components/fan/Toast";
 import { Icon } from "@/components/icons";
 import { eventName, isPastEvent, statusLabel, statusTagClass } from "@/lib/events";
 import { formatBRL } from "@/lib/format";
-import { summarize, toggleExperience, type PackageChoice } from "@/lib/package-choice";
-import type { EventPackage, ShowEvent, Vendor } from "@/lib/types";
+import { INGRESSE_URL } from "@/lib/ingresse";
+import { summarize, toggleAddon, type PackageChoice } from "@/lib/package-choice";
+import type { EventPackage, ShowEvent } from "@/lib/types";
 import { PackagePicker } from "@/components/fan/PackagePicker";
 import { BrindeFlow } from "./BrindeFlow";
 import s from "./EventoView.module.css";
@@ -17,34 +17,27 @@ import s from "./EventoView.module.css";
 export function EventoView({
   artistName,
   event,
-  vendors,
   packages = [],
-  resale = null,
   demo,
 }: {
   artistName: string;
   event: ShowEvent;
-  vendors: Vendor[];
   packages?: EventPackage[];
-  /** Revenda entre fãs aberta para este show (esgotado na ticketeira). */
-  resale?: { listingsCount: number; fromPriceCents: number | null } | null;
   demo: boolean;
 }) {
   const { base } = useArtist();
-  const toast = useToast();
   const past = isPastEvent(event);
   const title = eventName(artistName, event);
   const photosHref = `${base}/photo-finder?evento=${event.id}`;
-  const ticketing = event.ticketingUrl ? { name: event.ticketingName || "Ticketeira oficial", url: event.ticketingUrl } : null;
+  // O ingresso é vendido só na Ingresse (abre em outra aba); no app o fã compra apenas as experiências extras.
+  const ingresseUrl = event.ticketingUrl || INGRESSE_URL;
 
   const [buyOpen, setBuyOpen] = useState(false);
   const [brindeOpen, setBrindeOpen] = useState(false);
-  // Experiências marcadas de um pacote de agência.
+  // Experiências extras marcadas (de um pacote por vez).
   const [choice, setChoice] = useState<PackageChoice | null>(null);
-  const hasOptions = packages.length > 0;
-  // O total é a soma das experiências marcadas (o ingresso é da ticketeira).
+  const hasExtras = packages.some((p) => p.addons.length > 0);
   const picked = summarize(packages, choice);
-  const buyLabel = picked?.label ?? "";
 
   return (
     <>
@@ -90,33 +83,27 @@ export function EventoView({
         <dd>{event.address}</dd>
       </dl>
 
-      {!past && resale && (
-        <section className={s.sect} aria-labelledby="revenda-h">
-          <h2 id="revenda-h">Revenda entre fãs</h2>
-          <p>
-            Esgotou na ticketeira, mas tem fã vendendo:{" "}
-            {resale.listingsCount === 1 ? "1 anúncio" : `${resale.listingsCount} anúncios`}
-            {resale.fromPriceCents != null ? `, a partir de ${formatBRL(resale.fromPriceCents)}` : ""}. Pelo valor de face no máximo, com o pagamento retido até o ingresso chegar.
-          </p>
-          <Link href={`${base}/revenda/${event.id}`} className="btn btn-outline self-start">
-            Ver revenda
+      {!past && (
+        <section className={s.sect} aria-labelledby="ingresso-h">
+          <h2 id="ingresso-h">Ingresso</h2>
+          <p>O ingresso deste show é vendido só na Ingresse. Compre lá e volte aqui para somar as experiências extras.</p>
+          <button type="button" className="btn btn-outline" onClick={() => setBuyOpen(true)}>
+            Onde comprar
             <Icon name="arrow" size={16} />
-          </Link>
+          </button>
         </section>
       )}
 
-      {!past && hasOptions && (
-        <section className={s.sect} aria-labelledby="ingressos-h">
-          <h2 id="ingressos-h">Experiências do show</h2>
-          <p>O ingresso você compra na ticketeira. Aqui você leva só o transfer, só uma experiência ou várias: marque o que quiser e toque em Comprar. Todas incluem o Photo Finder.</p>
-          {packages.length > 0 && (
-            <PackagePicker
-              packages={packages}
-              choice={choice}
-              onToggleAddon={(id, key) => setChoice((c) => toggleExperience(c, id, key))}
-              labelledBy="ingressos-h"
-            />
-          )}
+      {!past && hasExtras && (
+        <section id="extras" className={`${s.sect} scroll-mt-4`} aria-labelledby="extras-h">
+          <h2 id="extras-h">Experiências extras</h2>
+          <p>Some ao seu ingresso da Ingresse experiências das agências parceiras. Toda compra inclui o Photo Finder e vale um giro no PicKup.</p>
+          <PackagePicker
+            packages={packages}
+            choice={choice}
+            onToggleAddon={(id, key) => setChoice((c) => toggleAddon(c, id, key))}
+            labelledBy="extras-h"
+          />
         </section>
       )}
 
@@ -140,25 +127,24 @@ export function EventoView({
             </Link>
           </>
         ) : (
-          hasOptions ? (
-            picked ? (
-              <>
-                <span className="mono">{buyLabel}</span>
-                <button type="button" className="btn btn-primary" onClick={() => setBrindeOpen(true)}>
-                  Comprar experiência
-                </button>
-              </>
-            ) : (
-              <span className="mono">Escolha as experiências</span>
-            )
-          ) : (
-            <>
-              <span className="mono">Venda nas agências parceiras</span>
-              <button type="button" className="btn btn-primary" onClick={() => setBuyOpen(true)}>
-                Comprar ingresso
-              </button>
-            </>
-          )
+          <div className="flex w-full flex-col gap-2">
+            {picked && <span className="num text-[14px] leading-5 text-fg">{picked.name}</span>}
+            <div className={`grid gap-2 ${hasExtras ? "grid-cols-2" : "grid-cols-1"}`}>
+              <a href={ingresseUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary whitespace-normal px-3 text-center">
+                Comprar na Ingresse
+              </a>
+              {hasExtras &&
+                (picked ? (
+                  <button type="button" className="btn btn-outline whitespace-normal px-3 text-center" onClick={() => setBrindeOpen(true)}>
+                    Levar extras · {formatBRL(picked.priceCents)}
+                  </button>
+                ) : (
+                  <a href="#extras" className="btn btn-outline whitespace-normal px-3 text-center">
+                    Experiências extras
+                  </a>
+                ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -168,31 +154,13 @@ export function EventoView({
         event={{ id: event.id, title, city: event.city, day: event.day, month: event.month }}
         picked={picked}
         choice={choice}
-        onRemoveAddon={(key) => setChoice((c) => (c ? toggleExperience(c, c.id, key) : c))}
+        onRemoveAddon={(key) => setChoice((c) => (c ? toggleAddon(c, c.id, key) : c))}
       />
 
       <Sheet open={buyOpen} onClose={() => setBuyOpen(false)} title="Onde comprar">
-        <p>A compra acontece no site do parceiro. A fanzone leva você até lá e guarda o seu brinde.</p>
+        <p>O ingresso é vendido só na Ingresse, em outra aba. As experiências extras você compra aqui na fanzone.</p>
         <div className="opts">
-          {ticketing && <SheetOption title={ticketing.name} sub="Ticketeira oficial do show" href={ticketing.url} />}
-          {packages.map((p) => (
-            <SheetOption
-              key={p.id}
-              title={`${p.agencyName} · ${p.name}`}
-              sub={p.addons.map((a) => `${a.label} ${formatBRL(a.priceCents)}`).join(" · ")}
-              href={p.url || undefined}
-              onClick={p.url ? undefined : () => toast.show("Link do pacote em breve")}
-            />
-          ))}
-          {vendors.map((v) => (
-            <SheetOption
-              key={v.id}
-              title={v.name}
-              sub={`${v.type} · ${v.priceLabel}`}
-              href={v.url && v.url !== "#" ? v.url : undefined}
-              onClick={v.url && v.url !== "#" ? undefined : () => toast.show("Link do parceiro em breve")}
-            />
-          ))}
+          <SheetOption title={event.ticketingName || "Ingresse"} sub="Venda oficial de ingressos do show" href={ingresseUrl} />
         </div>
         <button type="button" className="btn btn-outline" data-close>
           Ficar na fanzone

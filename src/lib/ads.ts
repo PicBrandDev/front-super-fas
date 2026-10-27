@@ -4,7 +4,7 @@
  *
  * Posições:
  * - `entry`: modal ao abrir o app logo depois do login.
- * - `pickupVideo`: vídeo obrigatório (mín. `minSeconds`) antes do primeiro giro do período.
+ * - `pickupVideo`: vídeo obrigatório (toca uma vez, na duração real) antes do primeiro giro do período.
  * - `pickupClaim`: modal ao resgatar a recompensa da roleta.
  * - `feed`: post pequeno entre os cartazes do Mural.
  */
@@ -21,15 +21,16 @@ export type InAppAd = {
   imageUrl?: string | null;
   /** Só no `pickupVideo`. Sem vídeo, o front mostra a arte com contagem regressiva. */
   videoUrl?: string | null;
-  /** Tempo mínimo de exibição antes de liberar (vídeo: 30s). */
+  /** Tempo mínimo de exibição antes de liberar. No `pickupVideo` vem null: libera no fim do vídeo. */
   minSeconds?: number | null;
 };
 
 export type InAppAds = Partial<Record<AdPlacement, InAppAd | null>>;
 
-export const PICKUP_VIDEO_MIN_SECONDS = 30;
 /** O post patrocinado entra depois de cada N cartazes/posts do Mural. */
 export const FEED_AD_EVERY = 4;
+/** Na Comunidade, o post patrocinado entra depois de cada N posts (posições 8, 16, …). */
+export const COMMUNITY_AD_EVERY = 7;
 
 /**
  * Criativos de exemplo (enquanto o back não manda GET /artists/{slug}/ads/in-app).
@@ -55,7 +56,6 @@ export const exampleInAppAds = (): InAppAds => ({
     url: "https://open.spotify.com/search/Vintage%20Culture%20Departamento%20Toxic",
     imageUrl: "/ads/toxic-departamento.jpg",
     videoUrl: "/ads/toxic-departamento.mp4",
-    minSeconds: PICKUP_VIDEO_MIN_SECONDS,
   },
   pickupClaim: {
     id: "demo-pickup-claim",

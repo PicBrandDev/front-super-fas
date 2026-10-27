@@ -1,4 +1,5 @@
 import { Icon } from "@/components/icons";
+import type { InAppAd } from "@/lib/ads";
 import { brandStyle } from "@/lib/brand-style";
 
 /** O que o card precisa de uma campanha (serve para `HomeAd`, `FeedAd` da API e `InAppAd`). */
@@ -11,6 +12,31 @@ export type AdCreative = {
   artUrl?: string | null;
   imageUrl?: string | null;
 };
+
+/**
+ * Atributos do link de um anúncio. Endereço externo (http/https) abre em nova aba com
+ * `rel="sponsored noopener noreferrer"`; o "#" que o back manda sem URL fica na mesma aba.
+ */
+export function adLinkProps(url: string) {
+  const href = url || "#";
+  const external = /^https?:\/\//i.test(href);
+  return external
+    ? { href, target: "_blank" as const, rel: "sponsored noopener noreferrer" }
+    : { href, target: undefined, rel: "sponsored" };
+}
+
+/**
+ * Mídia do criativo: vídeo mudo com a arte de capa (só com `video`) ou a arte.
+ * A mídia é decorativa (`alt=""`): título e marca vêm em texto ao lado.
+ */
+export function AdMedia({ ad, className = "", video = false }: { ad: InAppAd; className?: string; video?: boolean }) {
+  if (video && ad.videoUrl) {
+    return <video src={ad.videoUrl} poster={ad.imageUrl ?? undefined} muted playsInline controls preload="none" aria-label={`Vídeo de ${ad.sponsor}`} className={className} />;
+  }
+  if (!ad.imageUrl) return null;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={ad.imageUrl} alt="" loading="lazy" className={className} />;
+}
 
 /**
  * Anúncio patrocinado no feed e nos cards do app: a arte da marca (ou o fundo na cor dela com o nome),

@@ -39,7 +39,8 @@ const filterOptions: { id: Filter; label: string }[] = [
   { id: "config", label: "Em configuração" },
 ];
 
-const moduleList: { id: string; label: string; hint: string }[] = [
+/** `off`: módulo que fica desligado enquanto o fã clube não tem a chave (a revenda nasce escondida). */
+const moduleList: { id: string; label: string; hint: string; off?: boolean }[] = [
   { id: "mural", label: "Mural", hint: "Drop News, feed da galera e Instagram" },
   { id: "agenda", label: "Agenda", hint: "Shows, ingressos e sorte do evento" },
   { id: "pickup", label: "PicKup da sorte", hint: "Roleta geral" },
@@ -47,6 +48,7 @@ const moduleList: { id: string; label: string; hint: string }[] = [
   { id: "drops", label: "Drops Hits", hint: "Prévias de músicas" },
   { id: "photo", label: "Photo Finder", hint: "Busca de fotos por selfie" },
   { id: "ads", label: "Mídia e anúncios", hint: "Vitrines para patrocinadores" },
+  { id: "resale", label: "Revenda entre fãs", hint: "Compra e venda de ingressos entre fãs", off: true },
 ];
 
 /** Cores dos avatares dos ambientes recém-criados (antes do design próprio). */
@@ -374,7 +376,7 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
               </button>
             </div>
             {moduleList.map((m) => {
-              const on = (mods[selClub.id]?.[m.id] ?? selClub.modules?.[m.id]) !== false;
+              const on = mods[selClub.id]?.[m.id] ?? selClub.modules?.[m.id] ?? !m.off;
               const key = `${selClub.id}:${m.id}`;
               const saving = savingMods.has(key);
               const failed = failedMods.has(key);

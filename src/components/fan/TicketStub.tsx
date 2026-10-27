@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { isPastEvent } from "@/lib/events";
 import { formatBRL } from "@/lib/format";
-import { shortRef, stampLabel, stampTone, type Order } from "@/lib/resale";
+import { shortRef } from "@/lib/resale";
 import type { MyTicket } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
 import { Ticket } from "./resale/Ticket";
@@ -73,34 +73,6 @@ export function TicketStub({ ticket }: { ticket: MyTicket }) {
           Ver show <Icon name="arrow" size={16} />
         </Link>
       </span>
-    </Ticket>
-  );
-}
-
-/** Ingresso comprado na revenda (transferido ou confirmado), ao lado dos outros em Meus ingressos. */
-export function ResaleTicketStub({ order }: { order: Order }) {
-  const { base, name: artistName, viewer } = useArtist();
-  return (
-    <Ticket
-      title={`Ingresso ${order.ticketLabel} · ${order.eventCity}, da revenda`}
-      show={{ id: order.eventId, city: order.eventCity, venue: order.eventVenue, date: order.eventDate }}
-      top={`${artistName} · Revenda entre fãs`}
-      holder={viewer.name}
-      ticketLabel={order.ticketLabel}
-      qty={order.qty}
-      refLabel="Pedido Nº"
-      refValue={shortRef(order.id)}
-      proof={[{ text: order.status === "completed" ? "Você confirmou que recebeu na ticketeira." : "Transferido pelo vendedor. Confira na ticketeira e confirme.", ok: order.status === "completed" }]}
-      stamp={{ label: stampLabel[order.status], tone: stampTone[order.status] }}
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="mono">Você pagou</span>
-        <strong className="num font-display text-[28px] font-black leading-8">{formatBRL(order.grossCents)}</strong>
-      </div>
-      <Link href={`${base}/revenda/pedidos/${order.id}`} className={order.canConfirm ? "btn btn-primary btn-block" : "go"}>
-        {order.canConfirm ? "Confirmar recebimento" : "Ver pedido"}
-        {!order.canConfirm && <Icon name="arrow" size={16} />}
-      </Link>
     </Ticket>
   );
 }

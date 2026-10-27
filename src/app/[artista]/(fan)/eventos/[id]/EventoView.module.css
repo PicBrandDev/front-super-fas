@@ -184,12 +184,19 @@
   padding: 12px 16px;
   border-top: 1px solid var(--fc-line);
   background: var(--fc-bg);
+  transition: transform 220ms var(--ease);
+}
+/* Menu recolhido: a barra desce junto e cola no rodapé. */
+:global([data-nav-hidden]) .buybar {
+  transform: translateY(calc(var(--navspace) - env(safe-area-inset-bottom, 0px)));
 }
 .buybar :global(.mono) {
   max-width: 18ch;
 }
 @media (min-width: 64rem) {
-  .buybar {
+  .buybar,
+  :global([data-nav-hidden]) .buybar {
     position: static;
+    transform: none;
   }
 }

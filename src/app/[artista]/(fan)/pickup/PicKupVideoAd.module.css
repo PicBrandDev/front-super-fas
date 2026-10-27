@@ -31,27 +31,57 @@
   background: var(--fc-amber);
 }
 
+/* Arte (ou carregando) e vídeo empilhados na mesma célula: a arte fica por baixo até o vídeo ter imagem. */
 .media {
   position: relative;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   background: var(--fc-bg);
   overflow: hidden;
 }
-.media video,
-.media img {
+.media > video,
+.media > img {
+  grid-area: 1 / 1;
   display: block;
   width: 100%;
   height: 100%;
+  min-height: 0;
   object-fit: contain;
+}
+.media > video {
+  background: transparent;
+}
+/* Vídeo sem imagem ainda: invisível (não `display: none`, para o navegador seguir carregando). */
+.waiting {
+  opacity: 0;
+}
+.loading {
+  grid-area: 1 / 1;
+  display: grid;
+  place-items: center;
+  margin: 16px;
+  border: 1px solid var(--fc-line);
+  border-radius: 2px;
+  color: var(--fc-fg-muted);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .resume {
   position: absolute;
   left: 50%;
   top: 50%;
   translate: -50% -50%;
+  background: var(--fc-bg);
+  gap: 8px;
+}
+/* Som bloqueado pelo navegador: chamada clara para ligar, sobre o vídeo. */
+.unmute {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  translate: -50% 0;
   background: var(--fc-bg);
   gap: 8px;
 }
