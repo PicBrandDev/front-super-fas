@@ -127,24 +127,21 @@ export function EventoView({
             </Link>
           </>
         ) : (
-          <div className="flex w-full flex-col gap-2">
-            {picked && <span className="num text-[14px] leading-5 text-fg">{picked.name}</span>}
-            <div className={`grid gap-2 ${hasExtras ? "grid-cols-2" : "grid-cols-1"}`}>
-              <a href={ingresseUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary whitespace-normal px-3 text-center">
-                Comprar na Ingresse
-              </a>
-              {hasExtras &&
-                (picked ? (
-                  <button type="button" className="btn btn-outline whitespace-normal px-3 text-center" onClick={() => setBrindeOpen(true)}>
-                    Levar extras · {formatBRL(picked.priceCents)}
-                  </button>
-                ) : (
-                  <a href="#extras" className="btn btn-outline whitespace-normal px-3 text-center">
-                    Experiências extras
-                  </a>
-                ))}
+          // Um botão só: o ingresso já tem o "Onde comprar" na tela, então a barra é das experiências.
+          hasExtras && (
+            <div className="flex w-full flex-col gap-2">
+              {picked && <span className="num text-[14px] leading-5 text-fg">{picked.name}</span>}
+              {picked ? (
+                <button type="button" className="btn btn-primary btn-block whitespace-normal px-3 text-center" onClick={() => setBrindeOpen(true)}>
+                  Comprar experiência · {formatBRL(picked.priceCents)}
+                </button>
+              ) : (
+                <a href="#extras" className="btn btn-primary btn-block whitespace-normal px-3 text-center">
+                  Escolher experiências
+                </a>
+              )}
             </div>
-          </div>
+          )
         )}
       </div>
 
