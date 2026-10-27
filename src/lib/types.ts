@@ -409,7 +409,26 @@ export type ClubHighlight = {
 
 /** Admin: quem lidera o ranking geral (clubSlug nulo) e o de cada fã clube. */
 export type RankingFan = { userId: string; name: string; handle: string; avatar?: string | null };
-export type RankingScope = { clubSlug: string | null; name: string; leader: RankingFan | null; top: RankingFan | null };
+export type PersonShare = {
+  id: string; what: string; status: "started" | "claimed" | "verified";
+  startedAt: string; verifiedAt: string | null; permalink: string;
+  rankingPoints: number; spins: number; totalPoints: number;
+};
+export type PersonPost = {
+  id: string; kind: string; club: string | null; text: string; hasImage: boolean; image: string | null;
+  likes: number; comments: number; reposts: number; createdAt: string;
+};
+/** Admin: histórico de um fã (posts, compartilhamentos da hashtag e pontos de cada um). */
+export type PersonHistory = {
+  userId: string; name: string; handle: string; avatar: string | null; position: number | null;
+  points: number; pending: number; shares: PersonShare[]; posts: PersonPost[];
+};
+export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; shares: number };
+export type RankingScope = {
+  clubSlug: string | null; name: string; leader: RankingFan | null; top: RankingFan | null;
+  people: RankingPerson[]; // os 10 primeiros, com o ajuste da administração
+  ranked: number; // quantas pessoas já pontuam
+};
 
 /** Perfil de quem está logado (tela Perfil). */
 export type Profile = {

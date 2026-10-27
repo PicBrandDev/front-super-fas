@@ -51,6 +51,7 @@ import type {
   ShowEvent,
   Profile,
   ClubHighlight,
+  PersonHistory,
   Ranking,
   RankingFan,
   RankingScope,
@@ -280,6 +281,13 @@ export const getFeed = (slug: string, kind: "drop" | "galera") =>
 /** GET /artists/{slug}/clubs/{club}/feed: todas as publicações de um fã clube, com os números. */
 export const getClubFeed = (slug: string, club: string) =>
   get<FeedItem[]>(`/artists/${slug}/clubs/${club}/feed`, () => [] as FeedItem[]);
+
+/** GET /artists/{slug}/manage/ranking/people/{id}: histórico de um fã no ranking. */
+export async function getPersonHistory(slug: string, userId: string): Promise<PersonHistory | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/manage/ranking/people/${userId}`);
+  return res.ok ? ((await res.json()) as PersonHistory) : null;
+}
 
 /** GET /artists/{slug}/clubs-highlights: comparação dos fã clubes. */
 export const getClubsHighlights = (slug: string) => get<ClubHighlight[]>(`/artists/${slug}/clubs-highlights`, () => []);

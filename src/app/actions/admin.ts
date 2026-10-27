@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { searchRankingFans, send, type ApiResult } from "@/lib/api";
-import type { EventPhoto, RankingFan, RankingScope } from "@/lib/types";
+import { getPersonHistory, searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, PersonHistory, RankingFan, RankingScope } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -219,4 +219,10 @@ export async function setRankingLeader(slug: string, club: string | null, userId
   const res = await send<RankingScope>("PUT", `/artists/${slug}/manage/ranking/leader`, { clubSlug: club, userId });
   if (res.ok) revalidatePath(`/${slug}`, "layout");
   return res;
+}
+
+/** Histórico de um fã no ranking: posts, quando compartilhou a hashtag e os pontos de cada compartilhamento. */
+export async function loadPersonHistory(slug: string, userId: string): Promise<PersonHistory | null> {
+  if (!slugOk(slug) || !idOk(userId)) return null;
+  return getPersonHistory(slug, userId);
 }

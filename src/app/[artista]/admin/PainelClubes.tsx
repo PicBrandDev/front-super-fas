@@ -7,13 +7,14 @@ import { ClubAvatar } from "@/components/admin/ClubAvatar";
 import { AdminEmpty, Badge, btnPrimary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import { formatCount } from "@/lib/format";
-import type { ClubHighlight, ClubOverview } from "@/lib/types";
+import type { ClubHighlight, ClubOverview, RankingScope } from "@/lib/types";
 import { Destaques } from "./Destaques";
+import { RankingPessoas } from "./RankingPessoas";
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 /** Todos os fã clubes do ambiente (sem limite) em cards: foto, dono e números. Clicar abre o analytics. */
-export function PainelClubes({ artist, artistName, clubs, highlights }: { artist: string; artistName: string; clubs: ClubOverview[]; highlights: ClubHighlight[] }) {
+export function PainelClubes({ artist, artistName, clubs, highlights, ranking }: { artist: string; artistName: string; clubs: ClubOverview[]; highlights: ClubHighlight[]; ranking: RankingScope[] }) {
   const [q, setQ] = useState("");
   const shown = useMemo(() => {
     const t = norm(q.trim());
@@ -60,6 +61,8 @@ export function PainelClubes({ artist, artistName, clubs, highlights }: { artist
           <Destaques artist={artist} clubs={highlights} />
         </section>
       )}
+
+      {ranking.length > 0 && <RankingPessoas artist={artist} scopes={ranking} />}
 
       <div className="flex flex-wrap items-center gap-3">
         <label htmlFor="painel-busca" className="sr-only">
