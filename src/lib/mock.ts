@@ -85,7 +85,7 @@ export const posts: Post[] = [
   {
     id: "g1",
     kind: "galera",
-    author: { name: "Ana Ribeiro", handle: "@ana.vc", initial: "A" },
+    author: { name: "Ana Ribeiro", handle: "@ana.vc", initial: "A", id: "u-ana", avatar: null },
     timeLabel: "há 18 min",
     text: "Quem vai no show de São Paulo? Bora montar caravana saindo do ABC.",
     likes: 42,
@@ -95,7 +95,7 @@ export const posts: Post[] = [
   {
     id: "g2",
     kind: "galera",
-    author: { name: "Lucas M.", handle: "@lucas_house", initial: "L" },
+    author: { name: "Lucas M.", handle: "@lucas_house", initial: "L", id: "u-lucas", avatar: null },
     timeLabel: "há 1 h",
     text: "Repostando porque essas fotos estão demais.",
     quote: "Bastidores da turnê: fotos que só o fã clube vê.",
@@ -106,7 +106,7 @@ export const posts: Post[] = [
   {
     id: "i1",
     kind: "instagram",
-    author: { name: "Marina Costa", handle: "@marina.c", initial: "M" },
+    author: { name: "Marina Costa", handle: "@marina.c", initial: "M", id: "u-marina", avatar: null },
     timeLabel: "há 3 h",
     text: "Trouxe esse post do Instagram dele pra galera comentar aqui.",
     likes: 301,
