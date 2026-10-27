@@ -485,7 +485,7 @@ export type MyTicket = {
 export type EventPhoto = { id: string; src: string; indexed: boolean; faces: number };
 
 /** Ranking "Fã Super do Vintage" (compartilhamentos no Instagram com a hashtag). */
-type RankRow = { position: number; name: string; handle: string; avatar?: string | null; shares: number; points?: number; me: boolean };
+type RankRow = { position: number; userId?: string | null; name: string; handle: string; avatar?: string | null; shares: number; points?: number; me: boolean };
 type MyRank = { position: number | null; shares: number; points?: number; pending: number };
 
 export type Ranking = {

@@ -7,7 +7,7 @@ import { PostCard } from "@/components/fan/PostCard";
 import { PageHead } from "@/components/fan/resale/parts";
 import { EmptyState } from "@/components/fan/states";
 import { getArtist, getPublicFan } from "@/lib/api";
-import { formatCount } from "@/lib/format";
+import { formatPoints } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Perfil do fã" };
 
@@ -42,7 +42,7 @@ export default async function FaPage({ params }: { params: Promise<{ artista: st
           {fan.points != null && (
             <div className="py-3 pr-3">
               <dt className="mono">Pontos</dt>
-              <dd className="num m-0 mt-1 font-display text-[28px] font-black leading-8">{formatCount(fan.points)}</dd>
+              <dd className="num m-0 mt-1 font-display text-[28px] font-black leading-8">{formatPoints(fan.points)}</dd>
             </div>
           )}
           {fan.rank != null && (

@@ -36,6 +36,7 @@ export function PicKupWheel({
   prizes,
   initialSpins,
   initialCredits,
+  rewardsCount = 0,
   club,
   demo,
   videoAd = null,
@@ -66,7 +67,7 @@ export function PicKupWheel({
   const [spun, setSpun] = useState(false);
   const [spins, setSpins] = useState(initialSpins);
   // Sem API (modo exemplo) a lista nasce dos giros que o fã tem.
-  const [, setCredits] = useState<SpinCredit[]>(() =>
+  const [credits, setCredits] = useState<SpinCredit[]>(() =>
     initialCredits.length > 0
       ? initialCredits
       : Array.from({ length: initialSpins }, (_, i) => ({ id: `demo-${i}`, reason: "Bônus de boas-vindas", used: false, prizeLabel: null, date: "" })),
@@ -74,7 +75,7 @@ export function PicKupWheel({
   const [error, setError] = useState("");
   const [result, setResult] = useState<Prize | null>(null);
   const [reward, setReward] = useState<Reward | null>(null); // o brinde guardado em Meus brindes
-  const [, setNewRewards] = useState(0);
+  const [newRewards, setNewRewards] = useState(0);
   const [mastShift, setMastShift] = useState(0);
   const [mastMs, setMastMs] = useState<number | undefined>(undefined);
   // Giro esperando o vídeo patrocinado (guarda o crédito escolhido).
@@ -296,6 +297,29 @@ export function PicKupWheel({
             </p>
           )
         )}
+
+        {club && n > 0 && credits.some((c) => !c.used) && (
+          <section aria-labelledby="girosH" className="flex flex-col gap-1.5">
+            <h3 id="girosH" className="mono m-0 text-on-amber/75">
+              De onde vieram os seus giros
+            </h3>
+            <ul className="m-0 flex list-none flex-col divide-y divide-on-amber/25 border-y border-on-amber/25 p-0 text-on-amber">
+              {credits
+                .filter((c) => !c.used)
+                .map((c) => (
+                  <li key={c.id} className="flex items-baseline justify-between gap-3 py-2.5">
+                    <strong className="min-w-0 text-[15px] leading-5">{c.reason}</strong>
+                    {c.date && <span className="mono flex-none text-on-amber/70">{c.date}</span>}
+                  </li>
+                ))}
+            </ul>
+          </section>
+        )}
+
+        <Link href={`${base}/pickup/brindes`} className="btn btn-block flex items-center justify-center gap-2 border-2 border-on-amber bg-transparent text-on-amber no-underline">
+          Meus brindes
+          {rewardsCount + newRewards > 0 && <span className="tag tag-key">{rewardsCount + newRewards}</span>}
+        </Link>
       </div>
 
       <Sheet open={!!result} onClose={closeResult} title={result ? (noPrize ? "Não foi dessa vez" : lose ? "Quase" : result.label) : ""}>

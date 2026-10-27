@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { useArtist } from "@/components/fan/ArtistContext";
 import { useToast } from "@/components/fan/Toast";
 import { formatPoints, initialsOf } from "@/lib/format";
 import type { Ranking } from "@/lib/types";
@@ -8,17 +10,20 @@ import type { Ranking } from "@/lib/types";
 type Row = Ranking["top"][number];
 
 function Person({ row }: { row: Row }) {
-  return (
-    <li className={`flex items-center gap-3 border-b border-line py-3 ${row.me ? "bg-raised px-2" : ""}`}>
-      <span className="num w-8 flex-none font-display text-2xl font-black">{row.position}</span>
-      {row.avatar ? (
-        // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã
-        <img src={row.avatar} alt="" width={44} height={44} className="size-11 flex-none rounded-full border border-line-strong object-cover" />
-      ) : (
-        <span className="avatar !size-11 flex-none" aria-hidden="true">
-          {initialsOf(row.name)}
-        </span>
-      )}
+  const { base } = useArtist();
+  // A foto e o nome abrem o perfil público do fã (com o botão de enviar mensagem); o seu próprio abre o seu perfil.
+  const href = row.me ? `${base}/perfil` : row.userId ? `${base}/fas/${encodeURIComponent(row.userId)}` : null;
+  const face = row.avatar ? (
+    // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã
+    <img src={row.avatar} alt="" width={44} height={44} className="size-11 flex-none rounded-full border border-line-strong object-cover" />
+  ) : (
+    <span className="avatar !size-11 flex-none" aria-hidden="true">
+      {initialsOf(row.name)}
+    </span>
+  );
+  const who = (
+    <>
+      {face}
       <span className="flex min-w-0 flex-1 flex-col leading-5">
         <strong className="truncate text-[15px]">
           {row.name}
@@ -26,6 +31,18 @@ function Person({ row }: { row: Row }) {
         </strong>
         {row.handle && <span className="mono truncate">{row.handle}</span>}
       </span>
+    </>
+  );
+  return (
+    <li className={`flex items-center gap-3 border-b border-line py-3 ${row.me ? "bg-raised px-2" : ""}`}>
+      <span className="num w-8 flex-none font-display text-2xl font-black">{row.position}</span>
+      {href ? (
+        <Link href={href} aria-label={row.me ? "Ver meu perfil" : `Ver o perfil de ${row.name}`} className="flex min-w-0 flex-1 items-center gap-3 text-fg no-underline">
+          {who}
+        </Link>
+      ) : (
+        <span className="flex min-w-0 flex-1 items-center gap-3">{who}</span>
+      )}
       <span className="flex flex-none flex-col items-end leading-5">
         <strong className="num">{formatPoints(row.points ?? row.shares)}</strong>
         <span className="mono">pts</span>
