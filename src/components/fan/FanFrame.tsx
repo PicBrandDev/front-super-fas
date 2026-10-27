@@ -6,6 +6,7 @@ import { useScrollDirection } from "@/lib/useScrollDirection";
 import { useArtist } from "./ArtistContext";
 import { BottomNav } from "./BottomNav";
 import { FanTopBar } from "./FanTopBar";
+import { MemberBar } from "./MemberBar";
 import { isChatThread } from "./nav";
 
 /**
@@ -29,6 +30,7 @@ export function FanFrame({ avatar = null, children }: { avatar?: string | null; 
         data-nav-hidden={(chrome && hidden) || undefined}
       >
         {chrome && <FanTopBar avatar={avatar} hidden={hidden} />}
+        {chrome && <MemberBar />}
         {children}
       </div>
       {chrome && <BottomNav hidden={hidden} />}

@@ -46,9 +46,11 @@ export function MuralView({
   demo: boolean;
   avatar?: string | null; // sem uso: o topo (com a foto) agora é global, no FanFrame
   initialTab?: MuralTab;
-  feedAds?: FeedAdItem[]; // posts patrocinados: depois do 4º, 8º, 12º e 16º cartaz
+  feedAds?: FeedAdItem[]; // posts patrocinados: o 1º depois do 1º cartaz, os outros depois do 8º, 12º e 16º
 }) {
   const { base } = useArtist();
+  // O primeiro anúncio (Spotify) entra logo embaixo do 1º cartaz; os demais ficam nas posições deles (8º, 12º, 16º).
+  const firstAd = [...feedAds].sort((a, b) => a.position - b.position)[0];
   const router = useRouter();
   const toast = useToast();
   const [tab, setTab] = useState<MuralTab>(initialTab);
@@ -182,7 +184,7 @@ export function MuralView({
                   </div>
                 </div>
               </article>
-              {feedAds.filter((a) => a.position === i + 1).map((a) => (
+              {feedAds.filter((a) => (a === firstAd ? i === 0 : a.position === i + 1)).map((a) => (
                 <FeedAd key={`ad-${a.position}`} ad={a} className={s.feedAd} />
               ))}
             </Fragment>
