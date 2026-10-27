@@ -294,6 +294,25 @@ export type ClubAnalytics = {
   staffNames: string[];
 };
 
+/** Admin: lista de assinantes (10 por página) e as ações de cada um. */
+export type SubscriberRow = {
+  userId: string; name: string; handle: string; email: string; avatar: string | null;
+  city: string; state: string; status: string; since: string | null; payment: string;
+  luckPoints: number; spinsLeft: number;
+};
+export type SubscriberPage = { total: number; page: number; pages: number; pageSize: number; items: SubscriberRow[] };
+export type ActivityEvent = { at: string; kind: string; title: string; detail: string };
+export type SubscriberActivity = {
+  profile: SubscriberRow;
+  summary: {
+    spinsUsed: number; spinsLeft: number; luckPoints: number; rewards: number; rewardsRedeemed: number;
+    coupons: number; couponsUsed: number; purchases: number; spentCents: number;
+    sharesConfirmed: number; posts: number; comments: number;
+  };
+  coupons: { code: string; source: string; kind: "percent" | "fixed"; value: number; used: boolean; expiresOn: string | null }[];
+  events: ActivityEvent[];
+};
+
 /** Analytics dos assinantes do ambiente (sem listar pessoas). */
 export type SubscribersAnalytics = {
   fans: number;

@@ -53,6 +53,8 @@ import type {
   ClubHighlight,
   PersonHistory,
   Ranking,
+  SubscriberActivity,
+  SubscriberPage,
   RankingFan,
   RankingScope,
   Rental,
@@ -301,6 +303,21 @@ export async function searchRankingFans(slug: string, q: string, club?: string):
   const qs = new URLSearchParams({ q, ...(club ? { club } : {}) });
   const res = await request(`/artists/${slug}/manage/ranking/fans?${qs}`);
   return res.ok ? ((await res.json()) as RankingFan[]) : [];
+}
+
+/** GET /artists/{slug}/subscribers: assinantes, do mais recente ao mais antigo, 10 por página. */
+export async function getSubscribers(slug: string, q = "", page = 1): Promise<SubscriberPage | null> {
+  if (!API_URL) return null;
+  const qs = new URLSearchParams({ page: String(page), ...(q ? { q } : {}) });
+  const res = await request(`/artists/${slug}/subscribers?${qs}`);
+  return res.ok ? ((await res.json()) as SubscriberPage) : null;
+}
+
+/** GET /artists/{slug}/subscribers/{id}/activity: ações de um assinante. */
+export async function getSubscriberActivity(slug: string, userId: string): Promise<SubscriberActivity | null> {
+  if (!API_URL) return null;
+  const res = await request(`/artists/${slug}/subscribers/${userId}/activity`);
+  return res.ok ? ((await res.json()) as SubscriberActivity) : null;
 }
 
 /** GET /artists/{slug}/subscribers-analytics */

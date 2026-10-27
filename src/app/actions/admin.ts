@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getPersonHistory, searchRankingFans, send, type ApiResult } from "@/lib/api";
-import type { EventPhoto, PersonHistory, RankingFan, RankingScope } from "@/lib/types";
+import { getPersonHistory, getSubscriberActivity, getSubscribers, searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, PersonHistory, RankingFan, RankingScope, SubscriberActivity, SubscriberPage } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -225,4 +225,16 @@ export async function setRankingLeader(slug: string, club: string | null, userId
 export async function loadPersonHistory(slug: string, userId: string): Promise<PersonHistory | null> {
   if (!slugOk(slug) || !idOk(userId)) return null;
   return getPersonHistory(slug, userId);
+}
+
+// ---------- Assinantes: lista e ações ----------
+
+export async function loadSubscribers(slug: string, q: string, page: number): Promise<SubscriberPage | null> {
+  if (!slugOk(slug) || !Number.isInteger(page) || page < 1) return null;
+  return getSubscribers(slug, q.trim().slice(0, 80), page);
+}
+
+export async function loadSubscriberActivity(slug: string, userId: string): Promise<SubscriberActivity | null> {
+  if (!slugOk(slug) || !idOk(userId)) return null;
+  return getSubscriberActivity(slug, userId);
 }

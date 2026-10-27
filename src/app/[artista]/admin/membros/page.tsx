@@ -4,8 +4,9 @@ import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { ClubAdminShell } from "@/components/admin/ClubAdminShell";
 import { DayBars, HBars } from "@/components/admin/charts";
 import { AdminEmpty } from "@/components/admin/ui";
-import { formatBRL, getArtist, getSubscribersAnalytics } from "@/lib/api";
+import { formatBRL, getArtist, getSubscribers, getSubscribersAnalytics } from "@/lib/api";
 import { formatCount } from "@/lib/format";
+import { ListaAssinantes } from "./ListaAssinantes";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
   const { artista } = await params;
@@ -13,19 +14,19 @@ export async function generateMetadata({ params }: { params: Promise<{ artista: 
   return { title: artist ? `Assinantes — ${artist.name}` : "Assinantes" };
 }
 
-/** Quantos assinantes o ambiente tem e de onde são. Não lista pessoas. */
+/** Quantos assinantes o ambiente tem e de onde são, e a lista de quem são (10 por página, com busca). */
 export default async function MembrosPage({ params }: { params: Promise<{ artista: string }> }) {
   const { artista } = await params;
   const artist = await getArtist(artista);
   if (!artist) notFound();
-  const data = await getSubscribersAnalytics(artist.slug);
+  const [data, list] = await Promise.all([getSubscribersAnalytics(artist.slug), getSubscribers(artist.slug)]);
 
   return (
     <ClubAdminShell artist={artist} active="membros">
       <AdminPageHeader
         title="Assinantes"
         headingId="assinantes-title"
-        description={`Quantos assinantes ${artist.name} tem e de onde eles são.`}
+        description={`Quantos assinantes ${artist.name} tem, de onde eles são e quem são, do que assinou por último ao mais antigo.`}
       />
       {!data ? (
         <AdminEmpty title="Analytics indisponível" text="Ligue o front à API para ver os números dos assinantes." />
@@ -45,6 +46,8 @@ export default async function MembrosPage({ params }: { params: Promise<{ artist
               </div>
             ))}
           </section>
+
+          <ListaAssinantes artist={artist.slug} initial={list} />
 
           <section aria-labelledby="g-novas" className="flex flex-col gap-2 rounded-xl border border-adm-line bg-white px-4 py-3">
             <h2 id="g-novas" className="m-0 text-sm font-bold">
