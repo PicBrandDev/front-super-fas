@@ -11,6 +11,8 @@ import type { CarpoolBooking, Ride } from "@/lib/types";
 const when = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
+const PAY: Record<string, string> = { pix: "Pix", cartao: "Cartão" };
+
 const STATUS: Record<CarpoolBooking["status"], string> = {
   reserved: "Reservado, falta pagar",
   paid: "Pago, valor retido até a viagem",
@@ -84,13 +86,18 @@ export function RideCard({ artist, base, ride }: { artist: string; base: string;
           {ride.passengers.length === 0 ? (
             <span className="text-[14px] text-fg-muted">Ninguém reservou ainda.</span>
           ) : (
-            <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+            <ul className="m-0 flex list-none flex-col gap-2 p-0">
               {ride.passengers.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-2 text-[14px]">
-                  <span>
-                    {p.passenger?.name} · {p.seats} {p.seats === 1 ? "vaga" : "vagas"}
+                <li key={p.id} className="flex items-center gap-3 border border-line bg-raised p-3">
+                  <PersonAvatar src={p.passenger?.avatar ?? null} name={p.passenger?.name ?? ""} size={48} />
+                  <span className="flex min-w-0 flex-1 flex-col leading-5">
+                    <strong className="text-[16px]">{p.passenger?.name}</strong>
+                    <span className="text-[14px] text-fg-muted">
+                      {p.seats} {p.seats === 1 ? "vaga" : "vagas"} · {formatBRL(p.amountCents)}
+                      {p.paymentMethod ? ` · ${PAY[p.paymentMethod]}` : ""}
+                    </span>
+                    <span className="mono">{STATUS[p.status]}</span>
                   </span>
-                  <span className="mono">{STATUS[p.status]}</span>
                 </li>
               ))}
             </ul>
@@ -104,13 +111,18 @@ export function RideCard({ artist, base, ride }: { artist: string; base: string;
       ) : mb ? (
         <div className="flex flex-col gap-2 border-t border-line pt-3">
           <span className="mono">
-            {mb.seats} {mb.seats === 1 ? "vaga" : "vagas"} · {formatBRL(mb.amountCents)} · {STATUS[mb.status]}
+            {mb.seats} {mb.seats === 1 ? "vaga" : "vagas"} · {formatBRL(mb.amountCents)}{mb.paymentMethod ? ` · ${PAY[mb.paymentMethod]}` : ""} · {STATUS[mb.status]}
           </span>
           <div className="flex flex-wrap gap-2">
             {mb.status === "reserved" && (
-              <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={() => run(() => bookingAction(artist, mb.id, "pay"))}>
-                Pagar {formatBRL(mb.amountCents)}
-              </button>
+              <>
+                <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={() => run(() => bookingAction(artist, mb.id, "pay", "pix"))}>
+                  Pagar {formatBRL(mb.amountCents)} no Pix
+                </button>
+                <button type="button" className="btn btn-outline btn-sm" disabled={pending} onClick={() => run(() => bookingAction(artist, mb.id, "pay", "cartao"))}>
+                  Pagar no cartão
+                </button>
+              </>
             )}
             {mb.status === "paid" && departed && (
               <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={() => run(() => bookingAction(artist, mb.id, "confirm"))}>

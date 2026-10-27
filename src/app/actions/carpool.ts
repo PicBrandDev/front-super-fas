@@ -28,9 +28,9 @@ export async function bookSeats(slug: string, rideId: string, seats: number): Pr
 }
 
 /** Ações sobre uma reserva: pagar (valor retido), confirmar a viagem, cancelar; e do motorista: cancelar a viagem. */
-export async function bookingAction(slug: string, id: string, action: "pay" | "confirm" | "cancel"): Promise<ApiResult<CarpoolBooking>> {
+export async function bookingAction(slug: string, id: string, action: "pay" | "confirm" | "cancel", method?: "pix" | "cartao"): Promise<ApiResult<CarpoolBooking>> {
   if (!slugOk(slug) || !idOk(id)) return bad("Pedido inválido.");
-  const res = await send<CarpoolBooking>("POST", `/artists/${slug}/carpool/bookings/${id}/${action}`);
+  const res = await send<CarpoolBooking>("POST", `/artists/${slug}/carpool/bookings/${id}/${action}`, action === "pay" ? { method: method ?? "pix" } : undefined);
   if (res.ok) done(slug);
   return res;
 }

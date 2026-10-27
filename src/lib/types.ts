@@ -385,7 +385,7 @@ export type ExperienceBuyerPage = { total: number; page: number; pages: number; 
 /** Caronas por show: o fã oferece vagas e preço; outros reservam e pagam (valor retido até a viagem). */
 export type CarpoolWho = { id: string; name: string; handle: string; avatar: string | null };
 export type CarpoolBooking = {
-  id: string; seats: number; amountCents: number; status: "reserved" | "paid" | "completed" | "cancelled" | "refunded";
+  id: string; seats: number; amountCents: number; paymentMethod: "" | "pix" | "cartao"; status: "reserved" | "paid" | "completed" | "cancelled" | "refunded";
   expiresAt: string | null; passenger: CarpoolWho | null;
 };
 export type Ride = {
