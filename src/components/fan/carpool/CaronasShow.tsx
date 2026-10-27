@@ -43,7 +43,11 @@ export function CaronasShow({ artist, eventId, rides, past, back, text }: { arti
       </nav>
       {offering && <OfferRideForm artist={artist} eventId={eventId} onDone={() => setOffering(false)} />}
       {open.length === 0 ? (
-        <p className="m-0 border border-line p-4 text-[15px] text-fg-muted">Ainda não há caronas para este show. Seja o primeiro a oferecer.</p>
+        <p className="m-0 border border-line p-4 text-[15px] text-fg-muted">
+          {rides.some((r) => r.status === "open")
+            ? "Não há outras caronas para reservar neste show. As que você oferece ou já reservou estão em Minhas caronas e Minhas reservas."
+            : "Ainda não há caronas para este show. Seja o primeiro a oferecer."}
+        </p>
       ) : (
         <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {open.map((r) => (
