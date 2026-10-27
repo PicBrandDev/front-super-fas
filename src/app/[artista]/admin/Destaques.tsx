@@ -42,57 +42,64 @@ const METRICS: Metric[] = [
 
 const byValue = (m: Metric) => (a: ClubHighlight, b: ClubHighlight) => m.value(b) - m.value(a);
 
-/** Quatro placares (conteúdo, feed, ativos, inscritos) com o fã clube líder em destaque. */
+/** Quatro placares (conteúdo, feed, ativos, inscritos): título grande, fã clube líder com foto e o pódio dos seguintes. */
 export function Destaques({ artist, clubs }: { artist: string; clubs: ClubHighlight[] }) {
   return (
-    <>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {METRICS.map((m) => {
-          const ranked = [...clubs].sort(byValue(m));
-          const lead = ranked[0];
-          const max = Math.max(1, m.value(lead));
-          const has = m.value(lead) > 0;
-          return (
-            <section key={m.key} aria-labelledby={`d-${m.key}`} className="flex flex-col gap-3 rounded-xl border border-adm-line bg-white px-4 py-3.5">
-              <div>
-                <h2 id={`d-${m.key}`} className="m-0 text-sm font-bold">
-                  {m.title}
-                </h2>
-                <p className="m-0 text-xs text-adm-muted">{m.hint}</p>
-              </div>
-              {has ? (
-                <>
-                  <Link href={`/${artist}/admin/analytics/${lead.slug}`} className="flex items-center gap-3 text-adm-ink no-underline">
-                    <ClubAvatar src={lead.avatar} name={lead.name} size={48} />
-                    <span className="flex min-w-0 flex-col">
-                      <span className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-blue-dark">1º lugar</span>
-                      <strong className="truncate text-[15px]">{lead.name}</strong>
-                    </span>
-                  </Link>
-                  <p className="m-0 font-display text-3xl font-black leading-9">
-                    {formatCount(m.value(lead))} <span className="text-sm font-semibold text-adm-muted">{m.unit}</span>
-                  </p>
-                  <p className="m-0 text-[13px] text-adm-muted">{m.detail(lead)}</p>
-                  <ol className="m-0 flex list-none flex-col gap-1.5 p-0">
-                    {ranked.slice(1, 4).map((c, i) => (
-                      <li key={c.slug} className="flex items-center gap-2 text-[13px]">
-                        <span className="w-4 font-adm-mono text-adm-muted">{i + 2}º</span>
-                        <span className="w-28 truncate">{c.name}</span>
-                        <span aria-hidden="true" className="h-2 flex-1 rounded-full bg-adm-line-soft">
-                          <span className="block h-2 rounded-full bg-adm-blue" style={{ width: `${Math.max(3, (m.value(c) / max) * 100)}%` }} />
+    <div className="grid gap-4 md:grid-cols-2">
+      {METRICS.map((m) => {
+        const ranked = [...clubs].sort(byValue(m));
+        const lead = ranked[0];
+        const max = Math.max(1, m.value(lead));
+        const has = m.value(lead) > 0;
+        return (
+          <section key={m.key} aria-labelledby={`d-${m.key}`} className="flex flex-col gap-4 rounded-xl border border-adm-line bg-white p-5">
+            <div className="flex flex-col gap-1">
+              <h3 id={`d-${m.key}`} className="m-0 font-display text-2xl font-black leading-7">
+                {m.title}
+              </h3>
+              <p className="m-0 text-[13px] leading-5 text-adm-muted">{m.hint}</p>
+            </div>
+            {has ? (
+              <>
+                <Link
+                  href={`/${artist}/admin/analytics/${lead.slug}`}
+                  className="flex items-center gap-4 rounded-xl bg-adm-bg p-3 text-adm-ink no-underline transition-colors hover:bg-adm-blue-soft"
+                >
+                  <ClubAvatar src={lead.avatar} name={lead.name} size={64} />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-blue-dark">1º lugar</span>
+                    <strong className="truncate text-lg leading-6">{lead.name}</strong>
+                    <span className="text-[13px] text-adm-muted">{m.detail(lead)}</span>
+                  </span>
+                  <span className="flex flex-col items-end leading-none">
+                    <span className="font-display text-4xl font-black">{formatCount(m.value(lead))}</span>
+                    <span className="mt-1 text-xs font-semibold text-adm-muted">{m.unit}</span>
+                  </span>
+                </Link>
+                <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
+                  {ranked.slice(1, 4).map((c, i) => (
+                    <li key={c.slug}>
+                      <Link href={`/${artist}/admin/analytics/${c.slug}`} className="flex items-center gap-3 text-adm-ink no-underline">
+                        <span className="w-5 font-adm-mono text-sm text-adm-muted">{i + 2}º</span>
+                        <ClubAvatar src={c.avatar} name={c.name} size={36} />
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                          <span className="truncate text-sm font-semibold">{c.name}</span>
+                          <span aria-hidden="true" className="h-2 rounded-full bg-adm-line-soft">
+                            <span className="block h-2 rounded-full bg-adm-blue" style={{ width: `${Math.max(3, (m.value(c) / max) * 100)}%` }} />
+                          </span>
                         </span>
-                        <span className="w-10 text-right font-adm-mono font-semibold">{formatCount(m.value(c))}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </>
-              ) : (
-                <p className="m-0 text-sm text-adm-muted">Ainda sem dados nesta categoria.</p>
-              )}
-            </section>
-          );
-        })}
-      </div>
-    </>
+                        <span className="w-14 text-right font-adm-mono text-sm font-semibold">{formatCount(m.value(c))}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </>
+            ) : (
+              <p className="m-0 text-sm text-adm-muted">Ainda sem dados nesta categoria.</p>
+            )}
+          </section>
+        );
+      })}
+    </div>
   );
 }

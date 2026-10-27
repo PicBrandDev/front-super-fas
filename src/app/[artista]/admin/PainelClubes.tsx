@@ -54,7 +54,7 @@ export function PainelClubes({ artist, artistName, clubs, highlights }: { artist
 
       {highlights.length > 0 && (
         <section aria-labelledby="destaques-title" className="flex flex-col gap-3">
-          <h2 id="destaques-title" className="m-0 text-base font-bold">
+          <h2 id="destaques-title" className="m-0 font-display text-3xl font-black">
             Destaques dos fã clubes
           </h2>
           <Destaques artist={artist} clubs={highlights} />
