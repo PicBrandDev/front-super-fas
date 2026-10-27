@@ -2,6 +2,7 @@
    Porte do protótipo fanzone.html (.wall .slide .pst .meta .p-* .drop .prog). */
 
 .screen {
+  overflow-x: clip; /* cartaz e legenda que passam da tela alargavam a página no celular e empurravam o menu de baixo para fora */
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - var(--navspace));
