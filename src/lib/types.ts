@@ -399,6 +399,18 @@ export type Ranking = {
   clubs: { slug: string; name: string; avatar?: string | null; ranked: number; me: MyRank | null; top: RankRow[] }[]; // um ranking por fã clube
 };
 
+/** Admin: números que comparam os fã clubes (30 dias, exceto totais). */
+export type ClubHighlight = {
+  slug: string; name: string; city: string; isMaster: boolean; avatar?: string | null;
+  posts: number; postsWithPhoto: number; prizes: number; content: number;
+  postsMonth: number; likes: number; comments: number; reposts: number; views: number; buzz: number;
+  members: number; newMembersMonth: number; subscribers: number; activeMembers: number; activeRate: number;
+};
+
+/** Admin: quem lidera o ranking geral (clubSlug nulo) e o de cada fã clube. */
+export type RankingFan = { userId: string; name: string; handle: string; avatar?: string | null };
+export type RankingScope = { clubSlug: string | null; name: string; leader: RankingFan | null; top: RankingFan | null };
+
 /** Perfil de quem está logado (tela Perfil). */
 export type Profile = {
   id: string;

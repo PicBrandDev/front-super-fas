@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { send, type ApiResult } from "@/lib/api";
-import type { EventPhoto } from "@/lib/types";
+import { searchRankingFans, send, type ApiResult } from "@/lib/api";
+import type { EventPhoto, RankingFan, RankingScope } from "@/lib/types";
 
 /*
  * Ações dos painéis (admin do fã clube, admin master e patrocinador).
@@ -204,4 +204,19 @@ export type InstagramSync = { enabled: boolean; found: number; verified: number;
 export async function syncInstagram(slug: string): Promise<Res<InstagramSync>> {
   if (!slugOk(slug)) return bad("Pedido inválido.");
   return send<InstagramSync>("POST", `/artists/${slug}/manage/instagram/sync`);
+}
+
+// ---------- Ranking Fã Super: quem lidera ----------
+
+export async function findRankingFans(slug: string, q: string, club?: string): Promise<RankingFan[]> {
+  if (!slugOk(slug) || (club && !slugOk(club)) || q.trim().length < 2) return [];
+  return searchRankingFans(slug, q.trim(), club);
+}
+
+/** Fixa um fã em 1º no ranking geral (club vazio) ou no de um fã clube; `userId` nulo volta ao placar. */
+export async function setRankingLeader(slug: string, club: string | null, userId: string | null): Promise<Res<RankingScope>> {
+  if (!slugOk(slug) || (club && !slugOk(club)) || (userId && !idOk(userId))) return bad("Pedido inválido.");
+  const res = await send<RankingScope>("PUT", `/artists/${slug}/manage/ranking/leader`, { clubSlug: club, userId });
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
 }

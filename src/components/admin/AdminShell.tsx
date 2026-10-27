@@ -135,12 +135,14 @@ export function clubNav(slug: string): AdminNavItem[] {
   const base = `/${slug}/admin`;
   return [
     { key: "painel", label: "Painel dos fã clubes", href: base, icon: "star" },
+    { key: "destaques", label: "Destaques dos clubes", href: `${base}/destaques`, icon: "chart" },
     { key: "membros", label: "Assinantes", href: `${base}/membros`, icon: "users" },
     { key: "mural", label: "Drop News", href: `${base}/mural`, icon: "news" },
     { key: "agenda", label: "Agenda e eventos", href: `${base}/agenda`, icon: "calendar" },
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
     { key: "drops", label: "Drops Hits", href: `${base}/drops`, icon: "music" },
     { key: "vitrines", label: "Vitrines alugadas", href: `${base}/vitrines`, icon: "megaphone" },
+    { key: "ranking", label: "Ranking Fã Super", href: `${base}/ranking`, icon: "star" },
   ];
 }
 

@@ -50,7 +50,10 @@ import type {
   Product,
   ShowEvent,
   Profile,
+  ClubHighlight,
   Ranking,
+  RankingFan,
+  RankingScope,
   Rental,
   Sponsor,
   SpinCredit,
@@ -277,6 +280,20 @@ export const getFeed = (slug: string, kind: "drop" | "galera") =>
 /** GET /artists/{slug}/clubs/{club}/feed: todas as publicações de um fã clube, com os números. */
 export const getClubFeed = (slug: string, club: string) =>
   get<FeedItem[]>(`/artists/${slug}/clubs/${club}/feed`, () => [] as FeedItem[]);
+
+/** GET /artists/{slug}/clubs-highlights: comparação dos fã clubes. */
+export const getClubsHighlights = (slug: string) => get<ClubHighlight[]>(`/artists/${slug}/clubs-highlights`, () => []);
+
+/** GET /artists/{slug}/manage/ranking: quem lidera o ranking geral e o de cada fã clube. */
+export const getRankingLeaders = (slug: string) => get<RankingScope[]>(`/artists/${slug}/manage/ranking`, () => []);
+
+/** Busca fãs do ambiente para escolher quem fica em 1º (usada pela ação do admin). */
+export async function searchRankingFans(slug: string, q: string, club?: string): Promise<RankingFan[]> {
+  if (!API_URL) return [];
+  const qs = new URLSearchParams({ q, ...(club ? { club } : {}) });
+  const res = await request(`/artists/${slug}/manage/ranking/fans?${qs}`);
+  return res.ok ? ((await res.json()) as RankingFan[]) : [];
+}
 
 /** GET /artists/{slug}/subscribers-analytics */
 export const getSubscribersAnalytics = (slug: string) =>
