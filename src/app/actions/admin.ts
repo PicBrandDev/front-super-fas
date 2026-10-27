@@ -158,6 +158,22 @@ export async function setClubAvatar(slug: string, club: string, form: FormData):
   return res;
 }
 
+/** Troca a foto de um produto da loja (JPG, PNG ou WebP, até 5 MB). */
+export async function setProductImage(slug: string, productId: string, form: FormData): Promise<Res> {
+  if (!slugOk(slug) || !idOk(productId)) return bad("Pedido inválido.");
+  const res = await send("POST", `/artists/${slug}/manage/products/${productId}/image`, form);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
+/** Tira a foto de um produto da loja (o card volta a usar a cor). */
+export async function removeProductImage(slug: string, productId: string): Promise<Res> {
+  if (!slugOk(slug) || !idOk(productId)) return bad("Pedido inválido.");
+  const res = await send("DELETE", `/artists/${slug}/manage/products/${productId}/image`);
+  if (res.ok) revalidatePath(`/${slug}`, "layout");
+  return res;
+}
+
 // ---------- Photo Finder: fotos do show ----------
 
 export async function uploadEventPhotos(slug: string, eventId: string, form: FormData): Promise<Res<EventPhoto[]>> {
