@@ -25,7 +25,6 @@ const STATUS: Record<CarpoolBooking["status"], string> = {
  */
 export function RideCard({ artist, base, ride }: { artist: string; base: string; ride: Ride }) {
   const router = useRouter();
-  const [seats, setSeats] = useState(1);
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
   const mb = ride.myBooking;
@@ -125,18 +124,8 @@ export function RideCard({ artist, base, ride }: { artist: string; base: string;
         ride.seatsLeft > 0 &&
         !departed && (
           <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
-            <label className="mono flex items-center gap-2">
-              Vagas
-              <select value={seats} onChange={(e) => setSeats(Number(e.target.value))} className="min-h-11 border border-line bg-night px-2 text-fg">
-                {Array.from({ length: ride.seatsLeft }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={() => run(() => bookSeats(artist, ride.id, seats))}>
-              Reservar · {formatBRL(seats * ride.priceCents)}
+            <button type="button" className="btn btn-primary btn-sm" disabled={pending} onClick={() => run(() => bookSeats(artist, ride.id, 1))}>
+              Reservar 1 vaga · {formatBRL(ride.priceCents)}
             </button>
           </div>
         )
