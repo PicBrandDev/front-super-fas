@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Options = {
@@ -15,11 +16,15 @@ type Options = {
  * Diz se as barras do app devem se recolher: rolando para baixo elas somem,
  * rolando para cima voltam. Ficam visíveis perto do topo e no fim da página,
  * e nunca somem com `prefers-reduced-motion`. Lê a rolagem uma vez por quadro.
+ * Ao trocar de tela as barras voltam: o estado "recolhido" vale só para a tela em que a pessoa rolou (senão uma
+ * tela curta, que não rola, herdava as barras escondidas da anterior).
  */
 export function useScrollDirection({ threshold = 8, topOffset = 64, bottomOffset = 24 }: Options = {}): boolean {
-  const [hidden, setHidden] = useState(false);
+  const pathname = usePathname();
+  const [state, setState] = useState({ hidden: false, path: pathname });
 
   useEffect(() => {
+    const setHidden = (hidden: boolean) => setState((c) => (c.hidden === hidden && c.path === pathname ? c : { hidden, path: pathname }));
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let last = window.scrollY;
     let travel = 0; // distância acumulada na direção atual
@@ -59,7 +64,7 @@ export function useScrollDirection({ threshold = 8, topOffset = 64, bottomOffset
       motion.removeEventListener("change", onMotion);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [threshold, topOffset, bottomOffset]);
+  }, [threshold, topOffset, bottomOffset, pathname]);
 
-  return hidden;
+  return state.hidden && state.path === pathname;
 }
