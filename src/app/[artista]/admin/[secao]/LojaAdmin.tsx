@@ -8,6 +8,7 @@ import { ItemForm, type FieldDef, type Item } from "@/components/admin/ResourceM
 import { AdminNotice, btnPrimary, btnSecondary } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import type { MediaImage } from "@/lib/types";
+import { thumb } from "@/lib/thumb";
 import s from "@/app/[artista]/(fan)/loja/Loja.module.css";
 
 export type LojaProduct = Item & {
@@ -145,7 +146,7 @@ export function LojaAdmin({
             <article key={p.id} className={s.prod}>
               <div className={`${s.img} ${p.photo?.cover ? s.cover : ""}`} style={p.photo ? undefined : { background: p.color }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {p.photo && <img src={p.photo.src} alt={p.photo.alt} loading="lazy" />}
+                {p.photo && <img src={thumb(p.photo.src, 360)} alt={p.photo.alt} loading="lazy" />}
               </div>
               <span className="mono">{CATEGORY[p.category] ?? p.category}</span>
               <h3>{p.name}</h3>

@@ -13,6 +13,7 @@ import { Icon } from "@/components/icons";
 import { apiEnabled, getArtist, getClubs, getEvents, getHomeAd, getPackages, getPrizes, getProducts, getTracks, getViewer } from "@/lib/api";
 import { isPastEvent } from "@/lib/events";
 import { mediaFor, productImage } from "@/lib/media";
+import { thumb } from "@/lib/thumb";
 
 /** Título de bloco do Início (`.sect h3` do protótipo). */
 function Block({ title, children, flush = false }: { title: string; children: ReactNode; flush?: boolean }) {
@@ -202,7 +203,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
                     <div className="aspect-[4/5] overflow-hidden rounded-hair bg-mist" style={img ? undefined : { background: p.color }}>
                       {img && (
                         <img
-                          src={img.src}
+                          src={thumb(img.src, 360)}
                           alt={img.alt}
                           loading="lazy"
                           className={`block h-full w-full ${img.cover ? "object-cover" : "object-contain mix-blend-multiply"}`}

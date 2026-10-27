@@ -19,6 +19,7 @@ import { Sheet } from "@/components/fan/Sheet";
 import { Tabs, type TabItem } from "@/components/fan/Tabs";
 import { Icon } from "@/components/icons";
 import { formatBRL } from "@/lib/format";
+import { thumb } from "@/lib/thumb";
 import type { MediaImage, Product } from "@/lib/types";
 import s from "./Loja.module.css";
 
@@ -172,7 +173,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
                 <div className={`${s.img} ${p.photo?.cover ? s.cover : ""}`} style={p.photo ? undefined : { background: p.color }}>
                   {/* Foto real do produto (ver lib/media.ts); <img> comum para o blend sobre mist. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {p.photo && <img src={p.photo.src} alt={p.photo.alt} loading="lazy" />}
+                  {p.photo && <img src={thumb(p.photo.src, 360)} alt={p.photo.alt} loading="lazy" />}
                 </div>
                 <h3>{p.name}</h3>
                 <div className={s.price}>{p.priceLabel}</div>
@@ -256,7 +257,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
                     <div className="flex items-start gap-3">
                       <span className="size-14 flex-none overflow-hidden bg-mist" style={p.photo ? undefined : { background: p.color }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        {p.photo && <img src={p.photo.src} alt="" className="size-full object-contain mix-blend-multiply" />}
+                        {p.photo && <img src={thumb(p.photo.src, 56)} alt="" className="size-full object-contain mix-blend-multiply" />}
                       </span>
                       <span className="flex min-w-0 flex-1 flex-col">
                         <strong className="text-[15px] leading-5 text-fg">{p.name}</strong>
