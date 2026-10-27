@@ -1,18 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { getFinderStatus, searchMyPhotos, type FinderStatus } from "@/app/actions/fan";
 import { useArtist } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
 import { Masthead } from "@/components/fan/Masthead";
 import { Icon } from "@/components/icons";
+import { thumb } from "@/lib/thumb";
 import { FaceCamera } from "./FaceCamera";
 import type { FinderEvent } from "./PhotoFinderFlow";
 import s from "./PhotoFinderFlow.module.css";
 
 type Stage = "idle" | "searching" | "found" | "none";
 type Photo = { id: string; src: string };
+
+/** Fotos por vez na grade: as próximas entram quando o fã chega perto do fim (rolagem infinita). */
+const PAGE = 12;
 
 /**
  * Photo Finder de verdade: o fã envia uma selfie e o servidor procura o rosto nas fotos oficiais do show
@@ -29,6 +33,8 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [shown, setShown] = useState(PAGE);
+  const more = useRef<HTMLDivElement>(null);
   const [camera, setCamera] = useState(false);
 
   // Solta a prévia da selfie ao trocar ou sair.
@@ -50,12 +56,28 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
     };
   }, [slug, ev]);
 
+  // Rolagem infinita: quando o fim da grade chega perto da tela, mostra mais um lote. O observador é refeito a cada
+  // lote, então, se o fim ainda estiver à vista (tela alta), ele já pede o próximo.
+  useEffect(() => {
+    const el = more.current;
+    if (stage !== "found" || !el || shown >= photos.length || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([en]) => {
+        if (en?.isIntersecting) setShown((n) => Math.min(n + PAGE, photos.length));
+      },
+      { rootMargin: "0px 0px 600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [stage, shown, photos.length]);
+
   function reset() {
     setStage("idle");
     setSelfie(null);
     setPreview(null);
     setError("");
     setPhotos([]);
+    setShown(PAGE);
   }
 
   function onFile(e: ChangeEvent<HTMLInputElement>) {
@@ -90,6 +112,7 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
       return setError(res.error);
     }
     setPhotos(res.data.matches);
+    setShown(PAGE);
     setStage(res.data.matches.length > 0 ? "found" : "none");
   }
 
@@ -197,10 +220,10 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
               </button>
             </div>
             <div className={s.grid}>
-              {photos.map((p) => (
+              {photos.slice(0, shown).map((p) => (
                 <figure key={p.id} className={s.shot}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- foto oficial do show */}
-                  <img src={p.src} alt="Foto do show em que você aparece" loading="lazy" />
+                  <img src={thumb(p.src, 200)} alt="Foto do show em que você aparece" loading="lazy" decoding="async" />
                   <span className={s.wm}>
                     <Mark size={22} />
                   </span>
@@ -210,6 +233,16 @@ export function LivePhotoFinder({ shows, initial }: { shows: FinderEvent[]; init
                 </figure>
               ))}
             </div>
+            {shown < photos.length && (
+              <div ref={more} className="grid justify-items-center gap-2 py-4">
+                <span className="mono">
+                  {shown} de {photos.length} fotos
+                </span>
+                <button type="button" className="btn btn-outline" onClick={() => setShown((n) => Math.min(n + PAGE, photos.length))}>
+                  Ver mais fotos
+                </button>
+              </div>
+            )}
           </>
         )}
 
