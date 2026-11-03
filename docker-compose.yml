@@ -48,6 +48,8 @@ services:
       INSTAGRAM_ENABLED: ${INSTAGRAM_ENABLED:-false}
       INSTAGRAM_USER_ID: ${INSTAGRAM_USER_ID:-}
       INSTAGRAM_ACCESS_TOKEN: ${INSTAGRAM_ACCESS_TOKEN:-}
+      # Outros ambientes que o ranking pontua além do Vintage Culture (ex.: "departamento"); exige o back com essa opção.
+      INSTAGRAM_MORE_ARTISTS: ${INSTAGRAM_MORE_ARTISTS:-}
       # Revenda de ingressos: sem as duas chaves ela responde 503 (o resto do app não é afetado).
       RESALE_PII_KEY: ${RESALE_PII_KEY:-}
       RESALE_PEPPER: ${RESALE_PEPPER:-}
