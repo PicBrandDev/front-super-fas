@@ -1,12 +1,11 @@
 "use client";
 
 import { Icon } from "@/components/icons";
-import { EXPERIENCES, PHOTO_FINDER_NOTE } from "@/lib/experiences";
+import { PHOTO_FINDER_NOTE, experienceHint } from "@/lib/experiences";
 import { formatBRL } from "@/lib/format";
 import type { PackageChoice } from "@/lib/package-choice";
 import type { EventPackage } from "@/lib/types";
-
-const hintOf = (key: string) => EXPERIENCES.find((e) => e.key === key)?.hint ?? "";
+import { useBrand } from "./ArtistContext";
 
 /**
  * Experiências à venda no show. Não se vende ingresso aqui (a ticketeira faz isso): o fã leva só o transfer, só uma
@@ -25,6 +24,8 @@ export function PackagePicker({
   onToggleAddon: (packageId: string, key: string) => void;
   labelledBy?: string;
 }) {
+  const { short } = useBrand();
+  const hintOf = (key: string) => experienceHint(key, short);
   const several = packages.length > 1;
 
   return (

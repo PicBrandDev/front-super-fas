@@ -6,6 +6,7 @@
  * As páginas não precisam saber de onde vem.
  */
 import { cookies } from "next/headers";
+import { brandFor } from "./brands";
 import { normalizeTheme } from "./themes";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { SESSION_COOKIE, verifySession, type Session } from "./auth";
@@ -106,10 +107,20 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   return fetch(`${API_URL}${path}`, { ...init, headers, cache: "no-store" });
 }
 
+/** Modo exemplo: os dados de ./mock são do Vintage Culture; noutro ambiente o nome do artista vira o dele. */
+function mockFor<T>(path: string, data: T): T {
+  const slug = path.match(/^\/artists\/([^/?]+)/)?.[1] ?? new URLSearchParams(path.split("?")[1] ?? "").get("artist");
+  const other = slug && slug !== "vintage-culture" ? mock.artists.find((a) => a.slug === slug) : null;
+  // Anúncios de exemplo são de marcas reais (ex.: "Toxic: Vintage Culture x Departamento"): ficam como estão.
+  if (!other || data == null || path.includes("/ads")) return data;
+  const json = JSON.stringify(data).replaceAll("Vintage Culture", other.name).replaceAll("Vintage", brandFor(other.slug).short);
+  return JSON.parse(json) as T;
+}
+
 async function get<T>(path: string, fallback: () => T, opts: { notFound?: T } = {}): Promise<T> {
   if (!API_URL) {
     await token();
-    return fallback();
+    return mockFor(path, fallback());
   }
   const res = await request(path);
   if (res.status === 401) redirect("/login");
@@ -183,7 +194,7 @@ function errorMessage(data: unknown, status: number): string {
 // ---------- Ambientes de artista ----------
 
 /** GET /artists */
-const withTheme = (a: Artist): Artist => ({ ...a, theme: normalizeTheme(a.theme) });
+const withTheme = (a: Artist): Artist => ({ ...a, theme: normalizeTheme(a.theme, brandFor(a.slug).theme) });
 
 export const listArtists = () => get<Artist[]>("/artists", () => mock.artists).then((as) => as.map(withTheme));
 

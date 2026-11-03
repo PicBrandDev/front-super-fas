@@ -12,5 +12,9 @@ export const EXPERIENCES: { key: ExperienceKey; label: string; hint: string }[] 
 
 export const experienceLabel = (key: string) => EXPERIENCES.find((e) => e.key === key)?.label ?? key;
 
+/** Dica da experiência com o nome curto do artista do ambiente ("foto com o Departamento no show"). */
+export const experienceHint = (key: string, short = "Vintage") =>
+  (EXPERIENCES.find((e) => e.key === key)?.hint ?? "").replace("o Vintage", `o ${short}`);
+
 /** Texto fixo mostrado em todos os pacotes. */
 export const PHOTO_FINDER_NOTE = "Photo Finder incluso: depois do show, mande uma selfie no app e retire as suas fotos.";

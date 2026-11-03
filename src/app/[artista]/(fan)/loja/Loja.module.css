@@ -76,3 +76,23 @@
   color: var(--fc-bg);
   border-color: var(--fc-fg);
 }
+
+/* DEPARTAMENTO: foto de produto sobre papel, canto vivo; nome 1-800-<ITEM> em grotesca 900. */
+:global([data-brand="departamento"]) .img,
+:global([data-brand="departamento"]) .bag b {
+  border-radius: 0;
+}
+:global([data-brand="departamento"]) .prod h3 {
+  font: 900 16px/18px var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+:global([data-brand="departamento"]) .price {
+  font-weight: 800;
+  color: var(--fc-fg);
+}
+:global([data-brand="departamento"]) .bag {
+  font: 700 11px/14px var(--fc-font-grotesk);
+  letter-spacing: 0.06em;
+}

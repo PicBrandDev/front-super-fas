@@ -57,3 +57,20 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* DEPARTAMENTO: lâmina de data em papel branco com o número azul; nome em grotesca 900 caixa alta. */
+:global([data-brand="departamento"]) .slab:not(.past) {
+  background: var(--fc-paper);
+  color: var(--fc-amber);
+}
+:global([data-brand="departamento"]) .slab:not(.past) :global(.mono) {
+  color: var(--fc-amber);
+}
+:global([data-brand="departamento"]) .slab .d {
+  letter-spacing: -0.05em;
+}
+:global([data-brand="departamento"]) .name {
+  font: 900 21px/22px var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}

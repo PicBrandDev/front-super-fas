@@ -200,3 +200,16 @@
     transform: none;
   }
 }
+
+/* DEPARTAMENTO: lâmina de papel branco com tinta azul (texto preto sobre azul não passa em contraste). */
+:global([data-brand="departamento"]) .ehero {
+  background: var(--fc-paper);
+  color: var(--fc-amber);
+}
+:global([data-brand="departamento"]) .ehero :global(.mono) {
+  color: var(--fc-amber);
+}
+:global([data-brand="departamento"]) .ehero .m {
+  font-weight: 900;
+  letter-spacing: -0.035em;
+}

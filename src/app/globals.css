@@ -701,6 +701,122 @@ body {
   }
 }
 
+/*
+ * DEPARTAMENTO (data-brand no wrapper do FanShell; pele em src/lib/brands.ts).
+ * Mesmo vocabulário de componentes, outra identidade: canto vivo (raio 0, 2px só em input),
+ * grotesca 900 em caixa alta no lugar da serifa, legendas em grotesca (a máquina de escrever
+ * fica só para metadados), acento = inversão e "esgotado/últimos lotes" em caixa de contorno duplo.
+ */
+.fan[data-brand="departamento"] {
+  --radius-hair: 0px;
+  --radius-field: 2px;
+  --radius-device: 0px;
+}
+@layer components {
+  .fan[data-brand="departamento"] .btn,
+  .fan[data-brand="departamento"] .tag,
+  .fan[data-brand="departamento"] .deck,
+  .fan[data-brand="departamento"] .key,
+  .fan[data-brand="departamento"] .toast,
+  .fan[data-brand="departamento"] .sheet {
+    border-radius: 0;
+  }
+  .fan[data-brand="departamento"] .field {
+    border-radius: 2px;
+    font-weight: 500;
+  }
+  .fan[data-brand="departamento"] .btn {
+    font-weight: 800;
+  }
+  .fan[data-brand="departamento"] .btn-primary {
+    border-color: var(--fc-amber);
+  }
+  .fan[data-brand="departamento"] .btn-primary:hover {
+    background: var(--fc-bg);
+    color: var(--fc-amber-text);
+    border-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="departamento"] .btn-primary:active {
+    transform: none;
+  }
+  .fan[data-brand="departamento"] .mono {
+    font: 700 11px/14px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="departamento"] .poster {
+    font-weight: 900;
+    letter-spacing: -0.035em;
+  }
+  .fan[data-brand="departamento"] .serif,
+  .fan[data-brand="departamento"] .font-display {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.035em;
+  }
+  .fan[data-brand="departamento"] .tag {
+    font: 700 11px/12px var(--fc-font-grotesk);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="departamento"] .tag-hot {
+    margin: 3px;
+    border-color: currentColor;
+    outline: 1px solid currentColor;
+    outline-offset: 2px;
+    color: var(--fc-fg);
+    font-weight: 800;
+  }
+  .fan[data-brand="departamento"] .tag-key {
+    border-color: var(--fc-fg);
+    background: var(--fc-fg);
+    color: var(--fc-bg);
+  }
+  .fan[data-brand="departamento"] .act {
+    font: 700 12px/14px var(--fc-font-grotesk);
+    letter-spacing: 0.02em;
+    color: var(--fc-fg-muted);
+  }
+  .fan[data-brand="departamento"] .act:hover,
+  .fan[data-brand="departamento"] .act[aria-pressed="true"].like,
+  .fan[data-brand="departamento"] .act[aria-pressed="true"].rp {
+    color: var(--fc-fg);
+  }
+  .fan[data-brand="departamento"] .act[aria-pressed="true"].like svg {
+    fill: var(--fc-fg);
+  }
+  .fan[data-brand="departamento"] .avatar {
+    font: 700 11px/1 var(--fc-font-grotesk);
+    letter-spacing: 0.04em;
+  }
+  .fan[data-brand="departamento"] .go,
+  .fan[data-brand="departamento"] .ok {
+    font-weight: 800;
+  }
+  .fan[data-brand="departamento"] .tab[aria-selected="true"],
+  .fan[data-brand="departamento"] .tab[aria-current="page"] {
+    border-bottom-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="departamento"] .mast-word {
+    font-weight: 900;
+    letter-spacing: -0.035em;
+  }
+  .fan[data-brand="departamento"] .key[aria-current="page"]::after {
+    background: var(--fc-amber-text);
+  }
+  .fan[data-brand="departamento"] .scrim {
+    background: color-mix(in srgb, var(--fc-ink) 72%, transparent);
+  }
+  .fan[data-brand="departamento"] .sheet h2 {
+    font: 900 38px/0.92 var(--fc-font-grotesk);
+    text-transform: uppercase;
+    letter-spacing: -0.035em;
+    color: var(--fc-fg);
+  }
+  .fan[data-brand="departamento"] .sheet .opt strong {
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+}
+
 @keyframes fan-up {
   from {
     transform: translateY(24px);

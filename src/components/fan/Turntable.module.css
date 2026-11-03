@@ -75,3 +75,14 @@
 .playing .ledR {
   fill: var(--led-red-off);
 }
+
+/* Roda do Departamento: tinta branca sobre o campo, segmento do prêmio em inversão. */
+.star .trk text {
+  fill: var(--fc-paper);
+}
+.star .trk.on path {
+  fill: var(--fc-paper);
+}
+.star .trk.on text {
+  fill: var(--fc-on-amber);
+}

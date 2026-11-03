@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { claimInstagramShare, startInstagramShare, type ShareInfo } from "@/app/actions/fan";
-import { useArtist } from "./ArtistContext";
+import { useArtist, useBrand } from "./ArtistContext";
 import { Sheet } from "./Sheet";
 import { useToast } from "./Toast";
 import { Icon } from "@/components/icons";
@@ -13,7 +13,6 @@ import type { Post } from "@/lib/types";
 
 type Step = "info" | "won" | "capped";
 
-const HASHTAG = "EuSouUmSuperFaDoVintage";
 const GO_MS = 2200; // quanto tempo a mensagem do giro fica antes de levar à roleta
 
 /**
@@ -32,6 +31,8 @@ export function ShareInstagram({
   kind?: "post" | "track";
 }) {
   const { base, slug, name: artistName } = useArtist();
+  const brand = useBrand();
+  const HASHTAG = brand.hashtag;
   const toast = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -65,6 +66,7 @@ export function ShareInstagram({
             hashtag: data.hashtag,
             code: data.code,
             artistName,
+            brand: brand.key,
           });
           made[format] = { file: new File([blob], `${slug}-${format}.jpg`, { type: "image/jpeg" }), url: URL.createObjectURL(blob) };
         } catch {
@@ -190,7 +192,7 @@ export function ShareInstagram({
     setStep(res.ok && !res.data.spinGranted ? "capped" : "won");
   }
 
-  const titles: Record<Step, string> = { info: "Seja o Fã Super do Vintage", won: "Você ganhou 1 giro na roleta!", capped: "Compartilhamento registrado" };
+  const titles: Record<Step, string> = { info: `Seja o ${brand.superFan}`, won: "Você ganhou 1 giro na roleta!", capped: "Compartilhamento registrado" };
 
   return (
     <>
@@ -203,7 +205,7 @@ export function ShareInstagram({
         {step === "info" && (
           <>
             <p>
-              Você pode ser o <strong>primeiro do ranking de Fã Super do Vintage</strong> repostando {kind === "track" ? "este drop" : "este post"} do
+              Você pode ser o <strong>primeiro do ranking de {brand.superFan}</strong> repostando {kind === "track" ? "este drop" : "este post"} do
               aplicativo no seu Instagram.
             </p>
             <p>

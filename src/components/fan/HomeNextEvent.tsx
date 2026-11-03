@@ -25,7 +25,7 @@ const statusTag: Record<ShowEvent["status"], { label: string; cls: string }> = {
  * Sem experiências, o cartão abre a tela do show.
  */
 export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; packages: EventPackage[]; demo: boolean }) {
-  const { base } = useArtist();
+  const { base, name } = useArtist();
   const [open, setOpen] = useState(false);
   const [brinde, setBrinde] = useState(false);
   const [choice, setChoice] = useState<PackageChoice | null>(null);
@@ -110,7 +110,7 @@ export function HomeNextEvent({ event, packages, demo }: { event: ShowEvent; pac
       <BrindeFlow
         open={brinde && !!picked}
         onClose={() => setBrinde(false)}
-        event={{ id: event.id, title: `Vintage Culture em ${event.city}`, city: event.city, day: event.day, month: event.month }}
+        event={{ id: event.id, title: `${name} em ${event.city}`, city: event.city, day: event.day, month: event.month }}
         picked={picked}
         choice={choice}
         onRemoveAddon={(key) => setChoice((c) => (c ? toggleAddon(c, c.id, key) : c))}

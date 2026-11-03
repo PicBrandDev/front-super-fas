@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { MARK_POINTS } from "./Mark";
+import { MARK_POINTS, STAR_D } from "./mark-shape";
 import s from "./Turntable.module.css";
 
 /**
@@ -43,16 +43,22 @@ export const stylusTheta = (() => {
   return (Math.atan2(x - TT.cx, -(y - TT.cy)) * 180) / Math.PI + 360;
 })() % 360;
 
-/** Ângulo do disco que deixa a fatia `index` (de `count`) embaixo da agulha. */
-export const recordAngleFor = (index: number, count: number) => norm(stylusTheta - index * (360 / Math.max(count, 1)));
+/** Desenho da roleta: o toca-discos (Vintage) ou a roda de linhas com ponteiro-estrela no topo (Departamento). */
+export type WheelVariant = "turntable" | "star";
+
+/** Ângulo do disco que deixa a fatia `index` (de `count`) embaixo da agulha (ou da estrela, no topo). */
+export const recordAngleFor = (index: number, count: number, variant: WheelVariant = "turntable") =>
+  norm((variant === "star" ? 0 : stylusTheta) - index * (360 / Math.max(count, 1)));
 
 /** Prêmios do protótipo (usados quando a API não manda a lista). */
 export const PRIZES = ["Camiseta", "Boné", "Pôster", "Vinil", "Ingresso", "Adesivo", "Tente de novo", "Pulseira"];
 
 /** Atalho de `recordAngleFor` com os prêmios do protótipo (cartaz do Mural). */
-export const recAngleFor = (i: number, n = PRIZES.length) => recordAngleFor(i, n);
+export const recAngleFor = (i: number, n = PRIZES.length, variant: WheelVariant = "turntable") => recordAngleFor(i, n, variant);
 
 export type TurntableProps = {
+  /** `star`: a roda do Departamento (sem braço nem deck; `arm`, `deck`, `vu`, `volume` e `playing` não se aplicam). */
+  variant?: WheelVariant;
   prizes: string[];
   deck?: boolean;
   on?: number;
@@ -87,7 +93,108 @@ const origin = (x: number, y: number, deg: number): CSSProperties => ({
   transform: `rotate(${deg}deg)`,
 });
 
-export function Turntable({
+export function Turntable({ variant = "turntable", ...props }: TurntableProps) {
+  return variant === "star" ? <StarWheel {...props} /> : <Deck {...props} />;
+}
+
+/**
+ * Roleta do Departamento (porte de `wheel()` do protótipo da identidade): roda de linhas
+ * brancas sobre o campo, régua de 80 traços, um segmento cheio no prêmio, selo do globo
+ * no centro e a estrela no topo como ponteiro. O campo do selo é `--wheel-field` (padrão: o fundo).
+ * TODO oficial: o selo do globo é reconstrução do selo das costas do moletom (GAPS G-01).
+ */
+const SW = { cx: 180, cy: 192, r: 156, ri: 64 };
+
+function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", className = "" }: Omit<TurntableProps, "variant">) {
+  const { cx, cy, r, ri } = SW;
+  const n = Math.max(prizes.length, 1);
+  const step = 360 / n;
+  const P = (a: number, rr: number): [number, number] => {
+    const t = ((a - 90) * Math.PI) / 180;
+    return [+(cx + rr * Math.cos(t)).toFixed(2), +(cy + rr * Math.sin(t)).toFixed(2)];
+  };
+  const ring = (a0: number, a1: number, r0: number, r1: number) => {
+    const [x0, y0] = P(a0, r1);
+    const [x1, y1] = P(a1, r1);
+    const [x2, y2] = P(a1, r0);
+    const [x3, y3] = P(a0, r0);
+    return `M${x0} ${y0}A${r1} ${r1} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`;
+  };
+  const ticks = Array.from({ length: 80 }, (_, k) => {
+    const [x0, y0] = P(k * 4.5, r - 9);
+    const [x1, y1] = P(k * 4.5, r - (k % 10 === 0 ? 1 : 5));
+    return { x0, y0, x1, y1 };
+  });
+  const paper = "var(--fc-paper)";
+  const arcId = `${prefix}Arc`;
+
+  return (
+    <svg
+      className={`${s.tt} ${s.star} tt ${className}`}
+      viewBox="0 0 360 360"
+      role={live ? "img" : undefined}
+      aria-label={live ? `Roleta com ${n} prêmios; a estrela no topo aponta o prêmio` : undefined}
+      aria-hidden={live ? undefined : true}
+      focusable="false"
+    >
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={paper} strokeWidth="2" />
+      <circle cx={cx} cy={cy} r={r - 9} fill="none" stroke={paper} strokeWidth="1" />
+      <g id={`${prefix}Rec`} className={`${s.rec} rec`} style={origin(cx, cy, rot)}>
+        {ticks.map((t, k) => (
+          <line key={k} x1={t.x0} y1={t.y0} x2={t.x1} y2={t.y1} stroke={paper} strokeWidth="1" />
+        ))}
+        {prizes.map((label, i) => {
+          const a = i * step;
+          const [x0, y0] = P(a - step / 2, ri);
+          const [x1, y1] = P(a - step / 2, r - 9);
+          return (
+            <g key={i}>
+              <g className={`${s.trk} trk${i === on ? ` ${s.on} on` : ""}`} data-i={i}>
+                <path d={ring(a - step / 2, a + step / 2, ri, r - 9)} />
+                <text
+                  transform={`rotate(${a} ${cx} ${cy}) translate(${cx} ${cy - r + 34})`}
+                  textAnchor="middle"
+                  fontWeight="800"
+                  fontSize={label.length > 9 ? 10 : 12}
+                  letterSpacing=".5"
+                  style={grotesk}
+                >
+                  {label.toUpperCase()}
+                </text>
+              </g>
+              <line x1={x0} y1={y0} x2={x1} y2={y1} stroke={paper} strokeWidth="1" />
+            </g>
+          );
+        })}
+      </g>
+      {/* selo do globo */}
+      <circle cx={cx} cy={cy} r={ri} fill="var(--wheel-field, var(--fc-bg))" stroke={paper} strokeWidth="1" />
+      <circle cx={cx} cy={cy} r="56" fill="none" stroke={paper} strokeWidth="2" />
+      <circle cx={cx} cy={cy} r="33" fill="none" stroke={paper} strokeWidth="1" />
+      <path id={arcId} d={`M${cx - 44} ${cy}a44 44 0 1 1 88 0a44 44 0 1 1 -88 0`} fill="none" />
+      <text fontWeight="800" fontSize="8.4" fill={paper} style={grotesk}>
+        <textPath href={`#${arcId}`} textLength="262" lengthAdjust="spacing">
+          TROUBLE DANCING? · 1-800-DEPARTAMENTO ·
+        </textPath>
+      </text>
+      <circle cx={cx} cy={cy} r="24" fill="none" stroke={paper} strokeWidth="1.2" />
+      {[9, 18].map((rx) => (
+        <ellipse key={rx} cx={cx} cy={cy} rx={rx} ry="24" fill="none" stroke={paper} strokeWidth="1" />
+      ))}
+      <line x1={cx} y1={cy - 24} x2={cx} y2={cy + 24} stroke={paper} strokeWidth="1" />
+      {[-14, 0, 14].map((dy) => {
+        const hw = Math.sqrt(24 * 24 - dy * dy);
+        return <line key={dy} x1={+(cx - hw).toFixed(2)} y1={cy + dy} x2={+(cx + hw).toFixed(2)} y2={cy + dy} stroke={paper} strokeWidth="1" />;
+      })}
+      {/* ponteiro */}
+      <g transform={`translate(${cx - 29} 6) scale(.58)`} fill={paper}>
+        <path d={STAR_D} />
+      </g>
+    </svg>
+  );
+}
+
+function Deck({
   prizes,
   deck = true,
   on = -1,
@@ -99,7 +206,7 @@ export function Turntable({
   playing = false,
   vu = -46,
   volume = -120,
-}: TurntableProps) {
+}: Omit<TurntableProps, "variant">) {
   const c = TT;
   const n = Math.max(prizes.length, 1);
   const step = 360 / n;

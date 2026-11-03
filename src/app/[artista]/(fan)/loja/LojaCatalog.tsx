@@ -12,7 +12,7 @@ import {
   type StoreOrder,
   type StoreQuote,
 } from "@/app/actions/fan";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useArtist, useBrand } from "@/components/fan/ArtistContext";
 import { Masthead } from "@/components/fan/Masthead";
 import { NO_CARD, PaymentFields, cardError, payLabel, type Card, type Method } from "@/components/fan/PaymentFields";
 import { Sheet } from "@/components/fan/Sheet";
@@ -62,6 +62,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
   const [installments, setInstallments] = useState(1);
   const [quote, setQuote] = useState<StoreQuote | null>(null);
   const { base, slug } = useArtist();
+  const { store } = useBrand();
   const router = useRouter();
 
   const byId = new Map(products.map((p) => [p.id, p]));
@@ -144,7 +145,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
 
   return (
     <>
-      <Masthead word="Vintage" label="Loja Vintage" tone="lagoon-deep" steps={3} index={TABS.findIndex((t) => t.id === tab)} />
+      <Masthead word={store.word} label={store.name} tone={store.mastTone} steps={3} index={TABS.findIndex((t) => t.id === tab)} />
       <Tabs
         tabs={TABS}
         value={tab}
@@ -218,7 +219,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
             )}
             <p>
               {done.delivery === "pickup"
-                ? "Retire na lojinha do Vintage, no show, mostrando o código do pedido e um documento com foto."
+                ? `Retire na ${store.pickupPlace}, no show, mostrando o código do pedido e um documento com foto.`
                 : "Seu pedido será enviado para o endereço informado. Você acompanha o código do pedido em Pedidos."}
             </p>
             <span className="tag tag-demo self-start">Simulação</span>
@@ -320,7 +321,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
               <legend className="mono mb-1 p-0">Como receber</legend>
               {(
                 [
-                  ["pickup", "Retirar na lojinha do Vintage", "Grátis · no show, com o código do pedido"],
+                  ["pickup", `Retirar na ${store.pickupPlace}`, "Grátis · no show, com o código do pedido"],
                   ["ship", "Receber em casa", `${formatBRL(SHIPPING_CENTS)} · grátis acima de ${formatBRL(FREE_SHIPPING_FROM_CENTS)}`],
                 ] as const
               ).map(([key, label, sub]) => (

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { apiEnabled, getArtist, getEvents, getFeedAds, getMe, getPosts, getProducts, getTracks } from "@/lib/api";
+import { brandFor } from "@/lib/brands";
 import { isPastEvent } from "@/lib/events";
 import { mediaFor, productImage } from "@/lib/media";
 import { MuralView } from "./MuralView";
@@ -41,6 +42,7 @@ export default async function MuralPage({
     productImg: product ? productImage(artista, product, 0) : null,
     tracks,
     demo,
+    brand: brandFor(artista),
   });
   return <MuralView posters={posters} tracks={tracks} demo={demo} avatar={me?.avatar ?? null} initialTab={aba === "drops" ? "drops" : "wall"} feedAds={feedAds} />;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useArtist, useBrand } from "@/components/fan/ArtistContext";
 import { formatPoints, initialsOf } from "@/lib/format";
 import type { Ranking } from "@/lib/types";
 import { thumb } from "@/lib/thumb";
@@ -57,6 +57,7 @@ function Person({ row }: { row: Row }) {
  * Só conta o compartilhamento confirmado no Instagram com a hashtag.
  */
 export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope?: string[] }) {
+  const { hyperFans } = useBrand();
   // `scope` (dono de fã clube): só os rankings dos fã clubes dele, sem o geral.
   const scoped = ranking?.clubs.filter((c) => !scope || scope.includes(c.slug)) ?? [];
   const [board, setBoard] = useState<string | null>(scope ? (scoped[0]?.slug ?? null) : null); // null = geral
@@ -71,7 +72,7 @@ export function RankingView({ ranking, scope }: { ranking: Ranking | null; scope
     <div className="px-4 pb-8">
       <section aria-labelledby="rk-how" className="border-b border-line py-5">
         <h2 id="rk-how" className="m-0 font-display text-3xl font-black leading-8">
-          HyperFans do Vintage
+          {hyperFans}
         </h2>
         <p className="mb-0 mt-2">
           Compartilhe a <strong>#{ranking.hashtag}</strong> no seu Instagram e suba no ranking.

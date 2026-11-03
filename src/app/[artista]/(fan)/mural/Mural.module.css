@@ -385,3 +385,217 @@
     width: 100%;
   }
 }
+
+/* ---------- DEPARTAMENTO: campos A–E, duas tintas, grotesca 900 (o Mural fica no tema blue) ---------- */
+.dA,
+.dB,
+.dC,
+.dD,
+.dE {
+  /* no tema blue o fundo é o azul elétrico e on-amber também */
+  --electric: var(--fc-on-amber);
+}
+.dA .hl,
+.dB .hl,
+.dC .hl,
+.dD .hl,
+.dE .hl,
+.dB .q,
+.dC .mon {
+  font-family: var(--fc-font-grotesk);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+}
+.dcap {
+  position: absolute;
+  font: 700 max(11px, 2.9cqw) / 1.25 var(--fc-font-grotesk);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dcap :global(.tag) {
+  border-color: currentColor;
+  color: inherit;
+}
+.ml {
+  position: absolute;
+  font: 700 5.1cqw/1 var(--fc-font-grotesk);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dA {
+  background: var(--electric);
+  color: var(--fc-paper);
+}
+.dA .sleeve {
+  position: absolute;
+  left: 6cqw;
+  top: 8cqw;
+  width: 30cqw;
+}
+.dA .hl {
+  left: 3.5cqw;
+  bottom: 0;
+  font-size: var(--hl, 26cqw);
+  line-height: 0.86;
+}
+.dA .t1 {
+  right: 4.5cqw;
+  top: 4.5cqw;
+}
+.dA .t2 {
+  right: 4.5cqw;
+  top: 30cqw;
+  text-align: right;
+}
+
+.dB {
+  background: var(--fc-paper);
+  color: var(--electric);
+}
+.dB .q {
+  position: absolute;
+  right: -3cqw;
+  bottom: -15cqw;
+  font-size: 100cqw;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+}
+.dB .hl {
+  left: 4.5cqw;
+  top: 13cqw;
+  font-size: var(--hl, 17cqw);
+  line-height: 0.88;
+}
+.dB .ml {
+  left: 4.5cqw;
+  top: 44.5cqw;
+}
+.dB .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+}
+.dB .t2 {
+  left: 4.5cqw;
+  bottom: 4.5cqw;
+}
+
+.dC {
+  background: var(--fc-ink);
+  color: var(--fc-paper);
+}
+.dC .hl {
+  left: -6cqw;
+  bottom: -14cqw;
+  font-size: 104cqw;
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+}
+.dC .mon {
+  position: absolute;
+  right: 4.5cqw;
+  top: 12cqw;
+  font-size: 24cqw;
+  line-height: 0.85;
+  text-align: right;
+}
+.dC .acc {
+  position: absolute;
+  right: 4.5cqw;
+  top: 35cqw;
+  width: 22cqw;
+  color: var(--electric);
+}
+.dC .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+}
+.dC .t2 {
+  right: 4.5cqw;
+  top: 46cqw;
+  text-align: right;
+}
+
+.dD {
+  --wheel-field: var(--fc-lagoon-deep);
+  background: var(--fc-lagoon-deep);
+  color: var(--fc-paper);
+}
+.dD :global(.tt) {
+  position: absolute;
+  left: -30cqw;
+  top: 30cqw;
+  width: 128cqw;
+  height: auto;
+}
+.dD .hl {
+  left: 4.5cqw;
+  top: 10cqw;
+  font-size: 17cqw;
+  line-height: 0.88;
+}
+.dD .ml {
+  left: 4.5cqw;
+  top: 26.5cqw;
+}
+.dD .t1 {
+  right: 4.5cqw;
+  top: 4.5cqw;
+}
+
+.dE {
+  background: var(--fc-mist);
+  color: var(--electric);
+}
+.dE .hl {
+  left: 3.5cqw;
+  top: 10cqw;
+  font-size: var(--hl, 21.5cqw);
+  line-height: 0.86;
+}
+.dE .prod {
+  position: absolute;
+  right: -12cqw;
+  bottom: -8cqw;
+  width: 84cqw;
+  height: auto;
+  max-width: none;
+  mix-blend-mode: multiply;
+}
+.dE .t1 {
+  left: 4.5cqw;
+  top: 4.5cqw;
+}
+.dE .t2 {
+  left: 4.5cqw;
+  bottom: 4.5cqw;
+}
+
+/* corte curto: o título entra pela borda que o corta (≤160ms) */
+.in .dA .hl,
+.in .dE .hl {
+  animation: inR 0.16s var(--ease);
+}
+.in .dB .q {
+  animation: inB 0.16s var(--ease);
+}
+.in .dC .hl {
+  animation: inL 0.16s var(--ease);
+}
+.in .dD :global(.rec) {
+  animation: turnRec 0.6s var(--ease);
+}
+
+/* Drops: título grotesco em caixa alta */
+:global([data-brand="departamento"]) .drop h3 {
+  font: 900 26px/0.92 var(--fc-font-grotesk);
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+}
+:global([data-brand="departamento"]) .counter {
+  font: 400 12px/14px var(--fc-font-mono);
+  letter-spacing: 0.04em;
+}

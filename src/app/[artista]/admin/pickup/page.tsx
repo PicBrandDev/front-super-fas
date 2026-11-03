@@ -9,6 +9,7 @@ import type { PickupPrize } from "@/lib/types";
 import { HistoricoGiros } from "./HistoricoGiros";
 import { PrizeCard } from "./PrizeCard";
 import { Turntable, recordAngleFor } from "@/components/fan/Turntable";
+import { brandFor } from "@/lib/brands";
 import { kindStyle } from "./RoletaSvg";
 
 export const metadata: Metadata = { title: "PicKup" };
@@ -72,14 +73,15 @@ export default async function PickupAdminPage({ params }: { params: Promise<{ ar
             ) : (
               <div className="grid items-center gap-6 rounded-xl border border-adm-line bg-white p-5 md:grid-cols-[minmax(0,340px)_1fr]">
                 <div className="fan mx-auto w-full max-w-[360px] bg-transparent">
-                  {/* A mesma roleta (toca-discos) que o fã vê no app. */}
+                  {/* A mesma roleta (toca-discos ou roda com estrela) que o fã vê no app. */}
                   <Turntable
+                    variant={brandFor(artist.slug).wheel}
                     prizes={data.prizes.map((p) => p.label)}
                     deck
                     live
                     prefix="adm"
                     on={featuredIndex(data.prizes)}
-                    rot={recordAngleFor(featuredIndex(data.prizes), data.prizes.length)}
+                    rot={recordAngleFor(featuredIndex(data.prizes), data.prizes.length, brandFor(artist.slug).wheel)}
                     arm={0}
                   />
                 </div>

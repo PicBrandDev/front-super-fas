@@ -3,6 +3,8 @@
  * dos Stories (9:16) ou do Feed (4:5). O Instagram não aceita legenda ou hashtag pré-preenchidas por link, então a
  * hashtag vai dentro da própria imagem (e também na legenda copiada).
  */
+import type { BrandKey } from "./brands";
+
 export type ShareFormat = "story" | "feed";
 
 const SIZE: Record<ShareFormat, { w: number; h: number }> = {
@@ -10,10 +12,22 @@ const SIZE: Record<ShareFormat, { w: number; h: number }> = {
   feed: { w: 1080, h: 1350 },
 };
 
-const AMBER = "#FE9900";
-const BG = "#120907";
-const SERIF = '"Playfair Display", Georgia, "Times New Roman", serif';
 const SANS = 'Archivo, "Helvetica Neue", Arial, sans-serif';
+
+/** Cores e letra da arte de cada marca (canvas não lê as variáveis --fc-*). */
+type Look = { bg: string; warm: string; accent: string; fade: string; display: string; upper: boolean };
+const LOOKS: Record<BrandKey, Look> = {
+  vintage: {
+    bg: "#120907",
+    warm: "#3a1d0c",
+    accent: "#FE9900",
+    fade: "18,9,7",
+    display: '"Playfair Display", Georgia, "Times New Roman", serif',
+    upper: false,
+  },
+  // Departamento: campo azul elétrico chapado (sem degradê), tinta branca, grotesca em caixa alta.
+  departamento: { bg: "#0000FF", warm: "#0000FF", accent: "#FFFFFF", fade: "16,16,16", display: SANS, upper: true },
+};
 
 async function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
@@ -54,6 +68,7 @@ export async function buildShareArt({
   hashtag,
   code,
   artistName,
+  brand = "vintage",
 }: {
   format: ShareFormat;
   imageSrc?: string | null;
@@ -61,8 +76,12 @@ export async function buildShareArt({
   hashtag: string;
   code: string;
   artistName: string;
+  brand?: BrandKey;
 }): Promise<Blob> {
   const { w, h } = SIZE[format];
+  const look = LOOKS[brand];
+  const BG = look.bg;
+  const SERIF = look.display;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -82,14 +101,14 @@ export async function buildShareArt({
   } else {
     // Sem foto: fundo quente e o texto do post em destaque.
     const g = ctx.createLinearGradient(0, 0, w, h);
-    g.addColorStop(0, "#3a1d0c");
+    g.addColorStop(0, look.warm);
     g.addColorStop(1, BG);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "#fff";
     ctx.font = `900 72px ${SERIF}`;
     ctx.textBaseline = "top";
-    const lines = wrap(ctx, text, w - 220, 8);
+    const lines = wrap(ctx, look.upper ? text.toUpperCase() : text, w - 220, 8);
     const top = Math.max(180, h * 0.14);
     lines.forEach((l, i) => ctx.fillText(l, 110, top + i * 92));
   }
@@ -97,9 +116,9 @@ export async function buildShareArt({
   // Degradê escuro embaixo para a hashtag ficar legível sobre qualquer foto.
   const fadeH = h * (format === "story" ? 0.42 : 0.5);
   const fade = ctx.createLinearGradient(0, h - fadeH, 0, h);
-  fade.addColorStop(0, "rgba(18,9,7,0)");
-  fade.addColorStop(0.55, "rgba(18,9,7,0.82)");
-  fade.addColorStop(1, "rgba(18,9,7,0.96)");
+  fade.addColorStop(0, `rgba(${look.fade},0)`);
+  fade.addColorStop(0.55, `rgba(${look.fade},0.82)`);
+  fade.addColorStop(1, `rgba(${look.fade},0.96)`);
   ctx.fillStyle = fade;
   ctx.fillRect(0, h - fadeH, w, fadeH);
 
@@ -120,7 +139,7 @@ export async function buildShareArt({
     size -= 4;
     ctx.font = `900 ${size}px ${SERIF}`;
   }
-  ctx.fillStyle = AMBER;
+  ctx.fillStyle = look.accent;
   ctx.fillText(tag, x, h - safeBottom - 130);
 
   ctx.fillStyle = "#fff";

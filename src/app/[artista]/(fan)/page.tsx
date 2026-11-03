@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/fan/states";
 import { Vinyl } from "@/components/fan/Vinyl";
 import { Icon } from "@/components/icons";
 import { apiEnabled, getArtist, getClubs, getEvents, getHomeAd, getPackages, getPrizes, getProducts, getTracks, getViewer } from "@/lib/api";
+import { brandFor } from "@/lib/brands";
 import { isPastEvent } from "@/lib/events";
 import { mediaFor, productImage } from "@/lib/media";
 import { thumb } from "@/lib/thumb";
@@ -45,6 +46,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
   if (!artist) notFound();
 
   const base = `/${artist.slug}`;
+  const brand = brandFor(artist.slug);
   const demo = !apiEnabled();
   const hero = mediaFor(artist.slug)?.hero ?? null;
   const first = viewer.name.split(" ")[0];
@@ -72,7 +74,33 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
       <HomeMuralSwitch base={base} current="inicio" />
       <Masthead word="Início" steps={1} />
 
-      {/* Cartaz de abertura: campo cinza, foto em multiply sangrando à direita, manchete cortada embaixo. */}
+      {brand.key === "departamento" ? (
+        /* Cartaz de abertura do Departamento (campo B): papel branco, tinta azul, "?" gigante cortado, sem foto. */
+        <div className="@container relative aspect-[4/5] overflow-hidden border-t border-line bg-paper text-amber">
+          <span className="absolute left-[4.5cqw] top-[4.5cqw] font-grotesk font-bold uppercase leading-[1.25] tracking-[0.06em]" style={{ fontSize: "max(11px, 2.9cqw)" }}>
+            {artist.name}
+          </span>
+          <div aria-hidden="true" className="poster absolute bottom-[-15cqw] right-[-3cqw] text-[100cqw] leading-[0.8] tracking-[-0.05em]">
+            ?
+          </div>
+          <div aria-hidden="true" className="poster absolute left-[4.5cqw] top-[13cqw] whitespace-nowrap text-[17cqw] leading-[0.88]">
+            {brand.motto.map((w, i) => (
+              <span key={i}>
+                {i > 0 && <br />}
+                {w}
+              </span>
+            ))}
+          </div>
+          <div aria-hidden="true" className="absolute left-[4.5cqw] top-[44.5cqw] whitespace-nowrap font-grotesk text-[5.1cqw] font-bold uppercase leading-none tracking-[0.02em]">
+            1-800-Departamento
+          </div>
+          <span className="absolute bottom-[4.5cqw] left-[4.5cqw] font-grotesk font-bold uppercase leading-[1.25] tracking-[0.06em]" style={{ fontSize: "max(11px, 2.9cqw)" }}>
+            Worldwide 2027 ®
+          </span>
+          <h2 className="sr-only">{brand.mottoText}</h2>
+        </div>
+      ) : (
+      /* Cartaz de abertura: campo cinza, foto em multiply sangrando à direita, manchete cortada embaixo. */
       <div className="@container relative aspect-[4/5] overflow-hidden border-t border-line bg-poster-grey text-ink">
         {hero && (
           <img
@@ -103,6 +131,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
           answer
         </div>
       </div>
+      )}
 
       {/* Faixa de leitura */}
       <div className="grid gap-1.5 px-4 pb-4 pt-3">
@@ -154,7 +183,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
       <Block title="PicKup da sorte">
         <div className="flex items-end justify-between gap-3">
           <div className="grid gap-2">
-            <p className="m-0 max-w-[24ch] text-[15px] leading-[22px]">Solte a agulha e concorra a brindes da fanzone.</p>
+            <p className="m-0 max-w-[24ch] text-[15px] leading-[22px]">{brand.pickup.lead}</p>
             {featured && <span className="mono">Destaque: {featured.label}</span>}
           </div>
           <Link href={`${base}/pickup`} className="btn btn-primary btn-sm">
@@ -192,7 +221,7 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
         )}
       </Block>
 
-      <Block title="Loja Vintage">
+      <Block title={brand.store.name}>
         {picks.length ? (
           <>
             <div className="grid grid-cols-2 gap-x-3 gap-y-6">
