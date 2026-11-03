@@ -54,6 +54,11 @@ services:
       RESALE_PAYMENT_PROVIDER: ${RESALE_PAYMENT_PROVIDER:-fake}
       RESALE_ALLOW_FAKE_PAYMENT: ${RESALE_ALLOW_FAKE_PAYMENT:-false}
       PRIVATE_UPLOAD_DIR: /data/private
+      # Bucket S3 das fotos enviadas (vazio = grava no volume uploads).
+      UPLOADS_S3_BUCKET: ${UPLOADS_S3_BUCKET:-}
+      UPLOADS_AWS_REGION: ${UPLOADS_AWS_REGION:-sa-east-1}
+      UPLOADS_AWS_ACCESS_KEY_ID: ${UPLOADS_AWS_ACCESS_KEY_ID:-}
+      UPLOADS_AWS_SECRET_ACCESS_KEY: ${UPLOADS_AWS_SECRET_ACCESS_KEY:-}
     volumes:
       - uploads:/data/uploads
       - private:/data/private
