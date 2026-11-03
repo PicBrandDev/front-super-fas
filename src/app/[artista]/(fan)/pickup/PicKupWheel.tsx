@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { spinPickup } from "@/app/actions/fan";
 import { AdModal } from "@/components/fan/AdModal";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useArtist, useBrand } from "@/components/fan/ArtistContext";
+import { Mark } from "@/components/fan/Mark";
 import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
@@ -53,13 +54,15 @@ export function PicKupWheel({
   claimAd?: InAppAd | null; // anúncio ao guardar o brinde ganho
 }) {
   const { base, slug } = useArtist();
+  const brand = useBrand();
+  const skin = brand.pickup;
   const { show: toast } = useToast();
   const n = prizes.length;
   const labels = prizes.map((p) => p.label);
   const featured = featuredIndex(prizes);
 
   const [on, setOn] = useState(n ? featured : -1);
-  const [rot, setRot] = useState(n ? recordAngleFor(featured, n) : 0);
+  const [rot, setRot] = useState(n ? recordAngleFor(featured, n, brand.wheel) : 0);
   const [arm, setArm] = useState(0);
   const [vu, setVu] = useState(-46);
   const [volume, setVolume] = useState(-120);
@@ -182,7 +185,7 @@ export function PicKupWheel({
       return;
     }
     const prize = prizes[idx];
-    const target = recordAngleFor(idx, n);
+    const target = recordAngleFor(idx, n, brand.wheel);
     const next = rotRef.current + 360 * 5 + ((target - norm(rotRef.current) + 360) % 360);
     rotRef.current = next;
 
@@ -249,19 +252,19 @@ export function PicKupWheel({
     }
   }, [toast, router, base]);
 
-  const keyLabel = spinning ? "Tocando" : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : "Girar o disco";
+  const keyLabel = spinning ? skin.keyBusy : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : skin.keyIdle;
   const lose = !!result && isLose(result);
   const noPrize = result?.kind === "none";
 
   return (
-    <div className={`${s.screen} bg-sun text-ink`}>
+    <div className={`${s.screen} ${skin.screen}`}>
       <div ref={mastBox}>
-        <Masthead word="PicKup" label="PicKup da sorte" tone="sun" shiftPx={mastShift} durationMs={mastMs} />
+        <Masthead word="PicKup" label="PicKup da sorte" tone={skin.mastTone} shiftPx={mastShift} durationMs={mastMs} />
       </div>
 
       <div className={s.plinth}>
         <div className={s.lead}>
-          <p>Solte a agulha e concorra a brindes da fanzone.</p>
+          <p>{skin.lead}</p>
           {n > 0 && (
             <span className="mono">
               Destaque
@@ -274,7 +277,7 @@ export function PicKupWheel({
         {!club && (
           <p className={s.note}>
             Para girar a roleta, entre em um fã clube.{" "}
-            <Link href={`${base}/clubes`} className="font-bold text-ink">
+            <Link href={`${base}/clubes`} className="font-bold text-inherit">
               Ver fã clubes
             </Link>
           </p>
@@ -284,6 +287,7 @@ export function PicKupWheel({
         {/* Em telas baixas (computador) o disco encolhe para a lista de giros e o botão de brindes caberem sem rolar. */}
         <div style={{ width: "min(100%, 40vh)", margin: "0 auto" }}>
           <Turntable
+            variant={brand.wheel}
             prizes={labels}
             deck
             live
@@ -298,7 +302,7 @@ export function PicKupWheel({
         </div>
 
         <button type="button" className={s.startkey} onClick={() => requestSpin()} disabled={cantSpin} aria-busy={spinning || undefined}>
-          <i className={s.led} aria-hidden="true" />
+          {brand.wheel === "star" ? <Mark size={28} /> : <i className={s.led} aria-hidden="true" />}
           <span>{keyLabel}</span>
         </button>
 
@@ -317,23 +321,23 @@ export function PicKupWheel({
 
         {club && n > 0 && credits.some((c) => !c.used) && (
           <section aria-labelledby="girosH" className="flex flex-col gap-1.5">
-            <h3 id="girosH" className="mono m-0 text-on-amber/75">
+            <h3 id="girosH" className={`mono m-0 ${skin.sub}`}>
               De onde vieram os seus giros
             </h3>
-            <ul className="m-0 flex list-none flex-col divide-y divide-on-amber/25 border-y border-on-amber/25 p-0 text-on-amber">
+            <ul className={`m-0 flex list-none flex-col divide-y border-y p-0 ${skin.list}`}>
               {credits
                 .filter((c) => !c.used)
                 .map((c) => (
                   <li key={c.id} className="flex items-baseline justify-between gap-3 py-2.5">
                     <strong className="min-w-0 text-[15px] leading-5">{c.reason}</strong>
-                    {c.date && <span className="mono flex-none text-on-amber/70">{c.date}</span>}
+                    {c.date && <span className={`mono flex-none ${skin.listDate}`}>{c.date}</span>}
                   </li>
                 ))}
             </ul>
           </section>
         )}
 
-        <Link href={`${base}/pickup/brindes`} className="btn btn-block flex items-center justify-center gap-2 border-2 border-on-amber bg-transparent text-on-amber no-underline">
+        <Link href={`${base}/pickup/brindes`} className={`btn btn-block flex items-center justify-center gap-2 border-2 bg-transparent no-underline ${skin.outline}`}>
           Meus brindes
           {rewardsCount + newRewards > 0 && <span className="tag tag-key">{rewardsCount + newRewards}</span>}
         </Link>
@@ -344,8 +348,8 @@ export function PicKupWheel({
           <>
             <p>
               {noPrize
-                ? "Desta vez a agulha não parou em nenhum brinde. Seus próximos giros continuam valendo."
-                : "A agulha parou em “tente de novo”. A roleta abre de novo na próxima rodada da fanzone."}
+                ? `Desta vez ${skin.pointer} não parou em nenhum brinde. Seus próximos giros continuam valendo.`
+                : `${skin.pointer[0].toUpperCase()}${skin.pointer.slice(1)} parou em “tente de novo”. A roleta abre de novo na próxima rodada da fanzone.`}
             </p>
             <button className="btn btn-primary" type="button" data-close data-autofocus>
               Fechar

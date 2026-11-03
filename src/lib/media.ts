@@ -10,8 +10,8 @@ import type { MediaImage, Post, Product } from "./types";
 export type { MediaImage };
 
 export type ArtistMedia = {
-  /** Foto do artista para o cartaz "Culture is the answer" e para o Início. */
-  hero: MediaImage;
+  /** Foto do artista para o cartaz "Culture is the answer" e para o Início (null: o artista não usa foto). */
+  hero: MediaImage | null;
   /** Fotos de imprensa para posts com imagem, Drop News e Photo Finder. */
   press: MediaImage[];
   /** Produtos por id da API/mock e, em fallback, por palavra do nome. */
@@ -61,16 +61,79 @@ export const media: Record<string, ArtistMedia> = {
     },
     productFallback: [teeLost, teeFind, teeBootleg, tee93, storeLost, storeFind, store1],
   },
+  departamento: dpMedia(),
 };
+
+/**
+ * Departamento: fotos oficiais de produto da loja Trouble Dancing? (departamento-fanzone-refs/06-store),
+ * peça centralizada sobre fundo chapado. Sem foto dos integrantes (política da pasta de identidade):
+ * o Início e o Mural usam cartaz de tipo, e os posts com foto ficam sem imagem até o press kit.
+ * TODO oficial: confirmar a licença das fotos de produto (GAPS G-03).
+ */
+function dpMedia(): ArtistMedia {
+  const dp = (file: string) => `/media/departamento/${file}`;
+  const tee: MediaImage = { src: dp("tee-blue-back.jpg"), alt: "Camiseta azul, costas com TROUBLE DANCING? e 1-800-DEPARTAMENTO" };
+  const teeWhite: MediaImage = { src: dp("tee-white-front.jpg"), alt: "Camiseta branca com a estrela azul no peito" };
+  const hoodieBlue: MediaImage = { src: dp("hoodie-blue-back.jpg"), alt: "Moletom azul, costas com o selo do globo e To dance and serve" };
+  const hoodie: MediaImage = { src: dp("hoodie-black-front.jpg"), alt: "Moletom preto com estrela branca no peito e cordão azul" };
+  const jersey: MediaImage = { src: dp("jersey-blue-front.jpg"), alt: "Jersey azul com estrela e selo no peito" };
+  const hat: MediaImage = { src: dp("hat-front.jpg"), alt: "Boné azul com patch TROUBLE DANCING? em caixa de contorno duplo" };
+  const scarf: MediaImage = { src: dp("scarf.jpg"), alt: "Lenço azul com estrelas e DEPARTAMENTO na diagonal" };
+  const purse: MediaImage = { src: dp("purse-a.jpg"), alt: "Bolsa azul acetinada com TROUBLE DANCING?" };
+  const tag: MediaImage = { src: dp("tag-front.jpg"), alt: "Fita-chaveiro azul com 1-800-DEPARTAMENTO" };
+  const bottle: MediaImage = { src: dp("bottle-a.jpg"), alt: "Garrafa azul-marinho com o selo do globo e cinco estrelas" };
+  const stickers: MediaImage = { src: dp("sticker-pack.jpg"), alt: "Embalagem holográfica com adesivos azuis" };
+  const vinyl: MediaImage = { src: dp("vinyl-secret-sleeve.jpg"), alt: "Capa quadrada azul com estrela branca no canto superior esquerdo" };
+  return {
+    hero: null,
+    press: [],
+    products: {
+      // nomes inteiros do catálogo (1-800-<ITEM>)
+      "1-800-t-shirt": tee,
+      "1-800-t-shirt-reverse": teeWhite,
+      "1-800-blue-hoodie": hoodieBlue,
+      "1-800-hoodie": hoodie,
+      "1-800-jersey": jersey,
+      "1-800-hat": hat,
+      "1-800-scarf": scarf,
+      "1-800-purse": purse,
+      "1-800-tag": tag,
+      "1-800-bottle-service": bottle,
+      "sticker pack": stickers,
+      "secret vinyl": vinyl,
+      // palavras do nome (API)
+      shirt: tee,
+      camiseta: tee,
+      hoodie,
+      moletom: hoodie,
+      jersey,
+      hat,
+      bone: hat,
+      scarf,
+      lenco: scarf,
+      purse,
+      bolsa: purse,
+      tag,
+      chaveiro: tag,
+      bottle,
+      garrafa: bottle,
+      sticker: stickers,
+      adesivos: stickers,
+      vinyl,
+      vinil: vinyl,
+    },
+    productFallback: [tee, hoodieBlue, hat, scarf, teeWhite, jersey, purse, vinyl],
+  };
+}
 
 export const mediaFor = (slug: string): ArtistMedia | null => media[slug] ?? null;
 
-/** Imagem de um produto: a da API, a do id/palavra do nome, ou uma da fila (pelo índice). */
+/** Imagem de um produto: a da API, a do id/nome inteiro/palavra do nome, ou uma da fila (pelo índice). */
 export function productImage(slug: string, product: Product, index = 0): MediaImage | null {
   if (product.image) return product.image;
   const m = mediaFor(slug);
   if (!m) return null;
-  const byId = m.products[product.id];
+  const byId = m.products[product.id] ?? m.products[product.name.trim().toLowerCase()];
   if (byId) return byId;
   const words = product.name.toLowerCase().split(/[^a-z0-9]+/);
   for (const w of words) if (w && m.products[w]) return m.products[w];

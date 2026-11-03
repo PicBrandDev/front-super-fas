@@ -2,6 +2,7 @@
  * Cartazes do Mural: dados prontos para o cliente, montados no servidor
  * (page.tsx) a partir da API. Sem imports de lib/api aqui.
  */
+import { brandByKey, type ArtistBrand } from "@/lib/brands";
 import type { MediaImage, Post, Product, ShowEvent, Track } from "@/lib/types";
 
 export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
@@ -63,6 +64,15 @@ const MONTHS: Record<string, string> = {
   dez: "dezembro",
 };
 
+/** Manchete da loja do Departamento: os itens se chamam `1-800-<ITEM>`; o número de serviço fica numa linha. */
+function storeHeadline(product: Product | null): string[] {
+  const name = product?.name.trim().toUpperCase() ?? "";
+  const m = name.match(/^1-800-(.+)$/);
+  if (!m) return ["1-800-", "Store"];
+  const item = m[1].split("-").filter(Boolean);
+  return ["1-800-", item[item.length - 1]];
+}
+
 export function buildPosters({
   artistName,
   drops,
@@ -72,6 +82,7 @@ export function buildPosters({
   productImg,
   tracks,
   demo,
+  brand = brandByKey("vintage"),
 }: {
   artistName: string;
   drops: Post[];
@@ -81,7 +92,10 @@ export function buildPosters({
   productImg: MediaImage | null;
   tracks: Track[];
   demo: boolean;
+  /** Pele do artista: assinatura, PicKup e loja mudam de voz (as funções dos cartazes são as mesmas). */
+  brand?: ArtistBrand;
 }): Poster[] {
+  const dp = brand.key === "departamento";
   const out: Poster[] = [];
   const molds: PosterKind[] = ["lost", "culture"];
   const ex = demo ? " · Exemplo" : "";
@@ -112,10 +126,10 @@ export function buildPosters({
       kind: "culture",
       cap: "Oficial",
       by: artistName,
-      text: "Culture is the answer.",
-      headline: ["Culture", "is", "the", "answer"],
-      credits: [artistName, "Fanzone"],
-      image: hero,
+      text: brand.mottoText,
+      headline: brand.motto,
+      credits: [artistName, dp ? "Worldwide 2027 ®" : "Fanzone"],
+      image: dp ? null : hero, // o Departamento não usa foto dos integrantes: o cartaz é tipo + "?"
       cta: null,
       likes: 5100,
       comments: 902,
@@ -149,9 +163,9 @@ export function buildPosters({
     kind: "pick",
     cap: "PicKup",
     by: "Fanzone",
-    text: "PicKup da sorte aberto para todos os fãs. Gira, concorre e vê o seu brinde na hora.",
-    headline: ["Tente", "a", "sorte"],
-    credits: ["PicKup da sorte"],
+    text: `${dp ? "PicKup" : "PicKup da sorte"} aberto para todos os fãs. Gira, concorre e vê o seu brinde na hora.`,
+    headline: dp ? ["PicKup"] : ["Tente", "a", "sorte"],
+    credits: dp ? ["Aberto", "Dancing Service"] : ["PicKup da sorte"],
     cta: { label: "Girar", href: "/pickup" },
     likes: 960,
     comments: 120,
@@ -163,9 +177,11 @@ export function buildPosters({
     kind: "store",
     cap: "Loja",
     by: "Fanzone",
-    text: `Loja VINTAGE na fanzone: a marca de ${artistName}, direto para o fan club.`,
-    headline: ["Vin", "tage"],
-    credits: ["Loja oficial" + ex, product?.name ?? "Fanzone"],
+    text: dp
+      ? `${product?.name ?? "A coleção"} na ${brand.store.name}: a marca de ${artistName}, direto para o fan club.`
+      : `Loja VINTAGE na fanzone: a marca de ${artistName}, direto para o fan club.`,
+    headline: dp ? storeHeadline(product) : ["Vin", "tage"],
+    credits: dp ? [brand.store.name + ex, product?.priceLabel ?? "Fanzone"] : ["Loja oficial" + ex, product?.name ?? "Fanzone"],
     image: productImg,
     cta: { label: "Ver loja", href: "/loja" },
     likes: 1200,

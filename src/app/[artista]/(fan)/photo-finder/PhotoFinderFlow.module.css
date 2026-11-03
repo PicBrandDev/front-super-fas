@@ -213,3 +213,17 @@
   height: 100%;
   object-fit: cover;
 }
+
+/* DEPARTAMENTO: campo preto (campo C) com tinta branca; azul como texto sobre escuro não passa em contraste. */
+:global([data-brand="departamento"]) .ph {
+  background: var(--fc-ink);
+  color: var(--fc-paper);
+}
+:global([data-brand="departamento"]) .ph .you {
+  color: var(--fc-paper);
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+}
+:global([data-brand="departamento"]) .scanline {
+  background: var(--fc-amber-text);
+}

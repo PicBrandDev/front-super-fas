@@ -8,6 +8,7 @@ import { DetalheHitDialog } from "@/components/admin/DetalheDialogs";
 import { ItemForm, type FieldDef, type Item } from "@/components/admin/ResourceManager";
 import { AdminNotice, btnPrimary } from "@/components/admin/ui";
 import { Vinyl } from "@/components/fan/Vinyl";
+import { brandKeyFor } from "@/lib/brands";
 import { Icon } from "@/components/icons";
 import { formatShort } from "@/lib/format";
 import s from "@/app/[artista]/(fan)/mural/Mural.module.css";
@@ -93,7 +94,7 @@ export function DropsAdmin({
             {tracks.map((t, i) => (
               <article key={t.id} className={s.drop}>
                 <div className={s.disc}>
-                  <Vinyl />
+                  <Vinyl brand={brandKeyFor(slug)} />
                 </div>
                 <div>
                   <h3>{t.title}</h3>

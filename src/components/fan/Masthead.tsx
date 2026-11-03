@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { useBrand } from "./ArtistContext";
 
 export type MastTone = "night" | "amber" | "sun" | "lagoon-deep" | "poster-grey";
 
 const tones: Record<MastTone, { bg: string; fg: string }> = {
   night: { bg: "var(--fc-bg)", fg: "var(--fc-fg)" },
-  amber: { bg: "var(--fc-amber)", fg: "var(--fc-ink)" },
+  amber: { bg: "var(--fc-amber)", fg: "var(--fc-on-amber)" },
   sun: { bg: "var(--fc-sun)", fg: "var(--fc-ink)" },
   "lagoon-deep": { bg: "var(--fc-lagoon-deep)", fg: "var(--fc-fg)" },
   "poster-grey": { bg: "var(--fc-poster-grey)", fg: "var(--fc-mist)" },
@@ -41,6 +42,7 @@ export function Masthead({
   durationMs?: number;
   className?: string;
 }) {
+  const brand = useBrand();
   const box = useRef<HTMLElement>(null);
   const wordRef = useRef<HTMLDivElement>(null);
   const width = useRef(0); // largura da palavra já ajustada
@@ -109,7 +111,8 @@ export function Masthead({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const { bg, fg } = tones[tone];
+  // Departamento não tem campo cinza: o tom vira o campo preto (campo C), com tinta branca.
+  const { bg, fg } = tones[brand.key === "departamento" && tone === "poster-grey" ? "night" : tone];
   return (
     <header ref={box} className={`mast ${className}`} style={{ background: bg, color: fg }}>
       <div ref={wordRef} className="mast-word" aria-hidden="true">

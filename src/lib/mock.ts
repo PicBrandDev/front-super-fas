@@ -3,7 +3,7 @@
  * Tudo que está entre colchetes ([PREÇO], [Local do evento]...) é para
  * ser preenchido com dados reais.
  */
-import { vintageTheme } from "./themes";
+import { departamentoTheme, vintageTheme } from "./themes";
 import type {
   FanClub,
   AdSlot,
@@ -38,6 +38,20 @@ export const artists: Artist[] = [
     members: "[n]",
     adSlotsSummary: "2 de 6 ocupadas",
     brandColor: "#FE9900",
+  },
+  {
+    id: "dp",
+    slug: "departamento",
+    name: "Departamento",
+    initial: "D",
+    fanClubName: "[Nome do fã clube]",
+    instagram: "@departamento____",
+    status: "active",
+    theme: departamentoTheme,
+    memberPriceCents: 1690,
+    members: "[n]",
+    adSlotsSummary: "2 de 6 ocupadas",
+    brandColor: "#0000FF",
   },
 ];
 

@@ -1,3 +1,4 @@
+import { brandKeyFor } from "@/lib/brands";
 import { themeStyle } from "@/lib/themes";
 import type { Artist, Viewer } from "@/lib/types";
 import type { InAppAd } from "@/lib/ads";
@@ -45,10 +46,15 @@ export function FanShell({
         viewer,
         otherFandoms,
         loggedIn: authEnabled(),
+        brand: brandKeyFor(artist.slug),
       }}
     >
       <ToastProvider>
-        <div style={themeStyle(artist.theme)} className="fan min-h-dvh bg-night font-grotesk text-base leading-6 text-fg lg:flex">
+        <div
+          style={themeStyle(artist.theme)}
+          data-brand={brandKeyFor(artist.slug)}
+          className="fan min-h-dvh bg-night font-grotesk text-base leading-6 text-fg lg:flex"
+        >
           <FanSidebar />
           <FanFrame avatar={avatar}>{children}</FanFrame>
           {entryAd && <EntryAd ad={entryAd} slug={artist.slug} fresh={freshLogin} />}

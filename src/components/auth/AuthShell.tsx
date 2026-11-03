@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PlatformBrand } from "@/components/PlatformBrand";
 import { Mark } from "@/components/fan/Mark";
+import { brandKeyFor } from "@/lib/brands";
 import { platform } from "@/lib/platform";
 import { themeStyle } from "@/lib/themes";
 import type { Artist } from "@/lib/types";
@@ -35,11 +36,12 @@ export function AuthShell({
       <AuthLookProvider look="artist">
         <main
           style={themeStyle(artist.theme)}
+          data-brand={brandKeyFor(artist.slug)}
           className="fan flex min-h-dvh flex-col items-center bg-night px-4 py-8 font-grotesk text-base leading-6 text-fg scheme-dark sm:justify-center sm:py-12"
         >
           <div className="flex w-full max-w-[420px] flex-col gap-8">
             <Link href={`/${artist.slug}`} className="flex min-h-11 items-center gap-3 self-start text-fg no-underline">
-              <Mark size={44} className="flex-none text-amber" />
+              <Mark size={44} brand={brandKeyFor(artist.slug)} className="flex-none text-amber-text" />
               <span className="flex min-w-0 flex-col gap-1">
                 <span className="poster text-[28px] leading-7">{artist.name}</span>
                 <span className="mono">Fã clube</span>

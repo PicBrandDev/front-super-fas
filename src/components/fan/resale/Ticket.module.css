@@ -370,3 +370,9 @@ a.ticket:focus-visible .compactBar {
   font-size: 14px;
   line-height: 20px;
 }
+
+/* DEPARTAMENTO: no campo azul a tinta é branca (preto sobre azul elétrico mede 2,21:1). */
+:global([data-brand="departamento"]) .ticket:not([data-field]) .face,
+:global([data-brand="departamento"]) .ticket[data-field="amber"] .face {
+  --on-field: var(--fc-on-amber);
+}

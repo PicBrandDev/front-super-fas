@@ -8,6 +8,7 @@ import { Masthead } from "@/components/fan/Masthead";
 import { Icon } from "@/components/icons";
 import { apiEnabled, getArtist, getClubs, getMyTickets, getProfile, getRanking, getSpinCredits, getViewer } from "@/lib/api";
 import { authEnabled, roleLabel, type Role } from "@/lib/auth";
+import { brandFor } from "@/lib/brands";
 import { isPastEvent } from "@/lib/events";
 import { formatBRL, formatPoints } from "@/lib/format";
 import { thumb } from "@/lib/thumb";
@@ -182,7 +183,7 @@ export default async function PerfilPage({ params }: { params: Promise<{ artista
         </Section>
 
         {ranking && (
-          <Section title="Fã Super do Vintage">
+          <Section title={brandFor(artista).superFan}>
             <dl className="m-0">
               <Row label="Posição no ranking" value={ranking.me.position ? `${ranking.me.position}º` : "—"} />
               <Row label="Pontos no ranking" value={formatPoints(ranking.me.points ?? ranking.me.shares)} />

@@ -3,6 +3,8 @@ import { AdminShell, clubNav } from "@/components/admin/AdminShell";
 import type { Artist } from "@/lib/types";
 import { getRankingLeaders, getSession } from "@/lib/api";
 import { LideresRanking } from "@/components/admin/LideresRanking";
+import { MONO_D, MONO_D_VIEWBOX } from "@/components/fan/mark-shape";
+import { brandFor } from "@/lib/brands";
 import { shellUser } from "@/lib/shell";
 import { themeStyle } from "@/lib/themes";
 
@@ -11,15 +13,23 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
   const session = await getSession();
   // O menu lateral mostra quem lidera o ranking de cada fã clube; se a API falhar, o painel abre sem o bloco.
   const leaders = await getRankingLeaders(artist.slug).catch(() => []);
+  const brand = brandFor(artist.slug);
   return (
     <AdminShell
       className="adm-noite"
       passwordHref={`/${artist.slug}/conta/senha`}
-      style={themeStyle(artist.theme)}
+      style={themeStyle(brand.adminTheme ?? artist.theme)}
       brand={{
-        // Vintage Culture usa o símbolo oficial (public/logo-vc.png, traço branco sobre transparente); os outros artistas, a inicial.
+        // Vintage Culture usa o símbolo oficial (public/logo-vc.png, traço branco sobre transparente); o Departamento,
+        // o monograma D em branco no quadrado azul; os outros artistas, a inicial.
         mark:
-          artist.slug === "vintage-culture" ? (
+          brand.key === "departamento" ? (
+            <span className="flex size-full items-center justify-center" style={{ background: artist.brandColor, color: "var(--fc-paper)" }}>
+              <svg width={24} viewBox={MONO_D_VIEWBOX} fill="currentColor" aria-hidden="true" focusable="false">
+                <path fillRule="evenodd" d={MONO_D} />
+              </svg>
+            </span>
+          ) : artist.slug === "vintage-culture" ? (
             <span className="flex size-full items-center justify-center rounded-hair border border-adm-side-line">
               {/* eslint-disable-next-line @next/next/no-img-element -- símbolo estático do artista */}
               <img src="/logo-vc.png" alt="" width={34} height={34} className="size-[26px] object-contain" />

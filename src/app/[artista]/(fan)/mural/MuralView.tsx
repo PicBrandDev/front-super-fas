@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useArtist, useBrand } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
 import { FeedAd } from "@/components/fan/FeedAd";
 import { HomeMuralSwitch } from "@/components/fan/HomeMuralSwitch";
@@ -261,6 +261,8 @@ export function MuralView({
 
 /** O cartaz: um campo chapado por molde, tipo medido em cqw da largura. */
 function Plate({ p }: { p: Poster }) {
+  const brand = useBrand();
+  if (brand.key === "departamento") return <DpPlate p={p} />;
   const cap = (cls: string, children: React.ReactNode) => <span className={`${s.cap} ${cls}`}>{children}</span>;
   const lines = (arr: string[]) =>
     arr.map((l, i) => (
@@ -340,6 +342,97 @@ function Plate({ p }: { p: Poster }) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {p.image && <img className={s.tee} src={p.image.src} alt="" />}
       {cap(s.t2, p.credits[1])}
+    </div>
+  );
+}
+
+/**
+ * Cartazes do Departamento (campos A–E de tokens.json > poster_fields): os mesmos cinco moldes,
+ * com duas tintas, grotesca 900 em caixa alta e a estrela como único ornamento.
+ * A = Drop (azul, capa com estrela) · B = assinatura (branco, "?" gigante) · C = data (preto)
+ * · D = PicKup (cobalt, roda) · E = loja (papel, foto do produto).
+ */
+function DpPlate({ p }: { p: Poster }) {
+  const cap = (cls: string, children: React.ReactNode) => <span className={`${s.dcap} ${cls}`}>{children}</span>;
+  const lines = (arr: string[]) =>
+    arr.map((l, i) => (
+      <span key={i}>
+        {i > 0 && <br />}
+        {l}
+      </span>
+    ));
+
+  if (p.kind === "lost") {
+    return (
+      <div className={`${s.pst} ${s.dA}`} style={{ "--hl": fit(26, 130, p.headline) } as CSSProperties}>
+        <span className={s.sleeve}>
+          <Mark size={80} style={{ width: "100%", height: "auto" }} />
+        </span>
+        {cap(s.t1, <span className="tag">{p.cap}</span>)}
+        {cap(s.t2, lines(p.credits))}
+        <div className={s.hl} aria-hidden="true">
+          {lines(p.headline)}
+        </div>
+      </div>
+    );
+  }
+  if (p.kind === "culture") {
+    return (
+      <div className={`${s.pst} ${s.dB}`} style={{ "--hl": fit(17, 120, p.headline) } as CSSProperties}>
+        {cap(s.t1, p.credits[0])}
+        <div className={s.q} aria-hidden="true">
+          ?
+        </div>
+        <div className={s.hl} aria-hidden="true">
+          {lines(p.headline)}
+        </div>
+        <div className={s.ml} aria-hidden="true">
+          1-800-Departamento
+        </div>
+        {cap(s.t2, p.credits[1])}
+      </div>
+    );
+  }
+  if (p.kind === "date") {
+    return (
+      <div className={`${s.pst} ${s.dC}`}>
+        {cap(s.t1, p.cap)}
+        <div className={s.mon}>{p.month}</div>
+        <span className={s.acc}>
+          <Mark size={80} style={{ width: "100%", height: "auto" }} />
+        </span>
+        {cap(s.t2, lines(p.credits))}
+        <div className={`${s.hl} num`} aria-hidden="true">
+          {p.day}
+        </div>
+      </div>
+    );
+  }
+  if (p.kind === "pick") {
+    return (
+      <div className={`${s.pst} ${s.dD}`} style={{ "--rec-rot": `${recAngleFor(PICK_ON, PRIZES.length, "star")}deg` } as CSSProperties}>
+        {cap(s.t1, <span className="tag">{p.credits[0]}</span>)}
+        <Turntable variant="star" prefix="pp" prizes={PRIZES} on={PICK_ON} rot={recAngleFor(PICK_ON, PRIZES.length, "star")} />
+        <div className={s.hl} aria-hidden="true">
+          {lines(p.headline)}
+        </div>
+        {p.credits[1] && (
+          <div className={s.ml} aria-hidden="true">
+            {p.credits[1]}
+          </div>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className={`${s.pst} ${s.dE}`} style={{ "--hl": fit(21.5, 120, p.headline) } as CSSProperties}>
+      {cap(s.t1, p.credits[0])}
+      <div className={s.hl} aria-hidden="true">
+        {lines(p.headline)}
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {p.image && <img className={s.prod} src={p.image.src} alt="" />}
+      {cap(`${s.t2} num`, p.credits[1])}
     </div>
   );
 }

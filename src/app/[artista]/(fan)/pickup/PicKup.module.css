@@ -177,3 +177,27 @@
   border-color: var(--fc-ink);
   color: var(--fc-ink);
 }
+
+/* DEPARTAMENTO: a roda fica no campo azul (tema de tom); tecla plana em inversão, com a estrela. */
+:global([data-brand="departamento"]) .lead :global(.mono),
+:global([data-brand="departamento"]) .err {
+  color: var(--fc-fg);
+}
+:global([data-brand="departamento"]) .note {
+  color: var(--fc-fg-muted);
+  opacity: 1;
+}
+:global([data-brand="departamento"]) .startkey {
+  background: var(--fc-amber);
+  color: var(--fc-on-amber);
+  border: 1px solid var(--fc-amber);
+  border-radius: 0;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+:global([data-brand="departamento"]) .startkey:hover,
+:global([data-brand="departamento"]) .startkey[aria-busy="true"] {
+  background: var(--fc-bg);
+  color: var(--fc-amber-text);
+  transform: none;
+}

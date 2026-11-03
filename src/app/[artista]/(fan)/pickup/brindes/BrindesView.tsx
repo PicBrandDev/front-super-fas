@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useArtist, useBrand } from "@/components/fan/ArtistContext";
 import { Icon } from "@/components/icons";
 import type { Reward } from "@/lib/types";
 
@@ -68,6 +68,7 @@ function RewardCard({ r, agendaHref }: { r: Reward; agendaHref: string }) {
 
 export function BrindesView({ rewards }: { rewards: Reward[] }) {
   const { base } = useArtist();
+  const { short } = useBrand();
   const open = rewards.filter((r) => r.status === "available");
   const done = rewards.filter((r) => r.status !== "available");
   const agendaHref = `${base}/agenda`;
@@ -89,7 +90,7 @@ export function BrindesView({ rewards }: { rewards: Reward[] }) {
         <section className="flex flex-col gap-3 border border-line p-5">
           <strong className="text-[17px]">Você ainda não ganhou brindes</strong>
           <p className="m-0 text-[15px] leading-[22px] text-fg-muted">
-            Gire a roleta do PicKup: tem cupons de desconto no ingresso, ingresso de pista, camiseta e boné do Vintage.
+            Gire a roleta do PicKup: tem cupons de desconto no ingresso, ingresso de pista, camiseta e boné do {short}.
           </p>
           <Link href={`${base}/pickup`} className="btn btn-primary">
             Ir para a roleta

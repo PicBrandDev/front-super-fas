@@ -59,6 +59,58 @@ export const vintageTheme: ArtistTheme = {
   fontMono: "var(--font-dm-mono), ui-monospace, 'SF Mono', Menlo, monospace",
 };
 
+/*
+ * DEPARTAMENTO: duas tintas (azul elétrico #0000FF e branco), papel, preto, cobalt e prata.
+ * Valores de departamento-fanzone-refs/05-tokens/tokens.json. Como no protótipo da identidade,
+ * a base é o tema `black` e o tema `blue` fica nas telas de assinatura (Mural e PicKup, ver brands.ts).
+ * Acento = inversão, nunca cor nova: no preto o botão é azul com texto branco; no azul, branco com texto azul.
+ * Sem serifa de display: fontDisplay recebe a grotesca. fontMono é a máquina de escrever do rótulo do vinil,
+ * só para metadados (faixa, RPM, série, protocolo).
+ * TODO oficial: Inter Tight (alvo) ainda não está em src/fonts; Archivo é o interino da pasta de identidade.
+ */
+const DP_GROTESK = "var(--font-archivo), 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const DP_META = "'Courier Prime', 'Courier New', Courier, monospace";
+
+export const departamentoTheme: ArtistTheme = {
+  bg: "#101010",
+  surface: "#1A1A1A",
+  surfaceRaised: "#242424",
+  line: "#333333",
+  lineStrong: "#6B6B6B",
+  text: "#FFFFFF",
+  textMuted: "#B5B5B5",
+  amber: "#0000FF",
+  amberText: "#6B6BFF", // #0000FF como texto sobre preto mede 2,21:1
+  onAmber: "#FFFFFF",
+  sun: "#FFFFFF",
+  signalRed: "#FFE500", // funcional, fora da marca (GAPS G-06)
+  lagoon: "#6B6BFF",
+  lagoonDeep: "#0034CC",
+  chrome: "#C8C8C8",
+  greyPoster: "#C8C8C8",
+  mist: "#F0F0F0",
+  ink: "#101010",
+  paper: "#FFFFFF",
+  fontDisplay: DP_GROTESK,
+  fontGrotesk: DP_GROTESK,
+  fontMono: DP_META,
+};
+
+/** Tema `blue` (campo elétrico, tinta branca): Mural e PicKup. */
+export const departamentoBlueTheme: ArtistTheme = {
+  ...departamentoTheme,
+  bg: "#0000FF",
+  surface: "#0000E0",
+  surfaceRaised: "#0000C2",
+  line: "#4747FF",
+  lineStrong: "#9999FF",
+  textMuted: "#BDBDFF",
+  amber: "#FFFFFF",
+  amberText: "#FFFFFF",
+  onAmber: "#0000FF",
+  lagoon: "#9999FF",
+};
+
 /** Tema padrão para ambientes recém-criados (antes do design próprio): neutro, escuro. */
 export const blankTheme: ArtistTheme = {
   bg: "#121214",
@@ -87,13 +139,14 @@ export const blankTheme: ArtistTheme = {
 
 /**
  * Aceita o tema como vier da API (chaves do formato antigo ou parcial) e
- * devolve um tema completo. Chaves desconhecidas são ignoradas.
+ * devolve um tema completo. Chaves desconhecidas são ignoradas. Sem tema
+ * válido vale o `fallback` (o tema da marca do artista, ver brands.ts).
  */
-export function normalizeTheme(raw: unknown): ArtistTheme {
-  if (!raw || typeof raw !== "object") return vintageTheme;
+export function normalizeTheme(raw: unknown, fallback: ArtistTheme = vintageTheme): ArtistTheme {
+  if (!raw || typeof raw !== "object") return fallback;
   const t = raw as Partial<ArtistTheme>;
-  if (!t.bg || !t.amber) return vintageTheme;
-  return { ...vintageTheme, ...t };
+  if (!t.bg || !t.amber) return fallback;
+  return { ...fallback, ...t };
 }
 
 export function themeStyle(t: ArtistTheme): CSSProperties {

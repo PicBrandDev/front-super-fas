@@ -7,7 +7,7 @@ import { UnreadBadge } from "@/components/chat/ChatIconButton";
 import { useChatUnread } from "@/components/chat/useChatUnread";
 import { Icon } from "@/components/icons";
 import { PersonAvatar } from "./PersonAvatar";
-import { useArtist } from "./ArtistContext";
+import { useArtist, useBrand } from "./ArtistContext";
 import { FandomSwitcher } from "./FandomSwitcher";
 import { Mark } from "./Mark";
 import { isActive, sideNav } from "./nav";
@@ -19,11 +19,12 @@ import { isActive, sideNav } from "./nav";
  */
 export function FanSidebar() {
   const { slug, name, fanClubName, base, priceLabel, viewer, loggedIn } = useArtist();
+  const { store } = useBrand();
   const pathname = usePathname();
   const unread = useChatUnread();
   return (
     <aside className="sticky top-0 hidden h-dvh w-[300px] flex-none flex-col gap-6 overflow-y-auto border-r border-line px-6 py-8 lg:flex">
-      <Link href={base} aria-label={`Início do fã clube ${name}`} className="self-start text-amber">
+      <Link href={base} aria-label={`Início do fã clube ${name}`} className="self-start text-amber-text">
         <Mark size={72} />
       </Link>
       <div className="flex flex-col gap-2">
@@ -40,7 +41,7 @@ export function FanSidebar() {
             <li key={item.label}>
               <Link href={base + item.href} aria-current={active ? "page" : undefined}>
                 <span className="flex items-center gap-2">
-                  {item.label}
+                  {item.href === "/loja" ? store.name : item.label}
                   {item.href === "/conversas" && unread > 0 && (
                     <>
                       <UnreadBadge count={unread} />
