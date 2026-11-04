@@ -72,7 +72,7 @@ function Card({ c, mode, artist }: { c: VitrineCard; mode: "admin" | "sponsor"; 
             {c.clubName ?? "Ambiente"} · {c.where}
           </span>
         </div>
-        {!c.active ? <Badge tone="off">Desligada</Badge> : c.live ? <Badge tone="ok">No ar</Badge> : c.next ? <Badge tone="info">Agendada</Badge> : <Badge tone="warn">Livre</Badge>}
+        {!c.active ? <Badge tone="off">Desligada</Badge> : c.live ? <Badge tone="ok">{mode === "sponsor" && !c.live.mine ? "Ocupada" : `Ocupada por ${c.live.brand}`}</Badge> : c.next ? <Badge tone="info">Agendada</Badge> : <Badge tone="warn">Livre</Badge>}
       </header>
 
       <div className="flex flex-wrap items-start justify-around gap-4">
