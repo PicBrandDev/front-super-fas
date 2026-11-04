@@ -28,5 +28,5 @@ export const campaignWhere = (c: Pick<Campaign, "club" | "fanClub">) => ({
 /** Chave da vitrine: "oficial.pickup_video" ou "pickup_video" → "pickup_video". */
 export const slotKey = (slotId: string | null | undefined) => (slotId ?? "").split(".").pop() ?? "";
 
-/** Vitrines que exigem vídeo: o que o fã assiste antes de girar a roleta e o de quando ele pega o brinde. */
-export const VIDEO_SLOTS = new Set(["pickup_video", "pickup_resgate"]);
+/** Vitrines que exigem vídeo: o que o fã assiste antes de girar a roleta. (Ao pegar o brinde vale uma arte ou um vídeo.) */
+export const VIDEO_SLOTS = new Set(["pickup_video"]);

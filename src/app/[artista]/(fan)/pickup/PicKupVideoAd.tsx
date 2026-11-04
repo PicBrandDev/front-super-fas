@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { reportAd } from "@/components/fan/AdTrack";
-import { useArtist } from "@/components/fan/ArtistContext";
+import { useArtist, useBrand } from "@/components/fan/ArtistContext";
 import { Icon } from "@/components/icons";
 import type { InAppAd } from "@/lib/ads";
 import v from "./PicKupVideoAd.module.css";
@@ -45,6 +45,7 @@ export function PicKupVideoAd({
   onDismiss: (watched: boolean) => void; // "Agora não" ou Esc depois de liberado: fecha sem girar (não gasta o giro)
 }) {
   const { slug } = useArtist();
+  const { phone } = useBrand();
   const box = useRef<HTMLDivElement>(null);
   const adId = ad.id;
   useEffect(() => reportAd(slug, adId, "view"), [slug, adId]); // abriu: conta uma visualização
@@ -234,10 +235,112 @@ export function PicKupVideoAd({
   );
   const playing = isVideo && !videoDone;
 
+  // Com vídeo: a tela inteira é o vídeo, sem barra nem moldura. O tempo que falta fica no canto superior direito, em branco;
+  // o botão do anúncio e o "Girar agora" só aparecem quando o vídeo termina (não há "Agora não").
+  if (isVideo) {
+    return (
+      <div
+        ref={box}
+        className={`${v.full} ${phone ? v.phone : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pickup-ad-title"
+        aria-describedby="pickup-ad-text"
+        tabIndex={-1}
+      >
+        {/* Por baixo do vídeo até ele ter imagem: nunca tela preta. */}
+        {!hasFrame && ad.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- arte do anunciante, URL externa ou /uploads
+          <img src={ad.imageUrl} alt="" className={v.fullArt} />
+        )}
+        <video
+          ref={video}
+          src={ad.videoUrl ?? undefined}
+          className={`${v.fullVideo} ${hasFrame ? "" : v.waiting}`}
+          playsInline
+          muted={muted}
+          preload="auto"
+          disablePictureInPicture
+          disableRemotePlayback
+          onLoadedMetadata={(e) => setDuration(validDuration(e.currentTarget.duration))}
+          onDurationChange={(e) => {
+            const d = validDuration(e.currentTarget.duration);
+            if (d) setDuration(d);
+          }}
+          onLoadedData={() => setHasFrame(true)}
+          onPlaying={() => {
+            setHasFrame(true);
+            setNeedTap(false);
+            lastProgress.current = Date.now();
+          }}
+          onTimeUpdate={(e) => onTime(e.currentTarget)}
+          onPause={(e) => {
+            // Pausa que não é o fim nem a aba escondida (ex.: iOS cortou o áudio): botão de tocar.
+            const el = e.currentTarget;
+            if (!el.ended && !document.hidden && el.currentTime < (validDuration(el.duration) ?? Infinity) - END_SLACK_S)
+              setNeedTap(true);
+          }}
+          onEnded={() => setVideoDone(true)}
+          onError={fallBack}
+        />
+        {needTap && !videoDone && (
+          <button type="button" className={`btn btn-outline ${v.resume}`} onClick={() => start(!muted)}>
+            <Icon name="play" size={18} className="icon" />
+            Tocar vídeo
+          </button>
+        )}
+        {soundBlocked && muted && !needTap && !videoDone && (
+          <button type="button" className={`btn btn-outline btn-sm min-h-11 ${v.unmute}`} onClick={toggleSound}>
+            <Icon name="music" size={16} className="icon" />
+            Ativar som
+          </button>
+        )}
+
+        <span className={v.sponsor}>
+          Patrocinado · {ad.sponsor}
+        </span>
+        {/* Canto superior direito: o botão de som e, ao lado dele, o tempo que falta. */}
+        {playing && (
+          <div className={v.top}>
+            {!needTap && (
+              <button type="button" className={v.sound} aria-pressed={!muted} onClick={toggleSound}>
+                {muted ? "Ativar som" : "Tirar som"}
+              </button>
+            )}
+            <span className={v.timer} aria-hidden="true">
+              {left === null ? "" : `${left}s`}
+            </span>
+          </div>
+        )}
+
+        {videoDone && (
+          <div className={v.end}>
+            <h2 id="pickup-ad-title" className={v.title}>
+              {ad.title}
+            </h2>
+            <p id="pickup-ad-text" className={v.text}>
+              {ad.text}
+            </p>
+            <a href={ad.url} target="_blank" rel="sponsored noopener noreferrer" onClick={() => reportAd(slug, ad.id, "click")} className="btn btn-outline btn-block">
+              {ad.cta}
+              <Icon name="external" size={16} className="icon" />
+            </a>
+            <button ref={goBtn} type="button" className="btn btn-primary btn-block" onClick={onDone}>
+              {doneLabel}
+            </button>
+          </div>
+        )}
+        <p className="sr-only" role="status" aria-live="polite">
+          {videoDone ? "Giro liberado." : "O giro libera quando o vídeo terminar."}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={box}
-      className={v.overlay}
+      className={`${v.overlay} ${phone ? v.phone : ""}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="pickup-ad-title"
@@ -249,11 +352,6 @@ export function PicKupVideoAd({
           <span className="tag tag-demo">Patrocinado</span>
           <span className="mono truncate">{ad.sponsor}</span>
         </span>
-        {playing && (
-          <button type="button" className="btn btn-ghost btn-sm min-h-11" aria-pressed={!muted} onClick={toggleSound}>
-            {muted ? "Ativar som" : "Tirar som"}
-          </button>
-        )}
       </div>
 
       <div className={v.progress} aria-hidden="true">
@@ -271,52 +369,6 @@ export function PicKupVideoAd({
               <span className="mono">{isVideo ? "Carregando anúncio" : "Liberando seu giro"}</span>
             </div>
           ))}
-        {isVideo && (
-          <>
-            <video
-              ref={video}
-              src={ad.videoUrl ?? undefined}
-              className={hasFrame ? undefined : v.waiting}
-              playsInline
-              muted={muted}
-              preload="auto"
-              disablePictureInPicture
-              disableRemotePlayback
-              onLoadedMetadata={(e) => setDuration(validDuration(e.currentTarget.duration))}
-              onDurationChange={(e) => {
-                const d = validDuration(e.currentTarget.duration);
-                if (d) setDuration(d);
-              }}
-              onLoadedData={() => setHasFrame(true)}
-              onPlaying={() => {
-                setHasFrame(true);
-                setNeedTap(false);
-                lastProgress.current = Date.now();
-              }}
-              onTimeUpdate={(e) => onTime(e.currentTarget)}
-              onPause={(e) => {
-                // Pausa que não é o fim nem a aba escondida (ex.: iOS cortou o áudio): botão de tocar.
-                const el = e.currentTarget;
-                if (!el.ended && !document.hidden && el.currentTime < (validDuration(el.duration) ?? Infinity) - END_SLACK_S)
-                  setNeedTap(true);
-              }}
-              onEnded={() => setVideoDone(true)}
-              onError={fallBack}
-            />
-            {needTap && !videoDone && (
-              <button type="button" className={`btn btn-outline ${v.resume}`} onClick={() => start(!muted)}>
-                <Icon name="play" size={18} className="icon" />
-                Tocar vídeo
-              </button>
-            )}
-            {soundBlocked && muted && !needTap && !videoDone && (
-              <button type="button" className={`btn btn-outline btn-sm min-h-11 ${v.unmute}`} onClick={toggleSound}>
-                <Icon name="music" size={16} className="icon" />
-                Ativar som
-              </button>
-            )}
-          </>
-        )}
       </div>
 
       <div className={`${v.body} ${isVideo ? v.compact : ""}`}>
@@ -331,7 +383,6 @@ export function PicKupVideoAd({
             {ad.cta}
             <Icon name="external" size={16} className="icon" />
           </a>
-          {isVideo && skip}
         </div>
         <button ref={goBtn} type="button" className="btn btn-primary btn-block" disabled={locked} onClick={onDone}>
           {!locked ? (

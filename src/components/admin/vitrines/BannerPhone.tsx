@@ -108,17 +108,13 @@ export function BannerPhone({ group, vitrineKey, booking, top, height }: { group
   if (base === "pickup_resgate") {
     return (
       <Screen label={label}>
-        <div className="flex items-center justify-between text-[7px] font-semibold text-white/70">
-          <span className="rounded bg-white/15 px-[4px] py-[1px] uppercase">Anúncio</span>
-          <span>0:30</span>
+        <Skeleton tall />
+        <Skeleton />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[6px] bg-black/70 p-[10px]">
+          <span className="text-center text-[6.5px] font-semibold uppercase tracking-wider text-[#F2C14E]">Você ganhou um brinde</span>
+          <div className="w-full rounded-[10px] bg-[#201a15] p-[6px] shadow-lg">{ad}</div>
+          <span className="rounded-full bg-[#F2C14E] px-[10px] py-[3px] text-center text-[7px] font-extrabold text-black">Pegar meu brinde</span>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-[6px] rounded-[8px] p-[8px] text-center" style={{ background: shown ? st.bg : "#2a241e", color: shown ? st.fg : "#9a8f84" }}>
-          <span className="flex size-[28px] items-center justify-center rounded-full bg-black/35 text-[11px]">▶</span>
-          <strong className="text-[11px] font-black uppercase leading-[11px]">{shown ? booking.brand : booking ? "Ocupada" : "Seu vídeo aqui"}</strong>
-          {shown && <span className="text-[8px] font-bold leading-[10px]">{booking.title}</span>}
-        </div>
-        <span className="text-center text-[6.5px] font-semibold uppercase tracking-wider text-[#F2C14E]">Você ganhou um brinde</span>
-        <span className="rounded-full bg-[#F2C14E] py-[4px] text-center text-[7px] font-extrabold text-black">Pegar meu brinde</span>
       </Screen>
     );
   }

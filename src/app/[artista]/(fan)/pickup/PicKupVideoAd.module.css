@@ -125,3 +125,84 @@
 .compact .text {
   display: none;
 }
+
+/* Vídeo em tela inteira, sem barra nem moldura. Tudo o mais fica por cima dele. */
+.full {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: #000;
+  color: #fff;
+  outline: none;
+  overflow: hidden;
+}
+.fullVideo,
+.fullArt {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.top {
+  position: absolute;
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.timer {
+  color: #fff;
+  font: 800 20px/1 var(--fc-font-grotesk);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.sponsor {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  color: #fff;
+  font: 700 11px/1.2 var(--fc-font-grotesk);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+.sound {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: 700 13px/1 var(--fc-font-grotesk);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+/* Quando o vídeo termina: título, texto e botões numa faixa escura na parte de baixo. */
+.end {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: rgba(0, 0, 0, 0.72);
+}
+
+/* No computador, com o app em modo celular (brand.phone): o anúncio fica na coluna de 430px, centralizado, como as outras
+   telas; o resto da janela escurece. */
+@media (min-width: 1024px) {
+  .phone {
+    left: 0;
+    right: 0;
+    margin-inline: auto;
+    width: 100%;
+    max-width: 430px;
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.72);
+  }
+}
