@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import type { BrandKey } from "@/lib/brands";
 import { useBrand } from "./ArtistContext";
 
-export type MastTone = "night" | "amber" | "sun" | "lagoon-deep" | "poster-grey";
+export type MastTone = "night" | "amber" | "sun" | "lagoon-deep" | "poster-grey" | "electric";
 
 const tones: Record<MastTone, { bg: string; fg: string }> = {
   night: { bg: "var(--fc-bg)", fg: "var(--fc-fg)" },
@@ -12,6 +12,7 @@ const tones: Record<MastTone, { bg: string; fg: string }> = {
   sun: { bg: "var(--fc-sun)", fg: "var(--fc-ink)" },
   "lagoon-deep": { bg: "var(--fc-lagoon-deep)", fg: "var(--fc-fg)" },
   "poster-grey": { bg: "var(--fc-poster-grey)", fg: "var(--fc-mist)" },
+  electric: { bg: "#0000FF", fg: "#FFFFFF" }, // azul elétrico do Departamento (campo azul, tinta branca)
 };
 
 const SIDE = 16;

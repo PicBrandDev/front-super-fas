@@ -865,3 +865,109 @@ body {
 .adm-com-arte [data-page-header]:has(> :nth-child(2)) {
   justify-content: flex-end;
 }
+
+/*
+ * ADMIN DO DEPARTAMENTO (`data-brand="departamento"` no wrapper do ClubAdminShell; pele em src/lib/brands.ts).
+ * A identidade da área do fã aplicada ao painel, com as duas tintas dos cartazes: o menu lateral e o topo são o campo
+ * azul elétrico (#0000FF) com tinta branca, e a área dos dados é o papel branco com tinta preta, para ler tabelas e números.
+ * Canto vivo (raio 0), grotesca 900 em caixa alta nos títulos, acento azul e inversão no hover (azul com texto branco
+ * vira branco com texto azul). Os avatares continuam redondos (`img` e `[data-avatar]`).
+ */
+.adm-noite[data-brand="departamento"] {
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  /* menu lateral: campo azul, tinta branca */
+  --color-adm-side: #0000ff;
+  --color-adm-side-line: #4747ff;
+  --color-adm-side-muted: #bdbdff;
+  --color-adm-side-text: #ffffff;
+  /* área dos dados: papel e tinta */
+  --color-white: #ffffff;
+  --color-adm-bg: #f0f0f0;
+  --color-adm-surface: #ffffff;
+  --color-adm-line: #cfcfcf;
+  --color-adm-line-soft: #e4e4e4;
+  --color-adm-input: #101010;
+  --color-adm-ink: #101010;
+  --color-adm-muted: #555555;
+  --color-adm-disabled: #b5b5b5;
+  --color-adm-off-bg: #e4e4e4;
+  --color-adm-off: #333333;
+  --color-adm-ok-bg: #e0e0ff;
+  --color-adm-ok: #0000b8;
+  --color-adm-warn-bg: #fff4a8;
+  --color-adm-warn: #5c4b00;
+  --color-adm-danger: #c4001a;
+  /* acento do painel: azul elétrico (os utilitários adm-blue leem estas variáveis) */
+  --pf-brand: #0000ff;
+  --pf-brand-dark: #0000b8;
+  --pf-brand-soft: #e6e6ff;
+  --pf-brand-tint: #f3f3ff;
+  color-scheme: light;
+}
+.adm-noite[data-brand="departamento"]::before {
+  background: #f0f0f0;
+}
+.adm-noite[data-brand="departamento"] aside {
+  border-right: 0;
+}
+/* item ativo do menu: inversão (branco com texto azul) */
+.adm-noite[data-brand="departamento"] aside nav a[aria-current="page"] {
+  background: #ffffff;
+  color: #0000ff;
+  font-weight: 800;
+}
+.adm-noite[data-brand="departamento"] aside nav a:not([aria-current="page"]):hover {
+  background: #0000c2;
+}
+/* cantos vivos em tudo que era pílula; avatares ficam redondos */
+.adm-noite[data-brand="departamento"] .rounded-full:not(img):not([data-avatar]) {
+  border-radius: 0;
+}
+.adm-noite[data-brand="departamento"] .rounded-full:is(img, [data-avatar]) {
+  border-radius: 9999px;
+}
+/* títulos: grotesca 900 em caixa alta */
+.adm-noite[data-brand="departamento"] :is(h1, h2, h3),
+.adm-noite[data-brand="departamento"] .font-display {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+}
+.adm-noite[data-brand="departamento"] .font-adm-mono {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+/* botão primário: azul com texto branco; ao passar o mouse, branco com texto azul (inversão) */
+.adm-noite[data-brand="departamento"] .bg-adm-blue {
+  color: #ffffff;
+  font-weight: 800;
+  border: 1px solid #0000ff;
+}
+.adm-noite[data-brand="departamento"] .bg-adm-blue:hover:not(:disabled) {
+  background: #ffffff;
+  color: #0000ff;
+}
+/* o item ativo do menu e os chips escolhidos mantêm as cores deles */
+.adm-noite[data-brand="departamento"] aside .bg-adm-blue {
+  border-color: transparent;
+}
+/* etiquetas: caixa alta, e "esgotado/últimos lotes" em contorno duplo */
+.adm-noite[data-brand="departamento"] [data-badge] {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 800;
+}
+.adm-noite[data-brand="departamento"] [data-badge="warn"] {
+  background: transparent;
+  border: 1px solid currentColor;
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+  margin: 3px;
+}
+/* cartões: fio preto fino, como nos cartazes */
+.adm-noite[data-brand="departamento"] main :is(section, article, dl).rounded-xl {
+  border-color: #101010;
+}

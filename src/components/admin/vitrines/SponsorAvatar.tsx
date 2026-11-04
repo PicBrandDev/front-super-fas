@@ -11,7 +11,7 @@ export function SponsorAvatar({ name, src, size = 32 }: { name: string; src?: st
   }
   const st = brandStyle(name);
   return (
-    <span aria-hidden="true" style={{ ...box, background: st.bg, color: st.fg, fontSize: size * 0.4 }} className="flex flex-none items-center justify-center rounded-full font-black">
+    <span aria-hidden="true" data-avatar style={{ ...box, background: st.bg, color: st.fg, fontSize: size * 0.4 }} className="flex flex-none items-center justify-center rounded-full font-black">
       {initialsOf(name).slice(0, 2)}
     </span>
   );

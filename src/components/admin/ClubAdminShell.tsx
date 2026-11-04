@@ -31,12 +31,13 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
       className="adm-noite adm-com-arte"
       passwordHref={`/${artist.slug}/conta/senha`}
       style={themeStyle(brand.adminTheme ?? artist.theme)}
+      brandKey={brand.key}
       brand={{
         // Vintage Culture usa o símbolo oficial (public/logo-vc.png, traço branco sobre transparente); o Departamento,
-        // o monograma D em branco no quadrado azul; os outros artistas, a inicial.
+        // o monograma D em azul no quadrado branco (o menu do Departamento é azul elétrico); os outros artistas, a inicial.
         mark:
           brand.key === "departamento" ? (
-            <span className="flex size-full items-center justify-center" style={{ background: artist.brandColor, color: "var(--fc-paper)" }}>
+            <span className="flex size-full items-center justify-center" style={{ background: "#FFFFFF", color: "#0000FF" }}>
               <svg width={24} viewBox={MONO_D_VIEWBOX} fill="currentColor" aria-hidden="true" focusable="false">
                 <path fillRule="evenodd" d={MONO_D} />
               </svg>
@@ -61,7 +62,7 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
       nav={clubNav(artist.slug)}
       extraLink={session?.role === "master" ? { label: "Voltar ao admin master", href: "/admin/fas-clubes" } : undefined}
       active={active}
-      topbar={<AdminTopBar word={MAST_WORD[active] ?? artist.name} brand={brand.key} />}
+      topbar={<AdminTopBar word={MAST_WORD[active] ?? artist.name} brand={brand.key} tone={brand.key === "departamento" ? "electric" : "night"} />}
       user={await shellUser({ initials: "EQ", name: "Equipe do fã clube", role: "Administração do ambiente" })}
     >
       {children}

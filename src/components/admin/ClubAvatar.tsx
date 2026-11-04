@@ -10,6 +10,7 @@ export function ClubAvatar({ src, name, size = 56, verified = false }: { src?: s
   ) : (
     <span
       aria-hidden="true"
+      data-avatar
       style={{ ...box, fontSize: size * 0.36 }}
       className="flex flex-none items-center justify-center rounded-full border border-adm-line bg-adm-blue-soft font-display font-black text-adm-blue-dark"
     >

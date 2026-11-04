@@ -25,6 +25,7 @@ export function AdminShell({
   passwordHref = "/conta/senha",
   sidebarExtra,
   topbar,
+  brandKey,
   children,
 }: {
   brand?: { mark: ReactNode; title: string; subtitle: string; markClass?: string };
@@ -38,10 +39,11 @@ export function AdminShell({
   passwordHref?: string; // trocar senha (dentro do ambiente do artista, quando houver)
   sidebarExtra?: ReactNode; // bloco extra no menu lateral, entre o menu e o usuário
   topbar?: ReactNode; // faixa presa no alto da página (ex.: marca do artista e atalho para o app)
+  brandKey?: string; // pele do artista: vira `data-brand` no wrapper, para o CSS de forma de cada cantor
   children: ReactNode;
 }) {
   return (
-    <div style={style} className={`flex min-h-dvh flex-wrap bg-adm-bg font-adm text-adm-ink ${className}`}>
+    <div style={style} data-brand={brandKey} className={`flex min-h-dvh flex-wrap bg-adm-bg font-adm text-adm-ink ${className}`}>
       <aside className="flex flex-[1_1_220px] flex-col gap-[22px] bg-adm-side px-3.5 py-5 text-adm-side-text lg:sticky lg:top-0 lg:h-dvh lg:max-w-[260px] lg:overflow-hidden">
         <div className="px-1.5">
           {brand ? (

@@ -112,9 +112,11 @@ Esses seguem neutros (tokens `adm-*` da plataforma).
 - **Fonte:** `fontDisplay`, `fontGrotesk` e `fontMono` de todo tema apontam para `var(--font-archivo)`. Não carregue outra fonte sem avisar a Julia.
 - **Cor:** nunca escreva hex de cantor num componente; use os tokens. Para outro cantor trocar o tema, o componente não pode ter cor fixa.
 - **Contraste no admin:** o acento do admin (`adm-blue`) vem de `--fc-amber`. Se o acento for claro (como o branco do Departamento), botão e item ativo do menu precisam de texto escuro: ajuste em `adminTheme` (`amber`, `amberText`, `onAmber`).
-- **Admin ainda não tem `data-brand`:** o wrapper do admin recebe o tema, mas não o atributo `data-brand`. Para estilos de forma só do admin de um cantor (raio, caixa alta), crie um seletor como `.adm-noite[data-brand="x"]` e ponha o atributo em `ClubAdminShell.tsx`.
+- **O admin tem `data-brand`:** o wrapper do admin do ambiente recebe `data-brand="<chave>"` (via `ClubAdminShell.tsx` → `AdminShell` → prop `brandKey`). Os estilos de forma e cor do admin de um cantor ficam em `globals.css`, em `.adm-noite[data-brand="x"]`. O do Departamento (no fim do arquivo) é o modelo.
+- **Acento do admin:** as cores de acento (botões, links, item ativo) dos utilitários `adm-blue*` leem `--pf-brand`, `--pf-brand-dark`, `--pf-brand-soft` e `--pf-brand-tint`, **não** os `--color-adm-blue*`. Para trocar o acento de um cantor, sobrescreva essas quatro variáveis no seletor dele (o Vintage ainda usa o azul da plataforma).
 - **Avatares redondos:** `ClubAvatar`/`PersonAvatar` são círculos de propósito; se você zerar o raio global, mantenha os avatares redondos.
-- **Departamento é a referência** de um cantor com pele própria: veja `departamentoTheme`, `departamentoBlueTheme`, o bloco `.fan[data-brand="departamento"]` e `const departamento` em `brands.ts`.
+- **Departamento é a referência** de um cantor com pele própria: veja `departamentoTheme`, `departamentoBlueTheme`, o bloco `.fan[data-brand="departamento"]` (área do fã) e `const departamento` em `brands.ts`.
+- **Admin do Departamento (modelo de admin por cantor):** menu lateral e topo em azul elétrico (#0000FF, tinta branca; o topo usa `tone="electric"` no `Masthead`), área dos dados em papel branco (#F0F0F0 / #FFFFFF) com tinta preta, cantos retos, títulos em caixa alta 900, etiquetas em caixa alta (`data-badge` no `Badge`), botão primário azul com texto branco que inverte no hover. Avatares redondos (`data-avatar`). Tudo em `.adm-noite[data-brand="departamento"]`.
 
 ---
 
