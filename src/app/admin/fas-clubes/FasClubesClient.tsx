@@ -1,22 +1,30 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
-import { createFanClub, updateFanClub, type InviteResult } from "@/app/actions/admin";
+import { createFanClub, type InviteResult } from "@/app/actions/admin";
 import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
-import { FilterChips, SearchField, Switch } from "@/components/admin/controls";
-import { AdminEmpty, AdminNotice, Badge, btnOutlineBlue, btnPrimary, btnSecondary, inputClass, tdClass, thClass } from "@/components/admin/ui";
+import { FilterChips, SearchField } from "@/components/admin/controls";
+import { AdminEmpty, AdminNotice, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
+import { ClubCard } from "./ClubCard";
+import { EditClubDialog } from "./EditClubDialog";
 import type { ClubAdmin, FanClubStatus } from "@/lib/types";
 
 export type ClubRow = {
   id: string;
   name: string;
   slug: string;
+  /** Endereço completo do ambiente (https://dominio/slug). */
+  url: string;
   initial: string;
   color: string;
+  avatar?: string | null;
+  /** Endereço do fã clube master (é nele que fica a foto de perfil). */
+  masterSlug?: string;
+  fanClubName: string;
+  memberPriceCents: number;
   status: FanClubStatus;
   members: string;
   ads: string;
@@ -39,18 +47,6 @@ const filterOptions: { id: Filter; label: string }[] = [
   { id: "config", label: "Em configuração" },
 ];
 
-/** `off`: módulo que fica desligado enquanto o fã clube não tem a chave (a revenda nasce escondida). */
-const moduleList: { id: string; label: string; hint: string; off?: boolean }[] = [
-  { id: "mural", label: "Mural", hint: "Drop News, feed da galera e Instagram" },
-  { id: "agenda", label: "Agenda", hint: "Shows, ingressos e sorte do evento" },
-  { id: "pickup", label: "PicKup da sorte", hint: "Roleta geral" },
-  { id: "loja", label: "Loja virtual", hint: "Produtos e drops da loja" },
-  { id: "drops", label: "Drops Hits", hint: "Prévias de músicas" },
-  { id: "photo", label: "Photo Finder", hint: "Busca de fotos por selfie" },
-  { id: "ads", label: "Mídia e anúncios", hint: "Vitrines para patrocinadores" },
-  { id: "resale", label: "Revenda entre fãs", hint: "Compra e venda de ingressos entre fãs", off: true },
-];
-
 /** Cores dos avatares dos ambientes recém-criados (antes do design próprio). */
 const newClubColors = ["#2F5BD3", "#1F7A4D", "#7A3FB8", "#14171C"];
 
@@ -66,16 +62,10 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
   const [created, setCreated] = useState<ClubRow[]>([]);
   const [filter, setFilter] = useState<Filter>("todos");
   const [q, setQ] = useState("");
-  const [selId, setSelId] = useState<string | null>(initialClubs[0]?.id ?? null);
-  const [mods, setMods] = useState<Record<string, Record<string, boolean>>>({});
+  const [editId, setEditId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [announce, setAnnounce] = useState("");
   const [invites, setInvites] = useState<InviteResult[]>([]);
-  const [saveError, setSaveError] = useState("");
-  /** Módulos sendo salvos ("clubId:moduleId") e os que falharam. */
-  const [savingMods, setSavingMods] = useState<Set<string>>(() => new Set());
-  const [failedMods, setFailedMods] = useState<Set<string>>(() => new Set());
-  const [, start] = useTransition();
   const router = useRouter();
   const openBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -85,7 +75,7 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
     .filter((c) => filter === "todos" || (filter === "ativos" ? c.status === "active" : c.status !== "active"))
     .filter((c) => !query || `${c.name} ${c.slug}`.toLowerCase().includes(query));
 
-  const selClub = clubs.find((c) => c.id === selId) ?? null;
+  const editClub = clubs.find((c) => c.id === editId) ?? null;
 
   const closeCreate = () => {
     setCreateOpen(false);
@@ -94,6 +84,7 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
 
   const handleCreate = async (data: {
     name: string;
+    fanClubName: string;
     instagram: string;
     template: Template;
     invites: string[];
@@ -101,7 +92,6 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
     const res = await createFanClub(data);
     if (res.ok) {
       setInvites(res.data.invites);
-      setSelId(res.data.artist.id);
       setFilter("todos");
       setAnnounce(`Ambiente ${data.name} criado.`);
       closeCreate();
@@ -119,8 +109,11 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
       id,
       name: data.name,
       slug,
+      url: `/${slug}`,
       initial: data.name.charAt(0).toUpperCase(),
       color: newClubColors[created.length % newClubColors.length],
+      fanClubName: data.fanClubName,
+      memberPriceCents: 0,
       status: "setup",
       members: "0",
       ads: "Não configuradas",
@@ -130,57 +123,10 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
       template: data.template,
     };
     setCreated((cur) => [...cur, club]);
-    setSelId(id);
     setFilter("todos");
     setAnnounce(`Ambiente ${data.name} criado.`);
     closeCreate();
     return null;
-  };
-
-  /** Salva no back; sem API só muda na tela. */
-  const patchClub = (c: ClubRow, data: Record<string, unknown>, done: string) =>
-    start(async () => {
-      if (c.local) return;
-      const res = await updateFanClub(c.slug, data);
-      if (!res.ok && res.status !== 0) {
-        setSaveError(res.error);
-        return;
-      }
-      setSaveError("");
-      setAnnounce(done);
-      if (res.ok) router.refresh();
-    });
-
-  const setKey = (key: string, on: boolean) => (cur: Set<string>) => {
-    const next = new Set(cur);
-    if (on) next.add(key);
-    else next.delete(key);
-    return next;
-  };
-
-  /** Liga/desliga um módulo com estado de salvando; se a API recusar, volta o interruptor. */
-  const toggleModule = (c: ClubRow, moduleId: string, label: string, v: boolean) => {
-    const key = `${c.id}:${moduleId}`;
-    setMods((all) => ({ ...all, [c.id]: { ...all[c.id], [moduleId]: v } }));
-    setFailedMods(setKey(key, false));
-    if (c.local) {
-      setAnnounce(`${label} ${v ? "ligado" : "desligado"}.`);
-      return;
-    }
-    setSavingMods(setKey(key, true));
-    start(async () => {
-      const res = await updateFanClub(c.slug, { modules: { [moduleId]: v } });
-      setSavingMods(setKey(key, false));
-      if (!res.ok && res.status !== 0) {
-        setMods((all) => ({ ...all, [c.id]: { ...all[c.id], [moduleId]: !v } }));
-        setFailedMods(setKey(key, true));
-        setSaveError(`Não deu para ${v ? "ligar" : "desligar"} ${label}: ${res.error}`);
-        return;
-      }
-      setSaveError("");
-      setAnnounce(`${label} ${v ? "ligado" : "desligado"}.`);
-      if (res.ok) router.refresh();
-    });
   };
 
   const templateFrom = initialClubs[0]?.name ?? null;
@@ -213,194 +159,37 @@ export function FasClubesClient({ initialClubs, exampleMode = false }: { initial
       {exampleMode && (
         <AdminNotice tone="info">Modo exemplo: ligue o front à API (API_URL) para criar artistas e salvar módulos de verdade.</AdminNotice>
       )}
-      {saveError && <AdminNotice tone="error">{saveError}</AdminNotice>}
 
       <div className="flex flex-wrap items-center gap-2.5">
         <SearchField id="fc-search" label="Buscar fã clube" value={q} onChange={setQ} placeholder="Buscar artista ou endereço" />
         <FilterChips label="Filtrar por status" options={filterOptions} value={filter} onChange={setFilter} />
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-adm-line bg-white">
-        <table className="w-full min-w-[860px] border-collapse text-sm">
-          <thead>
-            <tr className="bg-adm-bg">
-              <th scope="col" className={thClass}>Artista</th>
-              <th scope="col" className={thClass}>Status</th>
-              <th scope="col" className={thClass}>Fã clubes</th>
-              <th scope="col" className={thClass}>Membros</th>
-              <th scope="col" className={thClass}>Vitrines de mídia</th>
-              <th scope="col" className={thClass}>
-                <span className="sr-only">Ações</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((c) => {
-              const selected = c.id === selId;
-              const active = c.status === "active";
-              return (
-                <tr key={c.id} className={selected ? "bg-adm-blue-tint" : "bg-white"}>
-                  <td className={tdClass}>
-                    <div className="flex items-center gap-3">
-                      <span
-                        aria-hidden="true"
-                        className="flex size-10 flex-none items-center justify-center rounded-[10px] text-base font-bold text-white"
-                        style={{ background: c.color }}
-                      >
-                        {c.initial}
-                      </span>
-                      <span className="flex flex-col">
-                        <strong className="text-[15px]">{c.name}</strong>
-                        <span className="font-adm-mono text-xs text-adm-muted">/{c.slug}</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td className={tdClass}>
-                    <Badge tone={active ? "ok" : "warn"}>{active ? "Ativo" : "Em configuração"}</Badge>
-                  </td>
-                  <td className={tdClass}>
-                    <span className="font-adm-mono text-[13px] font-semibold">
-                      {c.team.length} {c.team.length === 1 ? "fã clube" : "fã clubes"}
-                    </span>
-                  </td>
-                  <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.members}</td>
-                  <td className={tdClass}>{c.ads}</td>
-                  <td className={tdClass}>
-                    <div className="flex justify-end gap-2">
-                      {c.local ? (
-                        <>
-                          <span
-                            aria-disabled="true"
-                            title="Disponível depois que o ambiente for configurado"
-                            className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-disabled"
-                          >
-                            Abrir ambiente
-                          </span>
-                          <span
-                            aria-disabled="true"
-                            title="Disponível depois que o ambiente for configurado"
-                            className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-disabled"
-                          >
-                            Membros
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <Link
-                            href={`/${c.slug}`}
-                            className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-ink no-underline hover:border-adm-ink"
-                          >
-                            Abrir ambiente<span className="sr-only"> {c.name}</span>
-                          </Link>
-                          <Link
-                            href={`/${c.slug}/admin/membros`}
-                            className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-ink no-underline hover:border-adm-ink"
-                          >
-                            Membros<span className="sr-only"> de {c.name}</span>
-                          </Link>
-                        </>
-                      )}
-                      {c.local ? (
-                        <span
-                          aria-disabled="true"
-                          title="Disponível depois que o ambiente for configurado"
-                          className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-disabled"
-                        >
-                          Gerenciar
-                        </span>
-                      ) : (
-                        <Link
-                          href={`/${c.slug}/admin`}
-                          className="inline-flex min-h-10 items-center rounded-lg bg-adm-blue px-3 text-[13px] font-semibold text-white no-underline"
-                        >
-                          Gerenciar<span className="sr-only"> {c.name}</span>
-                        </Link>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setSelId(selected ? "" : c.id)}
-                        aria-pressed={selected}
-                        className={`inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-blue px-3 text-[13px] font-semibold ${
-                          selected ? "bg-adm-blue text-white" : "bg-white text-adm-blue"
-                        }`}
-                      >
-                        Módulos<span className="sr-only"> de {c.name}</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {rows.length === 0 && (
-          <div className="p-4">
-            {clubs.length === 0 ? (
-              <AdminEmpty
-                title="Nenhum artista ainda"
-                text="Crie o primeiro artista para abrir um ambiente com fã clubes."
-                action={
-                  <button type="button" onClick={() => setCreateOpen(true)} className={btnPrimary}>
-                    Criar artista
-                  </button>
-                }
-              />
-            ) : (
-              <AdminEmpty title="Nenhum fã clube encontrado" text="Tente outra busca ou mude o filtro de status." />
-            )}
-          </div>
-        )}
-      </div>
-
-      {selClub && (
-        <section aria-label={`Módulos de ${selClub.name}`} className="flex flex-wrap items-start gap-5">
-          <div className="flex min-w-0 flex-[2_1_300px] flex-col gap-1.5 rounded-xl border border-adm-line bg-white p-5">
-            <h2 className="m-0 mb-2 text-lg font-bold">Módulos do ambiente</h2>
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-adm-bg px-3 py-2.5">
-              <span className="text-sm">
-                {selClub.status === "active" ? "No ar para os fãs." : "Em configuração: só a equipe vê."}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  patchClub(
-                    selClub,
-                    { status: selClub.status === "active" ? "setup" : "active" },
-                    selClub.status === "active" ? `${selClub.name} saiu do ar.` : `${selClub.name} está no ar.`,
-                  )
-                }
-                disabled={selClub.local}
-                className={btnOutlineBlue}
-              >
-                {selClub.status === "active" ? "Tirar do ar" : "Colocar no ar"}
-              </button>
-            </div>
-            {moduleList.map((m) => {
-              const on = mods[selClub.id]?.[m.id] ?? selClub.modules?.[m.id] ?? !m.off;
-              const key = `${selClub.id}:${m.id}`;
-              const saving = savingMods.has(key);
-              const failed = failedMods.has(key);
-              return (
-                <div
-                  key={m.id}
-                  className="flex min-h-12 items-center justify-between gap-3 border-b border-adm-line-soft"
-                  aria-busy={saving || undefined}
-                >
-                  <span className="flex flex-col">
-                    <span className="text-sm font-semibold">{m.label}</span>
-                    <span className="text-xs text-adm-muted">
-                      {saving ? "Salvando…" : failed ? <span className="font-semibold text-adm-danger">Não foi salvo. Tente de novo.</span> : m.hint}
-                    </span>
-                  </span>
-                  <span className={saving ? "pointer-events-none opacity-60" : undefined}>
-                    <Switch checked={on} label={m.label} onChange={(v) => toggleModule(selClub, m.id, m.label, v)} />
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+      {rows.length > 0 ? (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
+          {rows.map((c) => (
+            <ClubCard key={c.id} club={c} onEdit={() => setEditId(c.id)} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-adm-line bg-white p-4">
+          {clubs.length === 0 ? (
+            <AdminEmpty
+              title="Nenhum artista ainda"
+              text="Crie o primeiro artista para abrir um ambiente com fã clubes."
+              action={
+                <button type="button" onClick={() => setCreateOpen(true)} className={btnPrimary}>
+                  Criar artista
+                </button>
+              }
+            />
+          ) : (
+            <AdminEmpty title="Nenhum fã clube encontrado" text="Tente outra busca ou mude o filtro de status." />
+          )}
+        </div>
       )}
+
+      {editClub && <EditClubDialog key={editClub.id} club={editClub} onClose={() => setEditId(null)} />}
 
       {createOpen && <CreateDialog onClose={closeCreate} onCreate={handleCreate} templateFrom={templateFrom} />}
     </>
@@ -415,11 +204,13 @@ function CreateDialog({
   templateFrom,
 }: {
   onClose: () => void;
-  onCreate: (data: { name: string; instagram: string; template: Template; invites: string[] }) => Promise<string | null>;
+  onCreate: (data: { name: string; fanClubName: string; instagram: string; template: Template; invites: string[] }) => Promise<string | null>;
   /** Nome do ambiente cuja estrutura pode ser copiada (vazio = sem essa opção). */
   templateFrom: string | null;
 }) {
   const [name, setName] = useState("");
+  const [fcName, setFcName] = useState("");
+  const [fcError, setFcError] = useState("");
   const [ig, setIg] = useState("");
   const [tpl, setTpl] = useState<Template>("blank");
   const [email, setEmail] = useState("");
@@ -483,6 +274,13 @@ function CreateDialog({
       return;
     }
     setNameError("");
+    const officialName = fcName.trim();
+    if (officialName.length < 2) {
+      setFcError("Digite o nome oficial do fã clube (pelo menos 2 letras).");
+      document.getElementById("cr-fc")?.focus();
+      return;
+    }
+    setFcError("");
     // E-mail digitado e não adicionado entra na equipe (ou barra o envio se for inválido).
     const list = addInvite();
     if (!list) {
@@ -496,7 +294,7 @@ function CreateDialog({
     }
     setSubmitError("");
     startCreate(async () => {
-      const err = await onCreate({ name: trimmed, instagram: ig.trim(), template: tpl, invites: list });
+      const err = await onCreate({ name: trimmed, fanClubName: officialName, instagram: ig.trim(), template: tpl, invites: list });
       if (err) setSubmitError(err);
     });
   };
@@ -585,6 +383,32 @@ function CreateDialog({
               <span id="cr-slug" className="font-adm-mono text-xs text-adm-muted">
                 Endereço: [seudominio]/{slug}
               </span>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="cr-fc" className="text-[13px] font-semibold">
+                Nome oficial do fã clube <span className="font-normal text-adm-muted">(obrigatório)</span>
+              </label>
+              <input
+                id="cr-fc"
+                value={fcName}
+                onChange={(e) => {
+                  setFcName(e.target.value);
+                  if (fcError) setFcError("");
+                }}
+                placeholder="Ex.: ARMY, Swifties"
+                required
+                aria-required="true"
+                aria-invalid={fcError ? true : undefined}
+                aria-describedby={fcError ? "cr-fc-error" : undefined}
+                autoComplete="off"
+                className={inputClass}
+              />
+              {fcError && (
+                <span id="cr-fc-error" role="alert" className="text-xs font-semibold text-adm-danger">
+                  {fcError}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">

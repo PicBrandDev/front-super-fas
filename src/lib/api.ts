@@ -123,7 +123,7 @@ async function get<T>(path: string, fallback: () => T, opts: { notFound?: T } = 
     return mockFor(path, fallback());
   }
   const res = await request(path);
-  if (res.status === 401) redirect("/login");
+  if (res.status === 401) redirect("/sessao/encerrar");
   if (res.status === 404 && "notFound" in opts) return opts.notFound as T;
   if (!res.ok) throw new Error(`GET ${path} falhou: ${res.status}`);
   return (await res.json()) as T;
@@ -546,7 +546,7 @@ async function resaleGet<T>(path: string, fallback: () => T | null): Promise<Api
     return data == null ? { ok: false, error: "Não encontrado.", status: 404 } : { ok: true, data };
   }
   const res = await fetchJson<T>(path);
-  if (!res.ok && res.status === 401) redirect("/login");
+  if (!res.ok && res.status === 401) redirect("/sessao/encerrar");
   return res;
 }
 
@@ -631,7 +631,7 @@ export async function getConversation(slug: string, id: number): Promise<Convers
   }
   const res = await fetchJson<Raw>(`${chat(slug)}/conversations/${id}`);
   if (res.ok) return toConversation(res.data);
-  if (res.status === 401) redirect("/login");
+  if (res.status === 401) redirect("/sessao/encerrar");
   if (res.status === 404 || res.status === 403) return null;
   throw new Error(`GET conversa ${id} falhou: ${res.status}`);
 }

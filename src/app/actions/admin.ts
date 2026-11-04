@@ -116,6 +116,7 @@ export type FanClubCreated = { artist: { id: string; slug: string; name: string 
 
 export async function createFanClub(data: {
   name: string;
+  fanClubName: string;
   instagram: string;
   template: "blank" | "vc";
   invites: string[];

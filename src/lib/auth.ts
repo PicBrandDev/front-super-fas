@@ -89,7 +89,7 @@ export function homeFor(s: Pick<Session, "role" | "artists"> & { clubs?: string[
 export const PUBLIC_PATHS = ["/login", "/cadastro", "/patrocinador/login"];
 
 /** Primeiros segmentos de URL que não são ambientes de artista. */
-export const RESERVED_SEGMENTS = ["admin", "patrocinador", "painel", "conta", "login", "cadastro", "api", "_next", "uploads"];
+export const RESERVED_SEGMENTS = ["admin", "patrocinador", "painel", "conta", "login", "cadastro", "sessao", "api", "_next", "uploads"];
 
 /** Slug do artista quando o caminho é uma tela de entrada dele (`/{artista}/login` ou `/{artista}/cadastro`). */
 export function artistLoginSlug(pathname: string): string | null {
