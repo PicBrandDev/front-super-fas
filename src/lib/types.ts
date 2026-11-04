@@ -106,7 +106,7 @@ export type Post = {
   hasImage?: boolean;
   image?: MediaImage | null; // foto do post (a API ainda não manda; ver lib/media.ts)
   quote?: string; // repost de um Drop News
-  club?: { slug: string; name: string; avatar?: string | null } | null; // fã clube do post (vazio = oficial)
+  club?: { slug: string; name: string; avatar?: string | null; isMaster?: boolean } | null; // fã clube do post (vazio = oficial)
   url?: string | null; // link do post do Instagram
   likes: number;
   comments: number;
@@ -525,7 +525,7 @@ export type Ranking = {
   autoVerify: boolean; // a conferência no Instagram está ligada no servidor
   me: MyRank;
   top: RankRow[]; // geral: todos os fã clubes juntos
-  clubs: { slug: string; name: string; avatar?: string | null; ranked: number; me: MyRank | null; top: RankRow[] }[]; // um ranking por fã clube
+  clubs: { slug: string; name: string; avatar?: string | null; isMaster?: boolean; ranked: number; me: MyRank | null; top: RankRow[] }[]; // um ranking por fã clube
 };
 
 /** Admin: números que comparam os fã clubes (30 dias, exceto totais). */

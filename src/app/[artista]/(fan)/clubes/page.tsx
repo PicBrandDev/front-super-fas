@@ -16,15 +16,17 @@ export default async function ClubesPage({ params }: { params: Promise<{ artista
   const { artista } = await params;
   const [artist, clubs] = await Promise.all([getArtist(artista), getClubs(artista)]);
   if (!artist) notFound();
-  const mine = clubs.filter((c) => c.joined);
-  const others = clubs.filter((c) => !c.joined);
+  // O fã clube oficial do artista vem sempre primeiro.
+  const byOfficial = (a: { isMaster: boolean }, b: { isMaster: boolean }) => Number(b.isMaster) - Number(a.isMaster);
+  const mine = clubs.filter((c) => c.joined).sort(byOfficial);
+  const others = clubs.filter((c) => !c.joined).sort(byOfficial);
 
   return (
     <>
       <Masthead word="Clubes" label="Fã clubes" />
       <div className="px-4">
         <p className="m-0 border-b border-line pb-4 text-[15px] leading-[22px] text-fg-muted">
-          Entre em quantos quiser. Cada clube tem seu mural, sua roleta e sua galera.
+          Entre em quantos quiser. Cada clube tem a sua galera.
         </p>
         {clubs.length === 0 && (
           <EmptyState

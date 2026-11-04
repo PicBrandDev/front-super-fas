@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { trackView } from "@/app/actions/views";
+import { WithSeal } from "@/components/VerifiedSeal";
 import { Icon } from "@/components/icons";
 import { postImage } from "@/lib/media";
 import { formatShort, initialsOf } from "@/lib/format";
@@ -11,7 +12,6 @@ import { useArtist } from "./ArtistContext";
 import { Mark } from "./Mark";
 import { PersonAvatar } from "./PersonAvatar";
 import { ShareInstagram } from "./ShareInstagram";
-import { useToast } from "./Toast";
 import { thumb } from "@/lib/thumb";
 
 const kindLabel: Record<PostKind, string> = { drop: "Mural", galera: "Comunidade", instagram: "Instagram" };
@@ -20,7 +20,7 @@ const kindLabel: Record<PostKind, string> = { drop: "Mural", galera: "Comunidade
  * Post da comunidade (padrão `.post` do protótipo): entrada editorial sem caixa,
  * fio 1px embaixo, avatar com a marca (oficial) ou iniciais em chrome, corpo
  * recuado 44px, ações em mono e respostas que abrem ao tocar em comentar.
- * Curtir, repostar e responder são simulados no cliente.
+ * Curtir e responder são simulados no cliente.
  */
 export function PostCard({
   post,
@@ -36,9 +36,7 @@ export function PostCard({
   fresh?: boolean; // acabou de ser publicado (entra com a animação `.new`)
 }) {
   const { slug, base } = useArtist();
-  const toast = useToast();
   const [liked, setLiked] = useState(false);
-  const [reposted, setReposted] = useState(false);
   const [open, setOpen] = useState(false);
   const [replies, setReplies] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
@@ -81,34 +79,8 @@ export function PostCard({
     setDraft("");
   };
 
-  const repost = () => {
-    const on = !reposted;
-    setReposted(on);
-    if (on) toast.show("Repostado no seu perfil");
-  };
-
   return (
     <article ref={ref} className={`border-b border-line py-4 ${fresh ? "new" : ""}`}>
-      {/* Flag do fã clube de onde veio o post (sem fã clube = oficial do artista). */}
-      {showClub &&
-        (post.club ? (
-          <Link href={`${base}/clubes/${post.club.slug}`} className="tag mb-3 inline-flex items-center gap-1.5 no-underline" aria-label={`Fã clube ${post.club.name}`}>
-            {post.club.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube
-              <img src={thumb(post.club.avatar, 16)} alt="" width={16} height={16} className="size-4 rounded-full object-cover" />
-            ) : (
-              <span aria-hidden="true" className="flex size-4 items-center justify-center rounded-full bg-raised text-[9px] font-black">
-                {initialsOf(post.club.name).charAt(0)}
-              </span>
-            )}
-            {post.club.name}
-          </Link>
-        ) : (
-          <span className="tag tag-key mb-3 inline-flex items-center gap-1.5">
-            <Mark size={12} />
-            Oficial
-          </span>
-        ))}
       <div className="flex items-start gap-3">
         {official ? (
           <div className="avatar" aria-hidden="true">
@@ -207,10 +179,27 @@ export function PostCard({
           <span className="num">{formatShort(post.comments + replies.length)}</span>
         </button>
         {official && <ShareInstagram post={post} />}
-        <button type="button" className="act rp" aria-pressed={reposted} aria-label="Repostar" onClick={repost}>
-          <Icon name="repost" size={20} />
-          <span className="num">{formatShort(post.reposts + (reposted ? 1 : 0))}</span>
-        </button>
+
+        {/* De qual fã clube é o post: foto redonda e nome no canto inferior direito, sem caixa nem borda. */}
+        {showClub && post.club && (
+          <Link
+            href={`${base}/clubes/${post.club.slug}`}
+            className="ml-auto flex min-w-0 max-w-[52%] items-center gap-2 py-1 pl-3 text-fg no-underline hover:underline"
+            aria-label={`Fã clube ${post.club.name}`}
+          >
+            <span className="truncate text-[13px] font-semibold leading-4">{post.club.name}</span>
+            <WithSeal size={28} verified={post.club.isMaster} label="Fã clube oficial">
+              {post.club.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element -- foto de perfil pequena do fã clube
+                <img src={thumb(post.club.avatar, 56)} alt="" width={28} height={28} className="size-7 flex-none rounded-full border border-line object-cover" />
+              ) : (
+                <span aria-hidden="true" className="flex size-7 flex-none items-center justify-center rounded-full border border-line bg-raised text-xs font-black">
+                  {initialsOf(post.club.name).charAt(0)}
+                </span>
+              )}
+            </WithSeal>
+          </Link>
+        )}
       </div>
 
       <div id={replyId} hidden={!open} className="ml-11 mt-2 grid gap-2">

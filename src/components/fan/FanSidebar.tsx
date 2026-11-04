@@ -19,11 +19,12 @@ import { isActive, sideNav } from "./nav";
  */
 export function FanSidebar() {
   const { slug, name, fanClubName, base, priceLabel, viewer, loggedIn } = useArtist();
-  const { store } = useBrand();
+  const brand = useBrand();
+  const { store } = brand;
   const pathname = usePathname();
   const unread = useChatUnread();
   return (
-    <aside className="sticky top-0 hidden h-dvh w-[300px] flex-none flex-col gap-6 overflow-y-auto border-r border-line px-6 py-8 lg:flex">
+    <aside className={`sticky top-0 hidden h-dvh w-[300px] flex-none flex-col gap-6 overflow-y-auto border-r border-line px-6 py-8 ${brand.phone ? "" : "lg:flex"}`}>
       <Link href={base} aria-label={`Início do fã clube ${name}`} className="self-start text-amber-text">
         <Mark size={72} />
       </Link>

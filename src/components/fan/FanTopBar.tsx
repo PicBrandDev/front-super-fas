@@ -15,10 +15,10 @@ import { thumb } from "@/lib/thumb";
  * recolhe junto com o menu de baixo (`hidden`). No desktop o menu lateral
  * faz esse papel.
  */
-export function FanTopBar({ avatar, hidden = false }: { avatar: string | null; hidden?: boolean }) {
+export function FanTopBar({ avatar, hidden = false, phone = false }: { avatar: string | null; hidden?: boolean; phone?: boolean }) {
   const { name, base, viewer, loggedIn } = useArtist();
   return (
-    <header className="topbar lg:hidden" data-hidden={hidden || undefined}>
+    <header className={`topbar ${phone ? "" : "lg:hidden"}`} data-hidden={hidden || undefined}>
       <Link
         href={base}
         aria-label={`Início do fã clube ${name}`}

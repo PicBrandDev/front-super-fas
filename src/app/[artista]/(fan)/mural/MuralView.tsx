@@ -106,9 +106,8 @@ export function MuralView({
     if (p.cta?.href) router.push(base + p.cta.href);
   };
 
-  const acts = (id: string, likes: number, comments: number, reposts: number) => {
+  const acts = (id: string, likes: number, comments: number) => {
     const liked = !!reacts[`l-${id}`];
-    const rp = !!reacts[`r-${id}`];
     return (
       <div className={s.acts}>
         <button type="button" className="act like" aria-pressed={liked} aria-label="Curtir" onClick={() => toggle(`l-${id}`)}>
@@ -119,10 +118,6 @@ export function MuralView({
           <Icon name="comment" size={20} />
           <span className="num">{fmtShort(comments)}</span>
         </Link>
-        <button type="button" className="act rp" aria-pressed={rp} aria-label="Repostar" onClick={() => toggle(`r-${id}`, true)}>
-          <Icon name="repost" size={20} />
-          <span className="num">{fmtShort(reposts + (rp ? 1 : 0))}</span>
-        </button>
       </div>
     );
   };
@@ -174,7 +169,7 @@ export function MuralView({
                   </div>
                   <p>{p.text}</p>
                   <div className={s.bar}>
-                    {acts(p.id, p.likes, p.comments, p.reposts)}
+                    {acts(p.id, p.likes, p.comments)}
                     {p.postId && <ShareInstagram post={{ id: p.postId, text: p.text, image: p.image }} />}
                     {p.cta && (
                       <button type="button" className="btn btn-primary btn-sm" onClick={() => onCta(p)}>

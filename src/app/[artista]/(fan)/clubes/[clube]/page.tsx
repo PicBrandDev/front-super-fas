@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdCard } from "@/components/fan/AdCard";
+import { ClubDot } from "@/components/fan/ClubDot";
 import { JoinButton } from "@/components/fan/ClubCard";
 import { Icon } from "@/components/icons";
 import { getArtist, getClub, getClubFeedAds, getClubHomeAd, getClubPosts, getClubStaff } from "@/lib/api";
@@ -47,8 +48,13 @@ export default async function ClubPage({ params }: { params: Params }) {
       </header>
 
       <div className="px-4 pt-2">
-        <span className="mono">{club.isMaster ? "Fã clube master" : "Fã clube"} · {artist.name}</span>
-        <h1 className="poster m-0 mt-2 text-[32px] leading-8">{club.name}</h1>
+        <div className="flex items-center gap-4">
+          <ClubDot name={club.name} avatar={club.avatar} size={88} official={club.isMaster} />
+          <div className="flex min-w-0 flex-col">
+            <span className="mono">{club.isMaster ? "Fã clube oficial" : "Fã clube"} · {artist.name}</span>
+            <h1 className="poster m-0 mt-1.5 break-words text-[28px] leading-[30px]">{club.name}</h1>
+          </div>
+        </div>
         {meta && (
           <div className="mono mt-2 flex items-center gap-1.5">
             <Icon name="pin" size={13} />
@@ -58,10 +64,6 @@ export default async function ClubPage({ params }: { params: Params }) {
         {club.description && <p className="mb-0 mt-3 text-[15px] leading-[22px] text-fg-muted">{club.description}</p>}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
           <JoinButton club={club} />
-          <Link href={`${base}/pickup`} className="go min-h-11">
-            PicKup do clube
-            <Icon name="arrow" size={16} />
-          </Link>
         </div>
 
         {ad && <AdCard ad={ad} />}

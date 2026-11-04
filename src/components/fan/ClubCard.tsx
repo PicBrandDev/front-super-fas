@@ -7,6 +7,7 @@ import { setClubMembership } from "@/app/actions/fan";
 import { Icon } from "@/components/icons";
 import type { FanClub } from "@/lib/types";
 import { useArtist } from "./ArtistContext";
+import { ClubDot } from "./ClubDot";
 import { Notice } from "./states";
 
 /** Entrar num fã clube (`.btn-outline`) ou "Você está dentro" (`.ok`; tocar de novo sai). */
@@ -69,6 +70,9 @@ export function ClubCard({ club }: { club: FanClub }) {
   const members = `${club.members.toLocaleString("pt-BR")} ${club.members === 1 ? "membro" : "membros"}`;
   return (
     <article className="flex items-center gap-3 border-b border-line py-3">
+      <Link href={`${base}/clubes/${club.slug}`} tabIndex={-1} aria-hidden="true" className="flex-none no-underline">
+        <ClubDot name={club.name} avatar={club.avatar} size={52} official={club.isMaster} />
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link
@@ -77,7 +81,6 @@ export function ClubCard({ club }: { club: FanClub }) {
           >
             {club.name}
           </Link>
-          {club.isMaster && <span className="tag">Master</span>}
           {club.status !== "active" && <span className="tag tag-demo">Em configuração</span>}
         </div>
         <span className="mono">{[club.city, members].filter(Boolean).join(" · ")}</span>

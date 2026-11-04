@@ -16,7 +16,8 @@ import { isChatThread } from "./nav";
  * As duas barras recolhem juntas ao rolar para baixo e voltam ao rolar para
  * cima. No celular o conteúdo reserva o espaço do menu (--navspace, fixo:
  * não muda quando o menu some). No desktop o menu lateral faz esse papel e a
- * coluna fica centralizada (até 600px). Numa conversa aberta não há barras.
+ * coluna fica centralizada (até 600px). Com `brand.phone` (Departamento) o computador mostra a mesma coisa que o celular:
+ * coluna de 430px, topo e menu de baixo, sem o menu lateral. Numa conversa aberta não há barras.
  * `data-nav-hidden` deixa barras grudadas acima do menu descerem com ele.
  * Nas telas de assinatura da marca (ex.: Mural e PicKup do Departamento) a
  * coluna e as barras trocam para o tema de tom (`toneTheme` em lib/brands.ts).
@@ -31,15 +32,15 @@ export function FanFrame({ avatar = null, children }: { avatar?: string | null; 
   return (
     <div className="contents" style={tone}>
       <div
-        className="pb-navspace relative min-h-dvh w-full min-w-0 flex-1 bg-night lg:mx-auto lg:max-w-[600px] lg:border-x lg:border-line lg:pb-12"
+        className={`pb-navspace relative min-h-dvh w-full min-w-0 flex-1 bg-night lg:mx-auto lg:border-x lg:border-line ${brand.phone ? "lg:max-w-[430px]" : "lg:max-w-[600px] lg:pb-12"}`}
         style={chrome ? undefined : ({ "--navspace": "0px" } as CSSProperties)}
         data-nav-hidden={(chrome && hidden) || undefined}
       >
-        {chrome && <FanTopBar avatar={avatar} hidden={hidden} />}
+        {chrome && <FanTopBar avatar={avatar} hidden={hidden} phone={brand.phone} />}
         {chrome && <MemberBar />}
         {children}
       </div>
-      {chrome && <BottomNav hidden={hidden} />}
+      {chrome && <BottomNav hidden={hidden} phone={brand.phone} />}
     </div>
   );
 }

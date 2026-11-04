@@ -20,6 +20,8 @@ export type ArtistBrand = {
   adminTheme: ArtistTheme | null;
   /** Cor da barra do navegador no celular. */
   themeColor: string;
+  /** No computador, a área do fã fica numa coluna de celular (430 px) com o topo e o menu de baixo, sem o menu lateral (hoje todos os cantores). */
+  phone?: boolean;
   /** Como o artista é chamado no texto: "o Vintage", "o Departamento". */
   short: string;
   /** Roleta: o toca-discos (agulha) ou a roda de linhas com o ponteiro-estrela no topo. */
@@ -62,6 +64,7 @@ const vintage: ArtistBrand = {
   toneRoutes: [],
   adminTheme: null,
   themeColor: "#120907",
+  phone: true,
   short: "Vintage",
   wheel: "turntable",
   store: { name: "Loja Vintage", word: "Vintage", mastTone: "lagoon-deep", pickupPlace: "lojinha do Vintage" },
@@ -93,6 +96,7 @@ const departamento: ArtistBrand = {
   // No painel o acento vira branco: botão branco com texto escuro (azul sobre preto não passa em contraste).
   adminTheme: { ...departamentoTheme, amber: "#FFFFFF", amberText: "#FFFFFF", onAmber: "#0000FF" },
   themeColor: "#101010",
+  phone: true,
   short: "Departamento",
   wheel: "star",
   store: { name: "Loja Trouble Dancing?", word: "Trouble Dancing?", mastTone: "night", pickupPlace: "lojinha do Departamento" },

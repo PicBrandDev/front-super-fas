@@ -521,6 +521,14 @@ body {
   .nav[data-hidden]:not(:focus-within) {
     transform: translateY(calc(100% + 8px + env(safe-area-inset-bottom, 0px)));
   }
+  /* Ambiente em modo celular no computador (brand.phone): o menu de baixo acompanha a coluna de 430px, centralizado. */
+  .nav-phone {
+    left: 0;
+    right: 0;
+    width: calc(100% - 24px);
+    max-width: 406px;
+    margin-inline: auto;
+  }
   .deck {
     display: flex;
     gap: 1px;

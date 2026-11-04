@@ -11,11 +11,11 @@ import { deckNav, isActive } from "./nav";
  * mostra o nome, em âmbar. Recolhe ao rolar para baixo e volta ao rolar
  * para cima (`hidden`, vindo do FanFrame); com foco por teclado, aparece.
  */
-export function BottomNav({ hidden = false }: { hidden?: boolean }) {
+export function BottomNav({ hidden = false, phone = false }: { hidden?: boolean; phone?: boolean }) {
   const { base } = useArtist();
   const pathname = usePathname();
   return (
-    <nav aria-label="Navegação principal" className="nav lg:hidden" data-hidden={hidden || undefined}>
+    <nav aria-label="Navegação principal" className={`nav ${phone ? "nav-phone" : "lg:hidden"}`} data-hidden={hidden || undefined}>
       <div className="deck">
         {deckNav.map((item) => {
           const active = isActive(pathname, base, item);

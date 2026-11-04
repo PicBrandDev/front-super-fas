@@ -73,7 +73,7 @@ export default async function FaPage({ params }: { params: Promise<{ artista: st
         ) : (
           <div>
             {fan.posts.map((p, i) => (
-              <PostCard key={p.id} post={p} index={i} showClub={false} />
+              <PostCard key={p.id} post={p} index={i} />
             ))}
           </div>
         )}
