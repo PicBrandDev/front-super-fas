@@ -128,9 +128,9 @@ export function PackagesManager({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <h2 id="pk-title" className="m-0 text-lg font-bold">
-            Agências e pacotes
+            Pacotes
           </h2>
-          <p className="m-0 text-sm text-adm-muted">A agência do show distribui pacotes de experiências: transfer, jantar, camarim, pré-esquenta, after e hotel, cada uma com o seu valor. O ingresso não é vendido aqui (a ticketeira faz isso). O Photo Finder já vem em todos os pacotes.</p>
+          <p className="m-0 text-sm text-adm-muted">Experiências que as agências vendem neste show. O ingresso é da ticketeira.</p>
         </div>
         <button
           type="button"
@@ -249,62 +249,85 @@ export function PackagesManager({
       {packages.length === 0 && !editing ? (
         <AdminEmpty title="Nenhum pacote neste show" text="Crie o primeiro pacote de uma agência: marque as experiências que ela vende (transfer, jantar, camarim, hotel...) e o valor de cada uma." />
       ) : (
-        <ul className="m-0 grid list-none gap-4 p-0 lg:grid-cols-2">
-          {packages.map((p) => (
-            <li key={p.id}>
-              <article className="flex h-full flex-col gap-3 rounded-xl border border-adm-line bg-white p-4">
-                <header className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-muted">{agencyName(p.agencyId)}</span>
-                    <h3 className="m-0 text-base font-bold leading-5">{p.name}</h3>
-                    {p.description && <p className="m-0 text-[13px] text-adm-muted">{p.description}</p>}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge tone="ok">Photo Finder</Badge>
-                    {!p.active && <Badge tone="off">Inativo</Badge>}
-                  </div>
-                </header>
-                <ul className="m-0 flex list-none flex-col divide-y divide-adm-line-soft p-0 text-sm" aria-label={`Experiências de ${p.name}`}>
-                  {(p.addons ?? []).length === 0 && <li className="py-1.5 text-adm-muted">Sem experiências: este pacote não vende nada ainda.</li>}
-                  {(p.addons ?? []).map((x) => (
-                    <li key={x.key} className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className={`truncate ${x.soldOut ? "line-through opacity-60" : ""}`}>{experienceLabel(x.key)}</span>
-                        {x.soldOut && <Badge tone="warn">Esgotada</Badge>}
-                      </span>
-                      <strong className="flex-none font-adm-mono text-[13px]">{formatBRL(x.priceCents)}</strong>
-                    </li>
-                  ))}
-                </ul>
-                {p.transferDetails && <p className="m-0 text-[13px]"><strong>Transfer:</strong> {p.transferDetails}</p>}
-                {p.url && (
-                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 break-all text-[13px] font-semibold text-adm-blue-dark">
-                    <Icon name="external" size={14} />
-                    Link de venda
-                  </a>
-                )}
-                <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                  <button type="button" disabled={!!editing} onClick={() => setEditing({ id: p.id, draft: toDraft(p) })} className="min-h-10 cursor-pointer rounded-lg border border-adm-blue bg-white px-3 text-[13px] font-semibold text-adm-blue">
-                    Editar
-                  </button>
-                  {confirmDel === p.id ? (
-                    <>
-                      <button type="button" onClick={() => remove(p.id)} disabled={pending} className="min-h-10 cursor-pointer rounded-lg border-0 bg-adm-danger px-3 text-[13px] font-semibold text-white">
-                        Excluir pacote
-                      </button>
-                      <button type="button" onClick={() => setConfirmDel(null)} className="min-h-10 cursor-pointer rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold">
-                        Manter
-                      </button>
-                    </>
+        <ul className="m-0 flex list-none flex-col gap-4 p-0">
+          {packages.map((p) => {
+            const addons = p.addons ?? [];
+            const prices = addons.map((x) => x.priceCents);
+            return (
+              <li key={p.id}>
+                <article className="flex flex-col gap-5 rounded-xl border border-adm-line bg-white p-5">
+                  <header className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <span className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-muted">{agencyName(p.agencyId)}</span>
+                      <h3 className="m-0 text-xl font-bold leading-6">{p.name}</h3>
+                      {p.description && <p className="m-0 max-w-[70ch] text-sm text-adm-muted">{p.description}</p>}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone="ok">Photo Finder incluso</Badge>
+                      {!p.active && <Badge tone="off">Inativo</Badge>}
+                      {prices.length > 0 && (
+                        <span className="font-adm-mono text-[13px] text-adm-muted">
+                          {addons.length} {addons.length === 1 ? "experiência" : "experiências"} · de {formatBRL(Math.min(...prices))} a {formatBRL(Math.max(...prices))}
+                        </span>
+                      )}
+                    </div>
+                  </header>
+
+                  {addons.length === 0 ? (
+                    <p className="m-0 text-sm text-adm-muted">Sem experiências: este pacote não vende nada ainda.</p>
                   ) : (
-                    <button type="button" onClick={() => setConfirmDel(p.id)} className="min-h-10 cursor-pointer rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold text-adm-danger">
-                      Excluir
-                    </button>
+                    <ul aria-label={`Experiências de ${p.name}`} className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+                      {addons.map((x) => (
+                        <li key={x.key} className={`flex flex-col gap-1 rounded-lg border border-adm-line-soft bg-adm-bg px-4 py-3 ${x.soldOut ? "opacity-60" : ""}`}>
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-semibold">{experienceLabel(x.key)}</span>
+                            {x.soldOut && <Badge tone="warn">Esgotada</Badge>}
+                          </span>
+                          <strong className={`font-display text-2xl font-black leading-7 ${x.soldOut ? "line-through" : ""}`}>{formatBRL(x.priceCents)}</strong>
+                        </li>
+                      ))}
+                    </ul>
                   )}
-                </div>
-              </article>
-            </li>
-          ))}
+
+                  {p.transferDetails && (
+                    <p className="m-0 rounded-lg bg-adm-bg px-4 py-3 text-sm">
+                      <strong>Transfer:</strong> {p.transferDetails}
+                    </p>
+                  )}
+
+                  <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-adm-line-soft pt-4">
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-adm-blue-dark">
+                        <Icon name="external" size={14} />
+                        Link de venda
+                      </a>
+                    ) : (
+                      <span className="text-[13px] text-adm-muted">Sem link de venda</span>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" disabled={!!editing} onClick={() => setEditing({ id: p.id, draft: toDraft(p) })} className="min-h-10 cursor-pointer rounded-lg border border-adm-blue bg-white px-3 text-[13px] font-semibold text-adm-blue">
+                        Editar
+                      </button>
+                      {confirmDel === p.id ? (
+                        <>
+                          <button type="button" onClick={() => remove(p.id)} disabled={pending} className="min-h-10 cursor-pointer rounded-lg border-0 bg-adm-danger px-3 text-[13px] font-semibold text-white">
+                            Excluir pacote
+                          </button>
+                          <button type="button" onClick={() => setConfirmDel(null)} className="min-h-10 cursor-pointer rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold">
+                            Manter
+                          </button>
+                        </>
+                      ) : (
+                        <button type="button" onClick={() => setConfirmDel(p.id)} className="min-h-10 cursor-pointer rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold text-adm-danger">
+                          Excluir
+                        </button>
+                      )}
+                    </div>
+                  </footer>
+                </article>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

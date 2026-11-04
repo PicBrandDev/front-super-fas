@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { formatCount } from "@/lib/format";
+import { SponsorAvatar } from "./SponsorAvatar";
 import type { AdsAnalytics, AdsPoint } from "@/lib/types";
 
 const PERIODS = [7, 30, 90];
@@ -513,8 +514,9 @@ export function DesempenhoAnuncios({
             type="button"
             aria-pressed={sel === s.name}
             onClick={() => setSel(s.name)}
-            className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-sm font-semibold ${sel === s.name ? "border-adm-ink bg-adm-ink text-white" : "border-adm-line bg-white text-adm-ink"}`}
+            className={`flex cursor-pointer items-center gap-2 rounded-full border py-1 pr-3.5 text-sm font-semibold ${s.name ? "pl-1" : "pl-3.5"} ${sel === s.name ? "border-adm-ink bg-adm-ink text-white" : "border-adm-line bg-white text-adm-ink"}`}
           >
+            {s.name && <SponsorAvatar name={s.name} src={"avatar" in s ? s.avatar : null} size={28} />}
             {s.name || "Todos os patrocinadores"}
           </button>
         ))}
@@ -568,9 +570,10 @@ export function DesempenhoAnuncios({
                 <button
                   type="button"
                   onClick={() => setSel(s.name)}
-                  className="cursor-pointer truncate border-0 bg-transparent p-0 text-left font-semibold text-adm-ink"
+                  className="flex cursor-pointer items-center gap-2 truncate border-0 bg-transparent p-0 text-left font-semibold text-adm-ink"
                 >
-                  {s.name}
+                  <SponsorAvatar name={s.name} src={s.avatar} size={24} />
+                  <span className="truncate">{s.name}</span>
                 </button>
                 <span className="h-3 rounded-r bg-adm-line-soft">
                   <span

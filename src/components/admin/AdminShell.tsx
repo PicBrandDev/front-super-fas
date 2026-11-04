@@ -24,6 +24,7 @@ export function AdminShell({
   style,
   passwordHref = "/conta/senha",
   sidebarExtra,
+  topbar,
   children,
 }: {
   brand?: { mark: ReactNode; title: string; subtitle: string; markClass?: string };
@@ -36,6 +37,7 @@ export function AdminShell({
   style?: CSSProperties; // variáveis do tema do artista
   passwordHref?: string; // trocar senha (dentro do ambiente do artista, quando houver)
   sidebarExtra?: ReactNode; // bloco extra no menu lateral, entre o menu e o usuário
+  topbar?: ReactNode; // faixa presa no alto da página (ex.: marca do artista e atalho para o app)
   children: ReactNode;
 }) {
   return (
@@ -91,10 +93,13 @@ export function AdminShell({
         </div>
         <div className="mt-auto flex flex-col gap-1 border-t border-adm-side-line pt-2.5">
           <ProfileMenu user={user} passwordHref={passwordHref} accountEnabled={authEnabled()} />
-          {authEnabled() && <AccountLinks passwordHref={passwordHref} />}
+          {authEnabled() && <AccountLinks />}
         </div>
       </aside>
-      <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-4 pb-10 pt-7 sm:px-8">{children}</main>
+      <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 px-4 pb-10 pt-7 sm:px-8">
+        {topbar}
+        {children}
+      </main>
     </div>
   );
 }
@@ -112,7 +117,7 @@ export function AdminPageHeader({
   headingId?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
+    <div data-page-header className="flex flex-wrap items-end justify-between gap-4">
       <div className="flex flex-col gap-1">
         <h1 id={headingId} className="m-0 text-[28px] font-bold">
           {title}
@@ -133,8 +138,9 @@ export const masterNav: AdminNavItem[] = [
 export function clubNav(slug: string): AdminNavItem[] {
   const base = `/${slug}/admin`;
   return [
-    { key: "painel", label: "Painel dos fã clubes", href: base, icon: "star" },
-    { key: "membros", label: "Assinantes", href: `${base}/membros`, icon: "users" },
+    { key: "painel", label: "Painel dos fã clubes", href: base, icon: "home" },
+    { key: "membros", label: "Assinantes e receita", href: `${base}/membros`, icon: "users" },
+    { key: "ranking", label: "Ranking de fãs", href: `${base}/ranking`, icon: "star" },
     { key: "mural", label: "Drop News", href: `${base}/mural`, icon: "news" },
     { key: "agenda", label: "Agenda e eventos", href: `${base}/agenda`, icon: "calendar" },
     { key: "loja", label: "Loja", href: `${base}/loja`, icon: "bag" },
@@ -158,14 +164,11 @@ export function fanClubNav(slug: string, club: string): AdminNavItem[] {
   ];
 }
 
-/** Trocar senha e sair (só quando o login está ligado). */
-function AccountLinks({ passwordHref }: { passwordHref: string }) {
+/** Sair (só quando o login está ligado). A senha se troca no painel do perfil, ao clicar na foto. */
+function AccountLinks() {
   const item = "flex min-h-10 flex-1 items-center justify-center rounded-lg px-2 text-[13px] text-adm-side-text no-underline hover:bg-white/5";
   return (
     <div className="flex gap-1">
-      <Link href={passwordHref} className={item}>
-        Trocar senha
-      </Link>
       <form action={logout} className="flex flex-1">
         <button type="submit" className={`${item} cursor-pointer border-0 bg-transparent font-adm`}>
           Sair

@@ -68,7 +68,7 @@ export function FanSidebar() {
       )}
 
       <div className={`${viewer.isMember ? "mt-auto" : ""} flex items-center gap-3 border-t border-line pt-4`}>
-        <PersonAvatar src={viewer.avatar} name={viewer.name} />
+        <PersonAvatar src={viewer.avatar} name={viewer.name} verified={viewer.verified} />
         <div className="flex min-w-0 flex-col">
           <strong className="truncate text-[15px] leading-5">{viewer.name}</strong>
           <span className="mono num">{viewer.luckPoints.toLocaleString("pt-BR")} pts da sorte</span>

@@ -8,19 +8,25 @@ import { logout } from "@/app/actions/auth";
 import { renameMe, uploadMyAvatar } from "@/app/actions/fan";
 import { AdminNotice, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
+import { WithSeal } from "@/components/VerifiedSeal";
 import { thumb } from "@/lib/thumb";
 
-export type ProfileUser = { initials: string; name: string; role: string; email?: string; avatar?: string | null };
+export type ProfileUser = { initials: string; name: string; role: string; email?: string; avatar?: string | null; verified?: boolean };
 
 function Face({ user, size, className = "" }: { user: ProfileUser; size: number; className?: string }) {
   const box = { width: size, height: size };
-  return user.avatar ? (
+  const face = user.avatar ? (
     // eslint-disable-next-line @next/next/no-img-element -- foto de perfil de quem está logado
     <img src={thumb(user.avatar, size)} alt="" width={size} height={size} style={box} className={`flex-none rounded-full object-cover ${className}`} />
   ) : (
     <span style={{ ...box, fontSize: size * 0.38 }} className={`flex flex-none items-center justify-center rounded-full bg-adm-side-line font-semibold ${className}`}>
       {user.initials}
     </span>
+  );
+  return (
+    <WithSeal size={size} verified={user.verified}>
+      {face}
+    </WithSeal>
   );
 }
 

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { loadPersonHistory } from "@/app/actions/admin";
 import { ClubAvatar } from "@/components/admin/ClubAvatar";
@@ -29,17 +28,9 @@ export function RankingPessoas({ artist, scopes }: { artist: string; scopes: Ran
 
   return (
     <section aria-labelledby="rkp-title" className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 id="rkp-title" className="m-0 font-display text-3xl font-black">
-            Ranking de pessoas
-          </h2>
-          <p className="m-0 text-[13px] text-adm-muted">Fãs com mais pontos no Fã Super (compartilhamentos confirmados no Instagram). Clique numa pessoa para ver o histórico dela.</p>
-        </div>
-        <Link href={`/${artist}/admin/ranking`} className="text-[13px] font-semibold text-adm-blue-dark">
-          Ver todos os líderes
-        </Link>
-      </div>
+      <h2 id="rkp-title" className="sr-only">
+        Ranking de pessoas
+      </h2>
 
       <div role="tablist" aria-label="Ranking" className="flex flex-wrap gap-2">
         {scopes.map((s, i) => (
@@ -77,7 +68,7 @@ export function RankingPessoas({ artist, scopes }: { artist: string; scopes: Ran
                   className="flex w-full cursor-pointer items-center gap-3 rounded-lg border-0 bg-transparent px-1 py-2 text-left text-adm-ink hover:bg-adm-bg"
                 >
                   <span className={`w-6 text-center font-display text-xl font-black ${p.position === 1 ? "text-adm-blue-dark" : "text-adm-muted"}`}>{p.position}</span>
-                  <ClubAvatar src={p.avatar} name={p.name} size={40} />
+                  <ClubAvatar src={p.avatar} name={p.name} size={40} verified={p.verified} />
                   <span className="flex min-w-0 flex-1 flex-col leading-5">
                     <strong className="truncate text-sm">{p.name}</strong>
                     <span className="truncate text-[13px] text-adm-muted">{p.handle}</span>

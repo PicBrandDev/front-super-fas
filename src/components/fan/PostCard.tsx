@@ -116,7 +116,7 @@ export function PostCard({
           </div>
         ) : (
           (() => {
-            const face = <PersonAvatar src={post.author.avatar} name={post.author.name} className="text-chrome" />;
+            const face = <PersonAvatar src={post.author.avatar} name={post.author.name} className="text-chrome" verified={post.author.verified} />;
             return profileHref ? (
               <Link href={profileHref} tabIndex={-1} aria-hidden="true" className="flex-none no-underline">
                 {face}

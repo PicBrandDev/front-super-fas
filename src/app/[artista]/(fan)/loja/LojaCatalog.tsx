@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { trackStore } from "@/app/actions/ads";
 import {
   checkoutStore,
   myOrders,
@@ -83,6 +84,29 @@ export function LojaCatalog({ products, demo, topAd = null, purchaseAd = null }:
   const shipping = quote?.shippingCents ?? localShipping;
   const total = quote?.totalCents ?? localSubtotal + localShipping;
 
+  // Conta uma visualização de cada produto quando metade do card aparece na tela (uma vez por sessão).
+  useEffect(() => {
+    if (demo || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const id = (e.target as HTMLElement).dataset.pid;
+          io.unobserve(e.target);
+          if (!id) continue;
+          try {
+            if (sessionStorage.getItem(`sf_store_view_${id}`)) continue;
+            sessionStorage.setItem(`sf_store_view_${id}`, "1");
+          } catch {}
+          void trackStore(slug, id, "view");
+        }
+      },
+      { threshold: 0.5 },
+    );
+    document.querySelectorAll("article[data-pid]").forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [slug, demo, tab, products]);
+
   const cartKey = JSON.stringify(items) + delivery + (delivery === "ship" && address.trim().length >= 8 ? "1" : "0");
   useEffect(() => {
     if (!open || step !== "bag" || items.length === 0) return;
@@ -108,14 +132,19 @@ export function LojaCatalog({ products, demo, topAd = null, purchaseAd = null }:
     setQuote(null);
   };
 
-  const add = (id: string) => setBag((cur) => (cur[id] ? cur : { ...cur, [id]: { qty: 1, size: "M" } }));
+  const add = (id: string) => {
+    if (!bag[id] && !demo) void trackStore(slug, id, "cart_add");
+    setBag((cur) => (cur[id] ? cur : { ...cur, [id]: { qty: 1, size: "M" } }));
+  };
   const patch = (id: string, v: Partial<Bag[string]>) => setBag((cur) => (cur[id] ? { ...cur, [id]: { ...cur[id], ...v } } : cur));
-  const remove = (id: string) =>
+  const remove = (id: string) => {
+    if (bag[id] && !demo) void trackStore(slug, id, "cart_remove");
     setBag((cur) => {
       const next = { ...cur };
       delete next[id];
       return next;
     });
+  };
   const toggle = (id: string) => (bag[id] ? remove(id) : add(id));
 
   async function checkout() {
@@ -173,7 +202,7 @@ export function LojaCatalog({ products, demo, topAd = null, purchaseAd = null }:
           list.map((p) => {
             const inBag = !!bag[p.id];
             return (
-              <article key={p.id} className={s.prod}>
+              <article key={p.id} data-pid={p.id} className={s.prod}>
                 <div className={`${s.img} ${p.photo?.cover ? s.cover : ""}`} style={p.photo ? undefined : { background: p.color }}>
                   {/* Foto real do produto (ver lib/media.ts); <img> comum para o blend sobre mist. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -186,8 +215,10 @@ export function LojaCatalog({ products, demo, topAd = null, purchaseAd = null }:
                     Exemplo
                   </span>
                 )}
-                <button type="button" className="btn btn-outline btn-sm" aria-pressed={inBag} onClick={() => toggle(p.id)}>
-                  {inBag ? (
+                <button type="button" className="btn btn-outline btn-sm" aria-pressed={inBag} onClick={() => toggle(p.id)} disabled={p.soldOut && !inBag}>
+                  {p.soldOut && !inBag ? (
+                    "Esgotado"
+                  ) : inBag ? (
                     <>
                       <Icon name="check" size={14} />
                       No carrinho

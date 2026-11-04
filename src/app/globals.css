@@ -9,7 +9,7 @@
  * Uso: bg-night, bg-surface, text-fg, text-fg-muted, bg-amber, text-amber-text,
  * text-on-amber, bg-sun, text-signal, bg-lagoon-deep, text-chrome,
  * bg-poster-grey, bg-mist, text-ink, border-line, border-line-strong,
- * font-display (Playfair), font-grotesk (Archivo), font-mono (DM Mono),
+ * font-display, font-grotesk e font-mono (todas Archivo),
  * rounded-hair (2px), rounded-field (6px), rounded-device (20px).
  */
 @theme inline {
@@ -37,8 +37,8 @@
   --font-grotesk: var(--fc-font-grotesk);
   --font-mono: var(--fc-font-mono);
 
-  --font-adm: var(--font-plex-sans), system-ui, sans-serif;
-  --font-adm-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-adm: var(--font-archivo), 'Helvetica Neue', Arial, sans-serif;
+  --font-adm-mono: var(--font-archivo), 'Helvetica Neue', Arial, sans-serif;
 
   /* Cor da plataforma (white label): vem de --pf-brand, definida em :root e
      trocável por NEXT_PUBLIC_PLATFORM_COLOR (aplicada no <html> pelo layout). */
@@ -92,7 +92,7 @@
    Só o ClubAdminShell usa; os demais painéis seguem neutros (white label). */
 .adm-noite {
   --font-adm: var(--fc-font-grotesk);
-  --font-adm-mono: var(--fc-font-mono);
+  --font-adm-mono: var(--fc-font-grotesk);
   --radius-md: 2px;
   --radius-lg: 2px;
   --radius-xl: 2px;
@@ -841,4 +841,27 @@ body {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Números alinhados em coluna nos rótulos que antes usavam a fonte mono (agora é Archivo em todo o site). */
+.font-mono,
+.font-adm-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Painel do ambiente com a arte no topo (.adm-com-arte, só o ClubAdminShell): o título da página já está na arte do topo, então o título e a frase embaixo dela
+ * ficam só para leitores de tela. Sem botões ao lado, a faixa inteira sai do fluxo; com botões, eles continuam à direita.
+ */
+.adm-com-arte [data-page-header] > div:first-child,
+.adm-com-arte [data-page-header]:not(:has(> :nth-child(2))) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.adm-com-arte [data-page-header]:has(> :nth-child(2)) {
+  justify-content: flex-end;
 }

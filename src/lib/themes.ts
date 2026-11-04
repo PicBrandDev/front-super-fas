@@ -29,9 +29,9 @@ export type ArtistTheme = {
   mist: string; // claro quase branco (cartaz da loja)
   ink: string; // o mais escuro (texto sobre amber/sun/mist)
   paper: string; // branco
-  fontDisplay: string; // serifa pesada (Playfair Display)
+  fontDisplay: string; // títulos (Archivo, a mesma fonte do cabeçalho)
   fontGrotesk: string; // grotesca (Archivo)
-  fontMono: string; // mono (DM Mono)
+  fontMono: string; // rótulos e números (também Archivo)
 };
 
 export const vintageTheme: ArtistTheme = {
@@ -54,9 +54,9 @@ export const vintageTheme: ArtistTheme = {
   mist: "#E5E5E8",
   ink: "#120907",
   paper: "#FFFFFF",
-  fontDisplay: "var(--font-playfair), 'Bodoni MT', Didot, Georgia, serif",
+  fontDisplay: "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif",
   fontGrotesk: "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif",
-  fontMono: "var(--font-dm-mono), ui-monospace, 'SF Mono', Menlo, monospace",
+  fontMono: "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif",
 };
 
 /*
@@ -69,7 +69,7 @@ export const vintageTheme: ArtistTheme = {
  * TODO oficial: Inter Tight (alvo) ainda não está em src/fonts; Archivo é o interino da pasta de identidade.
  */
 const DP_GROTESK = "var(--font-archivo), 'Inter Tight', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const DP_META = "'Courier Prime', 'Courier New', Courier, monospace";
+const DP_META = DP_GROTESK; // uma fonte só em todo o site
 
 export const departamentoTheme: ArtistTheme = {
   bg: "#101010",

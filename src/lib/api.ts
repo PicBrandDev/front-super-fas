@@ -73,6 +73,9 @@ import type {
   SubscriberPage,
   RankingFan,
   RankingScope,
+  HashtagAnalytics,
+  StoreAnalytics,
+  StoreInsights,
   Rental,
   Sponsor,
   SpinCredit,
@@ -344,6 +347,16 @@ export async function getPersonHistory(slug: string, userId: string): Promise<Pe
 /** GET /artists/{slug}/clubs-highlights: comparação dos fã clubes. */
 export const getClubsHighlights = (slug: string) => get<ClubHighlight[]>(`/artists/${slug}/clubs-highlights`, () => []);
 
+/** GET /artists/{slug}/manage/store/insights: funil (viu, carrinho, compra) e gráficos da loja no período. */
+export const getStoreInsights = (slug: string, days = 30) =>
+  get<StoreInsights | null>(`/artists/${slug}/manage/store/insights?days=${days}`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/manage/store/analytics: vendas, estoque e compradores de cada produto da loja. */
+export const getStoreAnalytics = (slug: string) => get<StoreAnalytics | null>(`/artists/${slug}/manage/store/analytics`, () => null, { notFound: null });
+
+/** GET /artists/{slug}/manage/ranking/analytics: quem usou a hashtag e o que mais foi compartilhado. */
+export const getHashtagAnalytics = (slug: string) => get<HashtagAnalytics | null>(`/artists/${slug}/manage/ranking/analytics`, () => null, { notFound: null });
+
 /** GET /artists/{slug}/manage/ranking: quem lidera o ranking geral e o de cada fã clube. */
 export const getRankingLeaders = (slug: string) => get<RankingScope[]>(`/artists/${slug}/manage/ranking`, () => []);
 
@@ -438,7 +451,7 @@ export const getEventPhotos = (slug: string, eventId: string) =>
 export const getProfile = () => get<Profile | null>("/auth/profile", () => null);
 
 /** GET /auth/me: dados de quem está logado (nome, e-mail e foto de perfil). */
-export const getMe = () => get<{ name: string; email: string; avatar?: string | null } | null>("/auth/me", () => null);
+export const getMe = () => get<{ name: string; email: string; avatar?: string | null; verified?: boolean } | null>("/auth/me", () => null);
 
 /** GET /artists/{slug}/ranking: ranking Fã Super do Vintage. */
 export const getRanking = (slug: string) => get<Ranking | null>(`/artists/${slug}/ranking`, () => null);

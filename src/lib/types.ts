@@ -83,6 +83,7 @@ export type Viewer = {
   isMember: boolean;
   clubs?: string[]; // fã clubes (slugs) em que entrou neste cantor
   avatar?: string | null; // foto de perfil
+  verified?: boolean; // dono de fã clube: selo verificado
 };
 
 export type PostKind = "drop" | "galera" | "instagram";
@@ -98,6 +99,7 @@ export type Post = {
     badge?: string | null;
     id?: string | null; // id do fã autor: abre o perfil público e o chat (vazio no post oficial)
     avatar?: string | null; // foto de perfil do fã autor (/uploads/...)
+    verified?: boolean; // autor é dono de fã clube: selo verificado ao lado da foto
   };
   timeLabel: string;
   text: string;
@@ -178,6 +180,7 @@ export type Product = {
   priceCents?: number | null; // valor em centavos (a API manda; sem ele o item não entra na conta)
   color: string; // cor de fundo quando não há foto
   image?: MediaImage | null; // foto do produto (a API ainda não manda; ver lib/media.ts)
+  soldOut?: boolean; // estoque zerado: não dá para comprar
 };
 
 export type Track = {
@@ -415,6 +418,12 @@ export type SubscribersAnalytics = {
   series: { day: string; newSubscribers: number }[];
   byState: { place: string; subscribers: number }[];
   byCity: { place: string; subscribers: number }[];
+  priceCents?: number; // preço da assinatura por mês
+  annualRevenueCents?: number; // receita mensal x 12
+  newRevenueMonthCents?: number; // novas assinaturas dos últimos 30 dias x preço
+  pendingRevenueCents?: number; // o que entra se os pendentes confirmarem
+  lostRevenueCents?: number; // o que os cancelados deixaram de pagar por mês
+  monthlySeries?: { month: string; label: string; subscribers: number; revenueCents: number }[]; // últimos 6 meses
 };
 
 /** Publicação no feed do admin (Drop News e galera), com as métricas. */
@@ -426,6 +435,7 @@ export type FeedItem = {
   author: string;
   handle: string; // @ do autor (vazio para o artista)
   authorAvatar?: string | null; // foto de perfil do autor
+  authorVerified?: boolean; // autor é dono de fã clube
   clubName: string | null;
   timeLabel: string;
   date: string;
@@ -526,8 +536,40 @@ export type ClubHighlight = {
   members: number; newMembersMonth: number; subscribers: number; activeMembers: number; activeRate: number;
 };
 
+/** Admin: funil e gráficos da loja no período. */
+export type StoreProductFunnel = {
+  productId: string; name: string; views: number; carts: number; removes: number; purchases: number; buyers: number;
+  revenueCents: number; viewToCart: number; cartToBuy: number; abandoned: number;
+};
+export type StoreInsights = {
+  days: number; viewers: number; cartPeople: number; buyers: number; views: number; carts: number; removes: number;
+  units: number; orders: number; revenueCents: number; avgTicketCents: number; itemsPerOrder: number;
+  viewToCart: number; cartToBuy: number; abandoned: number; pickup: number; ship: number;
+  series: { day: string; views: number; carts: number; purchases: number; revenueCents: number }[];
+  products: StoreProductFunnel[]; bySize: Record<string, number>; byWeekday: number[]; byHour: number[];
+};
+
+/** Admin: vendas da loja (por produto, com o estoque e quem comprou). */
+export type StoreBuyer = {
+  userId: string | null; name: string; handle: string; email: string; avatar: string | null;
+  size: string; qty: number; paidCents: number; orderCode: string; delivery: "" | "pickup" | "ship"; at: string;
+};
+export type ProductSales = {
+  productId: string; name: string; category: string; sold: number; revenueCents: number; buyers: number;
+  stock: number | null; bySize: Record<string, number>; lastSale: string | null; history: StoreBuyer[];
+};
+export type StoreAnalytics = { revenueCents: number; units: number; orders: number; buyers: number; products: ProductSales[] };
+
+/** Admin: quem usou a hashtag do ranking, de onde veio e o que mais foi compartilhado. */
+export type TopShared = { kind: "post" | "drop"; id: string; text: string; image: string | null; shares: number; people: number; waiting: number };
+export type HashtagAnalytics = {
+  hashtag: string; autoVerify: boolean; people: number; verified: number; waiting: number; started: number;
+  verifiedMonth: number; peopleMonth: number; fromOfficialPost: number; fromDrop: number; fromFree: number;
+  series: { day: string; value: number }[]; top: TopShared[];
+};
+
 /** Admin: quem lidera o ranking geral (clubSlug nulo) e o de cada fã clube. */
-export type RankingFan = { userId: string; name: string; handle: string; avatar?: string | null };
+export type RankingFan = { userId: string; name: string; handle: string; avatar?: string | null; verified?: boolean };
 export type PersonShare = {
   id: string; what: string; status: "started" | "claimed" | "verified";
   startedAt: string; verifiedAt: string | null; permalink: string;
@@ -542,7 +584,7 @@ export type PersonHistory = {
   userId: string; name: string; handle: string; avatar: string | null; position: number | null;
   points: number; sharesConfirmed: number; pending: number; shares: PersonShare[]; posts: PersonPost[];
 };
-export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; shares: number; points: number };
+export type RankingPerson = { userId: string; position: number; name: string; handle: string; avatar?: string | null; verified?: boolean; shares: number; points: number };
 export type RankingScope = {
   clubSlug: string | null; isMaster?: boolean; name: string; leader: RankingFan | null; top: RankingFan | null;
   people: RankingPerson[]; // os 10 primeiros, com o ajuste da administração
@@ -569,6 +611,11 @@ export type Profile = {
 
 /** Vitrine alugada por um patrocinador (admin do ambiente). */
 export type Rental = {
+  campaignId?: string;
+  sponsorAvatar?: string | null; // foto de perfil do patrocinador
+  views?: number; // visualizações desta compra
+  clicks?: number;
+  ctr?: number; // cliques / visualizações, em %
   slotName: string;
   where: string;
   diagramTop: number; // posição da vitrine no desenho do celular
@@ -643,5 +690,5 @@ export type AdsAnalytics = {
   clicks: number;
   ctr: number;
   series: AdsPoint[];
-  sponsors: { name: string; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[] }[];
+  sponsors: { name: string; avatar?: string | null; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[] }[];
 };

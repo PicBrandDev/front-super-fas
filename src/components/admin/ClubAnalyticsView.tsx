@@ -50,7 +50,7 @@ export async function ClubAnalyticsView({ artistSlug, clube, back }: { artistSlu
             </h1>
             <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[15px] text-adm-muted">
               <span>{club.isMaster ? "Fã clube master" : club.city || "Fã clube"} · Dono:</span>
-              {club.ownerName && <ClubAvatar src={club.ownerAvatar} name={club.ownerName} size={26} />}
+              {club.ownerName && <ClubAvatar src={club.ownerAvatar} name={club.ownerName} size={26} verified />}
               <span>
                 {club.ownerName ?? "ainda sem dono"}
                 {club.ownerEmail ? ` (${club.ownerEmail})` : ""}
@@ -179,7 +179,7 @@ function OwnerProfile({ artistSlug, clubName, owner }: { artistSlug: string; clu
   return (
     <section aria-labelledby="g-dono" className="flex flex-col gap-4 rounded-xl border border-adm-line bg-white p-5 md:flex-row md:items-center">
       <div className="flex min-w-0 items-center gap-4 md:w-[48%]">
-        <ClubAvatar src={owner.avatar} name={owner.name} size={88} />
+        <ClubAvatar src={owner.avatar} name={owner.name} size={88} verified />
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-blue-dark">{owner.roleLabel || "Dono do fã clube"}</span>
           <h2 id="g-dono" className="m-0 truncate font-display text-2xl font-black leading-7">

@@ -8,7 +8,7 @@ import { formatCount } from "@/lib/format";
 import type { PickupPrize } from "@/lib/types";
 import { HistoricoGiros } from "./HistoricoGiros";
 import { PrizeCard } from "./PrizeCard";
-import { Turntable, recordAngleFor } from "@/components/fan/Turntable";
+import { RoletaTeste } from "./RoletaTeste";
 import { brandFor } from "@/lib/brands";
 import { kindStyle } from "./RoletaSvg";
 
@@ -73,16 +73,11 @@ export default async function PickupAdminPage({ params }: { params: Promise<{ ar
             ) : (
               <div className="grid items-center gap-6 rounded-xl border border-adm-line bg-white p-5 md:grid-cols-[minmax(0,340px)_1fr]">
                 <div className="fan mx-auto w-full max-w-[360px] bg-transparent">
-                  {/* A mesma roleta (toca-discos ou roda com estrela) que o fã vê no app. */}
-                  <Turntable
+                  {/* A mesma roleta (toca-discos ou roda com estrela) que o fã vê no app; o admin pode girar para testar. */}
+                  <RoletaTeste
                     variant={brandFor(artist.slug).wheel}
-                    prizes={data.prizes.map((p) => p.label)}
-                    deck
-                    live
-                    prefix="adm"
-                    on={featuredIndex(data.prizes)}
-                    rot={recordAngleFor(featuredIndex(data.prizes), data.prizes.length, brandFor(artist.slug).wheel)}
-                    arm={0}
+                    prizes={data.prizes.map((p) => ({ label: p.label, remaining: p.remaining ?? null }))}
+                    initial={featuredIndex(data.prizes)}
                   />
                 </div>
                 <div className="flex flex-col gap-3">

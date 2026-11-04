@@ -8,6 +8,7 @@ import { Icon } from "@/components/icons";
 import { formatBRL, getArtist, getMemberPerks, getSubscribers, getSubscribersAnalytics } from "@/lib/api";
 import { formatCount } from "@/lib/format";
 import { ListaAssinantes } from "./ListaAssinantes";
+import { ReceitaAssinaturas } from "./ReceitaAssinaturas";
 
 export async function generateMetadata({ params }: { params: Promise<{ artista: string }> }): Promise<Metadata> {
   const { artista } = await params;
@@ -25,20 +26,21 @@ export default async function MembrosPage({ params }: { params: Promise<{ artist
   return (
     <ClubAdminShell artist={artist} active="membros">
       <AdminPageHeader
-        title="Assinantes"
+        title="Assinantes e receita"
         headingId="assinantes-title"
-        description={`Quantos assinantes ${artist.name} tem, de onde eles são e quem são, do que assinou por último ao mais antigo.`}
+        description={`Quanto ${artist.name} fatura com as assinaturas, quantos assinantes tem e de onde eles são.`}
       />
       {!data ? (
         <AdminEmpty title="Analytics indisponível" text="Ligue o front à API para ver os números dos assinantes." />
       ) : (
         <>
-          <section aria-label="Números" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ReceitaAssinaturas data={data} priceCents={artist.memberPriceCents} />
+
+          <section aria-label="Números" className="grid gap-3 sm:grid-cols-3">
             {[
               { label: "Assinantes ativos", value: formatCount(data.active), note: `${formatCount(data.pending)} pendentes · ${formatCount(data.canceled)} cancelados` },
               { label: "Fãs no ambiente", value: formatCount(data.fans), note: "com ou sem assinatura" },
               { label: "Novas assinaturas (30d)", value: formatCount(data.newSubscribersMonth), note: "iniciadas nos últimos 30 dias" },
-              { label: "Receita mensal", value: formatBRL(data.monthlyRevenueCents), note: `${formatBRL(artist.memberPriceCents)} por assinante ativo` },
             ].map((k) => (
               <div key={k.label} className="flex flex-col gap-0.5 rounded-xl border border-adm-line bg-white px-3.5 py-3">
                 <span className="font-adm-mono text-xs font-semibold text-adm-muted">{k.label}</span>

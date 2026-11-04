@@ -40,12 +40,8 @@ export function CompradoresExperiencias({ slug, eventId, overview }: { slug: str
     <section aria-labelledby="comp-title" className="flex flex-col gap-4">
       <div className="flex flex-col gap-0.5">
         <h2 id="comp-title" className="m-0 text-lg font-bold">
-          Compradores das experiências
+          Compradores
         </h2>
-        <p className="m-0 text-sm text-adm-muted">
-          O ingresso é da ticketeira. Aqui estão as pessoas que compraram experiências neste show: {formatCount(overview.people)}{" "}
-          {overview.people === 1 ? "pessoa" : "pessoas"}, {formatCount(overview.purchases)} {overview.purchases === 1 ? "compra" : "compras"}, {formatBRL(overview.revenueCents)} no total.
-        </p>
       </div>
 
       {list.length === 0 ? (

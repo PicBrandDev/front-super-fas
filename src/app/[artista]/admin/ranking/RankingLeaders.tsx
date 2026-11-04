@@ -51,7 +51,7 @@ function ScopeCard({ artist, scope }: { artist: string; scope: RankingScope }) {
       </p>
       {error && <AdminNotice tone="error">{error}</AdminNotice>}
       <div className="flex items-center gap-3">
-        {first ? <ClubAvatar src={first.avatar} name={first.name} size={44} /> : null}
+        {first ? <ClubAvatar src={first.avatar} name={first.name} size={44} verified={first.verified} /> : null}
         <div className="min-w-0 flex-1">
           <span className="font-adm-mono text-xs font-semibold text-adm-muted">1º lugar agora</span>
           <p className="m-0 truncate text-[15px] font-bold">{first ? who(first) : "Ninguém ainda"}</p>

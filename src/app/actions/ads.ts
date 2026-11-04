@@ -7,3 +7,9 @@ export async function trackAd(slug: string, campaignId: string, kind: "view" | "
   if (!/^[a-z0-9-]+$/.test(slug) || !/^[A-Za-z0-9_-]+$/.test(campaignId)) return;
   await send("POST", `/artists/${slug}/ads/${campaignId}/track`, { kind });
 }
+
+/** Avisa que o fã viu um produto da loja, ou o pôs no (ou tirou do) carrinho. Falhar não atrapalha o fã. */
+export async function trackStore(slug: string, productId: string, kind: "view" | "cart_add" | "cart_remove"): Promise<void> {
+  if (!/^[a-z0-9-]+$/.test(slug) || !/^[A-Za-z0-9_-]+$/.test(productId)) return;
+  await send("POST", `/artists/${slug}/store/track`, { productId, kind });
+}

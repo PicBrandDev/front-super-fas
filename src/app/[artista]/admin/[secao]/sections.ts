@@ -137,6 +137,7 @@ export const sections: Record<string, Section> = {
       },
       { name: "priceCents", label: "Preço (R$)", type: "money", column: true, hint: "Em branco mostra “R$ [PREÇO]”." },
       { name: "color", label: "Cor do card", type: "color", column: true },
+      { name: "stock", label: "Estoque (unidades)", type: "number", nullable: true, hint: "Cada compra tira do estoque; zerou, o produto esgota. Em branco = sem controle de estoque." },
       { name: "position", label: "Ordem", type: "number" },
     ],
   },

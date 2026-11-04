@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef } from "react";
+import type { BrandKey } from "@/lib/brands";
 import { useBrand } from "./ArtistContext";
 
 export type MastTone = "night" | "amber" | "sun" | "lagoon-deep" | "poster-grey";
@@ -32,6 +33,8 @@ export function Masthead({
   shiftPx = 0,
   durationMs,
   className = "",
+  brand: brandKey,
+  heading = true,
 }: {
   word: string;
   label?: string;
@@ -41,8 +44,12 @@ export function Masthead({
   shiftPx?: number;
   durationMs?: number;
   className?: string;
+  /** Força a pele de um artista (fora do ArtistProvider, como no admin). */
+  brand?: BrandKey;
+  /** false = sem o h1 escondido (a página já tem o seu). */
+  heading?: boolean;
 }) {
-  const brand = useBrand();
+  const brand = useBrand(brandKey);
   const box = useRef<HTMLElement>(null);
   const wordRef = useRef<HTMLDivElement>(null);
   const width = useRef(0); // largura da palavra já ajustada
@@ -118,7 +125,7 @@ export function Masthead({
       <div ref={wordRef} className="mast-word" aria-hidden="true">
         {word}
       </div>
-      <h1 className="sr-only">{label}</h1>
+      {heading && <h1 className="sr-only">{label}</h1>}
     </header>
   );
 }

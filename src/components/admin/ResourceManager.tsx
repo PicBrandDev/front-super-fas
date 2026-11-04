@@ -19,6 +19,7 @@ export type FieldDef = {
   /** Aparece como coluna na tabela. */
   column?: boolean;
   full?: boolean; // ocupa a linha toda no formulário
+  nullable?: boolean; // em branco vira vazio (sem valor), em vez de não mudar
 };
 
 export type Item = Record<string, unknown> & { id: string };
@@ -41,6 +42,10 @@ type Props = {
   rowLink?: { label: string; href: string };
   /** Sem cabeçalho de página (quando é uma seção dentro de outra página). */
   section?: boolean;
+  hideTitle?: boolean; // com `section`: título e frase só para leitores de tela (a tela já tem o seu título)
+  /** "details": cada item vira uma ficha com todos os campos listados (sem tabela). */
+  layout?: "table" | "details";
+  hideList?: boolean; // sem a tabela: só o botão de adicionar e o formulário (a lista é mostrada por outro componente)
   emptyText?: string;
 };
 
@@ -52,6 +57,14 @@ const fmtDate = (v: unknown) => {
   const [y, m, d] = v.split("-");
   return `${d}/${m}/${y}`;
 };
+
+const hasValue = (v: unknown) => v !== null && v !== undefined && v !== "";
+
+/** Como `display`, mas sem cortar os textos longos (para a ficha). */
+function displayFull(f: FieldDef, v: unknown): string {
+  if (f.type === "money" || f.type === "date" || f.type === "checkbox" || f.type === "select") return display(f, v);
+  return hasValue(v) ? String(v) : "—";
+}
 
 function display(f: FieldDef, v: unknown): string {
   if (f.type === "money") return brl(v);
@@ -81,7 +94,7 @@ function fromInput(f: FieldDef, v: string | boolean): { value?: unknown; error?:
   if (!s) {
     if (f.required) return { error: `Preencha “${f.label}”.` };
     if (f.type === "money") return { value: null };
-    if (f.type === "number") return { value: undefined }; // em branco: a API usa o padrão
+    if (f.type === "number") return f.nullable ? { value: null } : { value: undefined }; // em branco: a API usa o padrão
     return { value: "" };
   }
   if (f.type === "number") {
@@ -106,6 +119,9 @@ export function ResourceManager({
   fixed,
   rowLink,
   section = false,
+  hideTitle = false,
+  hideList = false,
+  layout = "table",
   emptyText,
   feminine = false,
   allowAdd = true,
@@ -133,6 +149,40 @@ export function ResourceManager({
       router.refresh();
     });
 
+  const actions = (item: Item) =>
+    confirmDel === item.id ? (
+      <>
+        <button type="button" onClick={() => setConfirmDel(null)} className={btnSecondary}>
+          Manter
+        </button>
+        <button
+          type="button"
+          onClick={() => remove(item)}
+          disabled={pending}
+          className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-adm-danger px-3 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          Confirmar exclusão
+        </button>
+      </>
+    ) : (
+      <>
+        <button
+          type="button"
+          onClick={() => setEditing(item)}
+          className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-blue bg-white px-3 text-[13px] font-semibold text-adm-blue"
+        >
+          Editar<span className="sr-only"> {singular}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmDel(item.id)}
+          className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold text-adm-danger"
+        >
+          Excluir<span className="sr-only"> {singular}</span>
+        </button>
+      </>
+    );
+
   const addButton = allowAdd && (
     <button type="button" onClick={() => setEditing("new")} className={btnPrimary} disabled={editing === "new"}>
       <Icon name="plus" size={18} strokeWidth={2.4} />
@@ -143,8 +193,8 @@ export function ResourceManager({
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-4">
       {section ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
+        <div className={`flex flex-wrap items-center gap-3 ${hideTitle ? "justify-end" : "justify-between"}`}>
+          <div className={`flex flex-col gap-0.5 ${hideTitle ? "sr-only" : ""}`}>
             <h2 id={headingId} className="m-0 text-lg font-bold">
               {title}
             </h2>
@@ -188,6 +238,45 @@ export function ResourceManager({
         />
       )}
 
+      {!hideList && layout === "details" && (
+        <ul className="m-0 flex list-none flex-col gap-4 p-0">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-xl border border-adm-line bg-white p-5">
+              <dl className="m-0 grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+                {fields
+                  .filter((f) => f.type === "checkbox" || hasValue(item[f.name]))
+                  .map((f) => (
+                    <div key={f.name} className={`flex min-w-0 flex-col gap-1 ${f.full ? "sm:col-span-2 lg:col-span-4" : ""}`}>
+                      <dt className="font-adm-mono text-[11px] font-semibold uppercase tracking-wider text-adm-muted">{f.label}</dt>
+                      <dd className="m-0 break-words text-lg font-semibold leading-6">
+                        {/^https?:\/\//.test(String(item[f.name] ?? "")) ? (
+                          <a href={String(item[f.name])} target="_blank" rel="noopener noreferrer" className="text-adm-blue-dark">
+                            {String(item[f.name])}
+                          </a>
+                        ) : (
+                          displayFull(f, item[f.name])
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+              <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-adm-line-soft pt-4">
+                {rowLink && (
+                  <Link
+                    href={rowLink.href.replace("{id}", item.id)}
+                    className="flex min-h-10 items-center whitespace-nowrap rounded-lg border border-adm-line px-3 text-[13px] font-medium text-adm-ink no-underline hover:border-adm-ink"
+                      >
+                    {rowLink.label}
+                  </Link>
+                )}
+                {actions(item)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!hideList && layout !== "details" && (
       <div className="overflow-x-auto rounded-xl border border-adm-line bg-white">
         <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
@@ -281,6 +370,7 @@ export function ResourceManager({
           </div>
         )}
       </div>
+      )}
     </section>
   );
 }
