@@ -7,8 +7,10 @@ import { BannerPhone, PlacementPhone } from "./BannerPhone";
 const dm = (iso: string | null) => (iso ? iso.split("-").reverse().join("/") : "—");
 
 const GROUPS: { key: string; title: string; text: string }[] = [
-  { key: "entrada", title: "Entrada do app", text: "O primeiro anúncio que o fã vê: um modal logo depois do login." },
-  { key: "feed", title: "Entre os posts do feed", text: "Posts patrocinados entre os posts. O feed é um só, o mesmo para todos os fã clubes." },
+  { key: "entrada", title: "Entrada e Início", text: "O primeiro anúncio que o fã vê (um modal logo depois do login) e o card logo abaixo do primeiro post do Início." },
+  { key: "feed", title: "Mural, fã clubes e notícias", text: "Posts patrocinados entre os posts: a cada 1 no mural, a cada 2 nos fã clubes e um sorteado nas notícias." },
+  { key: "roleta", title: "Roleta", text: "Quatro camadas de marcas na roleta e dois vídeos: antes de girar e quando o fã pega o brinde." },
+  { key: "loja", title: "Loja", text: "O banner em cima da lojinha e o anúncio que aparece depois da compra da camiseta." },
 ];
 
 /**

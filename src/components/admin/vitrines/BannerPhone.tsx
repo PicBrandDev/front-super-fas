@@ -61,8 +61,8 @@ function Screen({ children, label }: { children: ReactNode; label: string }) {
 }
 
 /**
- * Celular com o anúncio no lugar em que ele aparece: modal de entrada, vídeo antes do giro, modal do prêmio,
- * fatia da roleta, post patrocinado no feed ou card na tela. Sem anúncio, o lugar aparece vazio ("Sua marca aqui").
+ * Celular com o anúncio no lugar em que ele aparece: modal de entrada, card do Início, post no mural, nos fã clubes e nas notícias,
+ * as 4 camadas da roleta, os vídeos antes de girar e ao pegar o brinde, o topo da loja e a tela depois da compra. Sem anúncio, o lugar aparece vazio ("Sua marca aqui").
  */
 export function BannerPhone({ group, vitrineKey, booking, top, height }: { group: string; vitrineKey: string; booking: VitrineBooking | null; top: number; height: number }) {
   const base = vitrineKey.split(".").pop() ?? vitrineKey;
@@ -70,6 +70,7 @@ export function BannerPhone({ group, vitrineKey, booking, top, height }: { group
   const st = booking ? brandStyle(booking.brand) : FALLBACK;
   const shown = booking && (booking.brand || booking.title);
   const ad = shown ? <AdBanner b={booking} /> : <Empty label={booking ? "Ocupada" : "Sua marca aqui"} />;
+  const adCompact = shown ? <AdBanner b={booking} compact /> : <Empty label={booking ? "Ocupada" : "Sua marca aqui"} />;
 
   if (group === "entrada") {
     return (
@@ -107,33 +108,124 @@ export function BannerPhone({ group, vitrineKey, booking, top, height }: { group
   if (base === "pickup_resgate") {
     return (
       <Screen label={label}>
-        <div className="flex flex-1 flex-col items-center justify-center gap-[6px] text-center">
-          <span className="rounded-full bg-[#F2C14E] px-[7px] py-[2px] text-[7px] font-extrabold uppercase text-black">Você ganhou!</span>
-          <strong className="text-[13px] font-black leading-[13px] text-white">Ingresso de pista</strong>
-          <span className="text-[7px] text-white/60">Guardado em Meus brindes</span>
+        <div className="flex items-center justify-between text-[7px] font-semibold text-white/70">
+          <span className="rounded bg-white/15 px-[4px] py-[1px] uppercase">Anúncio</span>
+          <span>0:30</span>
         </div>
-        <div className="rounded-[10px] bg-[#201a15] p-[6px]">{ad}</div>
-        <span className="rounded-full bg-white/15 py-[4px] text-center text-[7px] font-bold text-white">Ver meus brindes</span>
+        <div className="flex flex-1 flex-col items-center justify-center gap-[6px] rounded-[8px] p-[8px] text-center" style={{ background: shown ? st.bg : "#2a241e", color: shown ? st.fg : "#9a8f84" }}>
+          <span className="flex size-[28px] items-center justify-center rounded-full bg-black/35 text-[11px]">▶</span>
+          <strong className="text-[11px] font-black uppercase leading-[11px]">{shown ? booking.brand : booking ? "Ocupada" : "Seu vídeo aqui"}</strong>
+          {shown && <span className="text-[8px] font-bold leading-[10px]">{booking.title}</span>}
+        </div>
+        <span className="text-center text-[6.5px] font-semibold uppercase tracking-wider text-[#F2C14E]">Você ganhou um brinde</span>
+        <span className="rounded-full bg-[#F2C14E] py-[4px] text-center text-[7px] font-extrabold text-black">Pegar meu brinde</span>
       </Screen>
     );
   }
 
-  if (base === "pickup") {
+  const layer = /^pickup(?:_([234]))?$/.exec(base);
+  if (layer) {
+    const n = Number(layer[1] ?? 1);
     return (
       <Screen label={label}>
-        <div className="flex flex-1 flex-col items-center justify-center gap-[8px]">
+        <div className="flex flex-1 flex-col items-center justify-center">
           <div
-            className="relative size-[112px] rounded-full border-[3px] border-white/20"
-            style={{ background: `conic-gradient(${shown ? st.bg : "#5c5247"} 0 51deg, #2b2620 51deg 102deg, #3a332b 102deg 154deg, #2b2620 154deg 205deg, #3a332b 205deg 257deg, #2b2620 257deg 308deg, #3a332b 308deg 360deg)` }}
+            className="relative size-[100px] rounded-full border-[3px] border-white/20"
+            style={{ background: "conic-gradient(#3a332b 0 51deg, #2b2620 51deg 102deg, #3a332b 102deg 154deg, #2b2620 154deg 205deg, #3a332b 205deg 257deg, #2b2620 257deg 308deg, #3a332b 308deg 360deg)" }}
           >
-            <span className="absolute left-1/2 top-1/2 flex size-[26px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#16120f] text-[6px] font-extrabold text-[#F2C14E]">PicKup</span>
-            <span className="absolute left-[56%] top-[10px] text-[6.5px] font-black uppercase" style={{ color: shown ? st.fg : "#ccc" }}>
-              {shown ? booking.brand : booking ? "Ocupada" : "Marca"}
-            </span>
+            <span className="absolute left-1/2 top-1/2 flex size-[24px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#16120f] text-[6px] font-extrabold text-[#F2C14E]">PicKup</span>
           </div>
-          <span className="text-[7.5px] font-bold text-white/80">{shown ? `Fatia ${booking.brand}` : booking ? "Fatia ocupada" : "Fatia livre"}</span>
         </div>
-        <div className="rounded-[8px] bg-white/[0.07] p-[6px] text-center text-[7px] text-white/65">{shown ? booking.title : booking ? "Reservada por outra marca" : "Prêmio ou cupom da marca"}</div>
+        <div className="grid grid-cols-2 gap-[4px]">
+          {[1, 2, 3, 4].map((k) => (
+            <div
+              key={k}
+              className={`flex h-[36px] flex-col justify-center rounded-[6px] px-[5px] text-[6.5px] font-bold leading-[8px] ${k === n ? "" : "bg-white/[0.07] text-white/40"}`}
+              style={k === n ? { background: shown ? st.bg : "#5c5247", color: shown ? st.fg : "#e5ded5" } : undefined}
+            >
+              <span className="uppercase opacity-80">Camada {k}</span>
+              {k === n && <span className="text-[7.5px] font-black uppercase">{shown ? booking.brand : booking ? "Ocupada" : "Livre"}</span>}
+            </div>
+          ))}
+        </div>
+      </Screen>
+    );
+  }
+
+  if (base === "home") {
+    return (
+      <Screen label={label}>
+        <Skeleton tall />
+        {ad}
+        <Skeleton />
+        <Skeleton />
+      </Screen>
+    );
+  }
+
+  if (base === "mural") {
+    return (
+      <Screen label={label}>
+        <Skeleton />
+        {adCompact}
+        <Skeleton />
+        {adCompact}
+        <Skeleton />
+      </Screen>
+    );
+  }
+
+  if (base === "feed_clubes") {
+    return (
+      <Screen label={label}>
+        <Skeleton />
+        <Skeleton />
+        {ad}
+        <Skeleton />
+        <Skeleton />
+      </Screen>
+    );
+  }
+
+  if (base === "noticias") {
+    return (
+      <Screen label={label}>
+        <Skeleton />
+        <Skeleton />
+        {ad}
+        <span className="text-center text-[6.5px] font-semibold uppercase tracking-wider text-white/50">Posição sorteada</span>
+        <Skeleton />
+      </Screen>
+    );
+  }
+
+  if (base === "loja") {
+    return (
+      <Screen label={label}>
+        <span className="rounded-[6px] bg-white/10 py-[3px] text-center text-[7px] font-bold uppercase tracking-wider text-white/60">Loja</span>
+        {ad}
+        <div className="grid grid-cols-2 gap-[5px]">
+          <Skeleton tall />
+          <Skeleton tall />
+        </div>
+        <div className="grid grid-cols-2 gap-[5px]">
+          <Skeleton tall />
+          <Skeleton tall />
+        </div>
+      </Screen>
+    );
+  }
+
+  if (base === "loja_compra") {
+    return (
+      <Screen label={label}>
+        <div className="flex flex-1 flex-col items-center justify-center gap-[4px] text-center">
+          <span className="rounded-full bg-[#F2C14E] px-[7px] py-[2px] text-[7px] font-extrabold uppercase text-black">Compra confirmada</span>
+          <strong className="text-[12px] font-black text-white">Pedido 4F7K2</strong>
+          <span className="text-[7px] text-white/60">Camiseta · retire no show</span>
+        </div>
+        {ad}
+        <span className="rounded-full bg-white/15 py-[4px] text-center text-[7px] font-bold text-white">Tentar a roleta</span>
       </Screen>
     );
   }

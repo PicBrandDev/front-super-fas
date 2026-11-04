@@ -7,6 +7,7 @@ import { spinPickup } from "@/app/actions/fan";
 import { AdModal } from "@/components/fan/AdModal";
 import { useArtist, useBrand } from "@/components/fan/ArtistContext";
 import { Mark } from "@/components/fan/Mark";
+import { PickupLayers } from "@/components/fan/PickupLayers";
 import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
@@ -43,6 +44,7 @@ export function PicKupWheel({
   demo,
   videoAd = null,
   claimAd = null,
+  layers = [],
 }: {
   prizes: Prize[];
   initialSpins: number;
@@ -51,7 +53,8 @@ export function PicKupWheel({
   club: ClubRef | null; // roleta de qual fã clube
   demo: boolean; // prêmios de exemplo (sem API)
   videoAd?: InAppAd | null; // vídeo obrigatório antes do primeiro giro do período
-  claimAd?: InAppAd | null; // anúncio ao guardar o brinde ganho
+  claimAd?: InAppAd | null; // vídeo (ou arte, sem vídeo) quando o fã toca para pegar o brinde
+  layers?: InAppAd[]; // as camadas patrocinadas da roleta, da 1ª à 4ª (só as alugadas)
 }) {
   const { base, slug } = useArtist();
   const brand = useBrand();
@@ -319,6 +322,8 @@ export function PicKupWheel({
           )
         )}
 
+        <PickupLayers ads={layers} />
+
         {club && n > 0 && credits.some((c) => !c.used) && (
           <section aria-labelledby="girosH" className="flex flex-col gap-1.5">
             <h3 id="girosH" className={`mono m-0 ${skin.sub}`}>
@@ -397,7 +402,10 @@ export function PicKupWheel({
       </Sheet>
 
       {videoAd && pendingSpin && <PicKupVideoAd ad={videoAd} onDone={videoDone} onDismiss={videoDismiss} />}
-      {claimAd && (
+      {claimAd && claimAd.videoUrl && claimOpen && (
+        <PicKupVideoAd ad={claimAd} doneLabel="Pegar meu brinde" onDone={closeClaim} onDismiss={closeClaim} />
+      )}
+      {claimAd && !claimAd.videoUrl && (
         <AdModal ad={claimAd} open={claimOpen} onClose={closeClaim} lockSeconds={claimAd.minSeconds ?? 0} closeLabel="Fechar anúncio" />
       )}
     </div>

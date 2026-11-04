@@ -5,7 +5,7 @@ import { useRef, useState, useTransition, type FormEvent, type KeyboardEvent } f
 import { decideCampaign, inviteSponsor as inviteSponsorAction, updateAdSlot, type SponsorInvited } from "@/app/actions/admin";
 import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
-import { Switch } from "@/components/admin/controls";
+import { FilterChips, Switch } from "@/components/admin/controls";
 import { AdminEmpty, AdminNotice, Badge, SlotDiagram, btnPrimary, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
 import type { AdSlot, Campaign, CampaignStatus, Sponsor } from "@/lib/types";
 import { campaignWhere, occupiedLabel, slotPrice } from "./slots";
@@ -71,7 +71,10 @@ export function MidiaClient({
     const key = `${club}:${s.id}`;
     return { ...s, on: activeOverride[key] ?? s.active, key };
   });
-  const camps = campaigns.map((c) => ({ ...c, status: decisions[c.id] ?? c.status }));
+  // só as campanhas do ambiente escolhido (no modo exemplo, sem slug de cantor, mostra todas)
+  const camps = campaigns
+    .filter((c) => !c.clubSlug || c.clubSlug === club)
+    .map((c) => ({ ...c, status: decisions[c.id] ?? c.status }));
   const pendingCount = camps.filter((c) => c.status === "pending").length;
   const sponsorRows: SponsorRow[] = [...invited, ...sponsors];
 
@@ -136,25 +139,6 @@ export function MidiaClient({
       <AdminPageHeader
         title="Plataforma de mídia"
         description="Venda vitrines de anúncio dentro dos fã clubes. O patrocinador escolhe o fã clube e a vitrine; você aprova antes de ir ao ar."
-        actions={
-          <div className="flex flex-col gap-1">
-            <label htmlFor="md-club" className="text-xs font-semibold text-adm-muted">
-              Fã clube
-            </label>
-            <select
-              id="md-club"
-              value={club}
-              onChange={(e) => setClub(e.target.value)}
-              className={`${inputClass} min-w-[220px] font-medium`}
-            >
-              {clubs.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        }
       />
 
       <p role="status" aria-live="polite" className="sr-only">
@@ -171,6 +155,13 @@ export function MidiaClient({
           onClose={() => setNewSponsor(null)}
         />
       )}
+
+      <div className="flex flex-col gap-2">
+        <span id="md-club-label" className="text-xs font-semibold text-adm-muted">
+          Fã clube
+        </span>
+        <FilterChips label="Fã clube" options={clubs.map((c) => ({ id: c.slug, label: c.name }))} value={club} onChange={setClub} />
+      </div>
 
       <div role="tablist" aria-label="Seções da mídia" className="flex gap-1 overflow-x-auto border-b border-adm-line">
         {tabs.map((t, i) => {
@@ -222,7 +213,7 @@ export function MidiaClient({
             const occ = !v.on
               ? { label: "Pausada", tone: "off" as const }
               : v.occupied
-                ? { label: occupiedLabel(exampleMode), tone: "info" as const }
+                ? { label: occupiedLabel(exampleMode, v.occupiedBy), tone: "info" as const }
                 : { label: "Livre para venda", tone: "ok" as const };
             return (
               <article

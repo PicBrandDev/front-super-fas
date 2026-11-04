@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { logout } from "@/app/actions/auth";
 import { Icon, type IconName } from "@/components/icons";
+import { ProfileMenu } from "@/components/admin/ProfileMenu";
 import { PlatformBrand } from "@/components/PlatformBrand";
 import { authEnabled } from "@/lib/auth";
 
@@ -30,7 +31,7 @@ export function AdminShell({
   nav: AdminNavItem[];
   active: string;
   extraLink?: { label: string; href: string };
-  user: { initials: string; name: string; role: string; avatar?: string | null };
+  user: { initials: string; name: string; role: string; email?: string; avatar?: string | null };
   className?: string; // ex.: "adm-noite" para o visual do artista
   style?: CSSProperties; // variáveis do tema do artista
   passwordHref?: string; // trocar senha (dentro do ambiente do artista, quando houver)
@@ -89,18 +90,7 @@ export function AdminShell({
         {sidebarExtra}
         </div>
         <div className="mt-auto flex flex-col gap-1 border-t border-adm-side-line pt-2.5">
-          <div className="flex items-center gap-2.5 px-1.5 py-1">
-            {user.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element -- foto de perfil de quem está logado
-              <img src={user.avatar} alt="" width={32} height={32} className="size-8 flex-none rounded-full border border-adm-side-line object-cover" />
-            ) : (
-              <span className="flex size-8 flex-none items-center justify-center rounded-full bg-adm-side-line text-[13px] font-semibold">{user.initials}</span>
-            )}
-            <span className="flex min-w-0 flex-col">
-              <strong className="truncate text-[13px]">{user.name}</strong>
-              <span className="font-adm-mono text-[11px] text-adm-side-muted">{user.role}</span>
-            </span>
-          </div>
+          <ProfileMenu user={user} passwordHref={passwordHref} accountEnabled={authEnabled()} />
           {authEnabled() && <AccountLinks passwordHref={passwordHref} />}
         </div>
       </aside>

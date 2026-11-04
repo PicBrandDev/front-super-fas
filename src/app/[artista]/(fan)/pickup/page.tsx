@@ -33,6 +33,7 @@ export default async function PicKupPage({ params }: { params: Promise<{ artista
       demo={!apiEnabled()}
       videoAd={ads.pickupVideo ?? null}
       claimAd={ads.pickupClaim ?? null}
+      layers={ads.pickupLayers ?? []}
     />
   );
 }

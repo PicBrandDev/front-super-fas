@@ -6,7 +6,7 @@ import { useArtist } from "@/components/fan/ArtistContext";
 import { Masthead } from "@/components/fan/Masthead";
 import { PostCard } from "@/components/fan/PostCard";
 import { SponsoredPost } from "@/components/fan/SponsoredPost";
-import { COMMUNITY_AD_EVERY, type InAppAd } from "@/lib/ads";
+import { CLUB_AD_EVERY, type InAppAd } from "@/lib/ads";
 import { initialsOf } from "@/lib/format";
 import { Tabs } from "@/components/fan/Tabs";
 import type { Post, Ranking } from "@/lib/types";
@@ -27,15 +27,13 @@ export type FollowedClub = { slug: string; name: string; avatar: string | null; 
 
 /**
  * Anúncio que entra depois do post de índice `i` (0-based) do feed já montado, ou null.
- * Conta pela posição na lista que aparece na tela (filtros e posts novos incluídos), então o
- * patrocinado é sempre o 8º, 16º, … item. Com paginação, basta concatenar as páginas na mesma
- * lista antes do map: o índice continua corrido e a conta não reinicia a cada página.
+ * Conta pela posição na lista que aparece na tela (filtros e posts novos incluídos).
+ * Filtrando por um fã clube, o anúncio dos fã clubes entra depois de cada CLUB_AD_EVERY posts.
+ * Em "Todos", um post patrocinado das notícias entra uma vez, depois do post `newsAt` (sorteado no servidor).
  */
-function adAfter(i: number, ads: InAppAd[]): InAppAd | null {
-  if (!ads.length) return null;
-  if (i === 0) return ads[0]; // o primeiro anúncio (Spotify) entra logo embaixo do 1º post
-  if ((i + 1) % COMMUNITY_AD_EVERY !== 0) return null;
-  return ads[((i + 1) / COMMUNITY_AD_EVERY) % ads.length]; // depois, a cada COMMUNITY_AD_EVERY posts, em rodízio
+function adAfter(i: number, club: InAppAd[] | null, news: InAppAd | null, newsAt: number): InAppAd | null {
+  if (club) return club.length && (i + 1) % CLUB_AD_EVERY === 0 ? club[0] : null;
+  return news && i === newsAt ? news : null;
 }
 
 /**
@@ -45,7 +43,8 @@ function adAfter(i: number, ads: InAppAd[]): InAppAd | null {
  */
 export function ComunidadeView({
   posts,
-  ads = [],
+  newsAd = null,
+  newsAt = 0,
   clubAds = {},
   clubs,
   allClubs,
@@ -56,8 +55,9 @@ export function ComunidadeView({
   demo,
 }: {
   posts: Post[];
-  ads?: InAppAd[]; // campanhas do feed, em rodízio a cada COMMUNITY_AD_EVERY posts
-  clubAds?: Record<string, InAppAd[]>; // as do feed de cada fã clube (filtro por fã clube)
+  newsAd?: InAppAd | null; // post patrocinado das notícias, em posição aleatória ("Todos")
+  newsAt?: number; // depois de qual post ele entra
+  clubAds?: Record<string, InAppAd[]>; // o anúncio dos fã clubes, a cada 2 posts (filtro por fã clube)
   clubs: FollowedClub[]; // fã clubes que o fã segue
   allClubs: ClubListItem[]; // todos os fã clubes, para entrar em um
   ownerView?: boolean; // dono/equipe: tudo da tela é só do fã clube dele
@@ -88,7 +88,7 @@ export function ComunidadeView({
     return !!c && followed.has(c);
   });
   const list = clube ? all.filter((p) => clubOf(p) === clube) : all;
-  const pool = clube && clubAds[clube]?.length ? clubAds[clube] : ads;
+  const pool = clube ? (clubAds[clube] ?? []) : null;
   const countOf = (slug: string) => all.filter((p) => clubOf(p) === slug).length;
   const current = clubs.find((c) => c.slug === clube) ?? null;
   const fresh = new Set(extra.map((p) => p.id));
@@ -170,7 +170,7 @@ export function ComunidadeView({
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
                 list.slice(0, shown).map((p, i) => {
-                  const ad = adAfter(i, pool);
+                  const ad = adAfter(i, pool, newsAd, newsAt);
                   return (
                     <Fragment key={p.id}>
                       <PostCard post={p} index={i} fresh={fresh.has(p.id)} />

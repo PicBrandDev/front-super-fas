@@ -201,7 +201,8 @@ export type HomeAd = {
 };
 
 /** Post patrocinado do feed: aparece depois do 4º, 8º, 12º ou 16º post. */
-export type FeedAdItem = HomeAd & { position: number };
+/** Post patrocinado do feed: entra depois de cada `every` posts (1 no Mural, 2 nos fã clubes). */
+export type FeedAdItem = HomeAd & { position: number; every?: number };
 
 export type AdSlot = {
   id: string;
@@ -211,6 +212,7 @@ export type AdSlot = {
   priceLabel: string;
   priceCents?: number | null;
   occupied: boolean;
+  occupiedBy?: string | null; // patrocinador que ocupa a vitrine hoje
   active: boolean;
   diagram: { top: number; height: number }; // posição no mini desenho do celular (px)
 };
@@ -366,7 +368,7 @@ export type VitrineBooking = {
   status: "live" | "scheduled"; mine: boolean;
 };
 export type VitrineCard = {
-  key: string; name: string; where: string; format: string; group: "entrada" | "roleta" | "feed" | "outras";
+  key: string; name: string; where: string; format: string; group: "entrada" | "feed" | "roleta" | "loja" | "outras";
   clubSlug: string | null; clubName: string | null; priceCentsPerWeek: number | null; active: boolean;
   diagramTop: number; diagramHeight: number; live: VitrineBooking | null; next: VitrineBooking | null;
 };

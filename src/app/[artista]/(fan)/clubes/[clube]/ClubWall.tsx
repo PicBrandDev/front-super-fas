@@ -19,7 +19,7 @@ export function ClubWall({
   club: { slug: string; name: string };
   joined: boolean;
   posts: Post[];
-  feedAds?: FeedAdItem[]; // posts patrocinados do clube (depois do 4º, 8º e 12º post)
+  feedAds?: FeedAdItem[]; // post patrocinado dos fã clubes: entra depois de cada 2 posts
 }) {
   const { base } = useArtist();
   const [extra, setExtra] = useState<Post[]>([]);
@@ -52,8 +52,8 @@ export function ClubWall({
           list.map((p, i) => (
             <Fragment key={p.id}>
               <PostCard post={p} index={i} showClub={false} fresh={fresh.has(p.id)} />
-              {feedAds.filter((a) => a.position === i + 1).map((a) => (
-                <FeedAd key={`ad-${a.position}`} ad={a} className="!px-0" />
+              {feedAds.filter((a) => (i + 1) % (a.every ?? 2) === 0).map((a) => (
+                <FeedAd key={`ad-${a.id ?? a.position}-${i}`} ad={a} className="!px-0" />
               ))}
             </Fragment>
           ))

@@ -25,17 +25,33 @@ const SCREENS: Record<Screen, string> = {
   pickup_resgate: "PicKup",
 };
 
-/** Momento da tela em que o anúncio aparece (para as vitrines em janela). */
-const MOMENTS: Partial<Record<Screen, string>> = {
+/** Momento da tela em que o anúncio aparece (por vitrine), para as que não são um bloco fixo da tela. */
+const MOMENTS: Record<string, string> = {
   entrada: "ao abrir o app",
+  home: "logo abaixo do primeiro post",
+  mural: "depois de cada post",
+  feed_clubes: "depois de cada 2 posts do fã clube",
+  noticias: "em uma posição sorteada entre as notícias",
+  pickup: "como camada 1 da roleta",
+  pickup_2: "como camada 2 da roleta",
+  pickup_3: "como camada 3 da roleta",
+  pickup_4: "como camada 4 da roleta",
   pickup_video: "antes de girar",
-  pickup_resgate: "ao ganhar um prêmio",
+  pickup_resgate: "quando o fã pega o brinde",
+  loja: "em cima da lojinha",
+  loja_compra: "depois da compra da camiseta",
 };
+
+/** As vitrines novas usam o desenho de uma tela que já existe. */
+const ALIAS: Record<string, Screen> = { feed_clubes: "mural", noticias: "mural", pickup_2: "pickup", pickup_3: "pickup", pickup_4: "pickup", loja_compra: "loja" };
+
+const keyOf = (slotId: string | null) => (slotId ?? "").split(".").pop() ?? "";
 
 /** A vitrine "oficial.home" ou "home" aponta para a tela "home". */
 const screenOf = (slotId: string | null): Screen => {
-  const k = (slotId ?? "").split(".").pop() as Screen;
-  return k in SCREENS ? k : "home";
+  const k = keyOf(slotId);
+  if (k in ALIAS) return ALIAS[k];
+  return k in SCREENS ? (k as Screen) : "home";
 };
 
 const block = "rounded-lg bg-fg/10";
@@ -309,7 +325,7 @@ export function AdPhonePreview({ slotId, slotName, ad, themeStyle }: { slotId: s
       </div>
       <span className="max-w-[250px] text-center text-xs text-adm-muted">
         {slotName}: é assim que fica na tela <strong className="text-adm-ink">{SCREENS[screen]}</strong>
-        {MOMENTS[screen] ? ` ${MOMENTS[screen]}` : ""}.
+        {MOMENTS[keyOf(slotId)] ? ` ${MOMENTS[keyOf(slotId)]}` : ""}.
       </span>
     </div>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { orderArtists } from "@/lib/artist-order";
 import { shellUser } from "@/lib/shell";
 import { AdminShell, masterNav } from "@/components/admin/AdminShell";
 import { apiEnabled, getClubs, listArtists } from "@/lib/api";
@@ -8,10 +9,7 @@ import { FasClubesClient, type ClubRow } from "./FasClubesClient";
 export const metadata: Metadata = { title: "Admin master — Fã clubes" };
 
 export default async function FasClubesPage() {
-  // Ordem da lista: os ambientes de destaque primeiro; o resto segue a ordem de criação da API.
-  const PRIORITY = ["vintage-culture", "departamento"];
-  const rank = (slug: string) => (PRIORITY.includes(slug) ? PRIORITY.indexOf(slug) : PRIORITY.length);
-  const artists = (await listArtists()).sort((x, y) => rank(x.slug) - rank(y.slug));
+  const artists = orderArtists(await listArtists());
   // Endereço completo de cada ambiente (o domínio pelo qual a tela foi aberta).
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";

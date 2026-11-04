@@ -112,6 +112,13 @@ export async function fanPostMedia(slug: string, club: string, form: FormData): 
   return res;
 }
 
+/** Troca o nome de quem está logado. */
+export async function renameMe(name: string): Promise<ApiResult> {
+  const res = await send("PATCH", "/auth/me", { name });
+  if (res.ok) revalidatePath("/", "layout");
+  return res;
+}
+
 /** Troca a foto de perfil de quem está logado (aparece no ranking e nos posts). */
 export async function uploadMyAvatar(form: FormData): Promise<ApiResult> {
   const res = await send("POST", "/auth/avatar", form);

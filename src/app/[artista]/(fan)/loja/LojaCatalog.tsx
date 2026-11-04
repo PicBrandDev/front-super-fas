@@ -13,11 +13,13 @@ import {
   type StoreQuote,
 } from "@/app/actions/fan";
 import { useArtist, useBrand } from "@/components/fan/ArtistContext";
+import { FeedAd } from "@/components/fan/FeedAd";
 import { Masthead } from "@/components/fan/Masthead";
 import { NO_CARD, PaymentFields, cardError, payLabel, type Card, type Method } from "@/components/fan/PaymentFields";
 import { Sheet } from "@/components/fan/Sheet";
 import { Tabs, type TabItem } from "@/components/fan/Tabs";
 import { Icon } from "@/components/icons";
+import type { InAppAd } from "@/lib/ads";
 import { formatBRL } from "@/lib/format";
 import { thumb } from "@/lib/thumb";
 import type { MediaImage, Product } from "@/lib/types";
@@ -45,7 +47,7 @@ type Bag = Record<string, { qty: number; size: string }>;
 
 const inputCls = "min-h-12 w-full min-w-0 border border-line bg-night px-3 font-mono text-[15px] text-fg";
 
-export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: boolean }) {
+export function LojaCatalog({ products, demo, topAd = null, purchaseAd = null }: { products: StoreItem[]; demo: boolean; topAd?: InAppAd | null; purchaseAd?: InAppAd | null }) {
   const [tab, setTab] = useState<Tab>("all");
   const [bag, setBag] = useState<Bag>({});
   const [open, setOpen] = useState(false);
@@ -146,6 +148,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
   return (
     <>
       <Masthead word={store.word} label={store.name} tone={store.mastTone} steps={3} index={TABS.findIndex((t) => t.id === tab)} />
+      {topAd && <FeedAd ad={topAd} className="!my-3" />}
       <Tabs
         tabs={TABS}
         value={tab}
@@ -223,6 +226,7 @@ export function LojaCatalog({ products, demo }: { products: StoreItem[]; demo: b
                 : "Seu pedido será enviado para o endereço informado. Você acompanha o código do pedido em Pedidos."}
             </p>
             <span className="tag tag-demo self-start">Simulação</span>
+            {purchaseAd && <FeedAd ad={purchaseAd} className="!px-0" />}
             {done.spinsGranted > 0 && (
               <button
                 type="button"

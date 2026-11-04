@@ -437,8 +437,8 @@ export const getEventPhotos = (slug: string, eventId: string) =>
 /** GET /auth/profile: tudo do perfil de quem está logado. */
 export const getProfile = () => get<Profile | null>("/auth/profile", () => null);
 
-/** GET /auth/me: dados de quem está logado (foto de perfil). */
-export const getMe = () => get<{ avatar?: string | null } | null>("/auth/me", () => null);
+/** GET /auth/me: dados de quem está logado (nome, e-mail e foto de perfil). */
+export const getMe = () => get<{ name: string; email: string; avatar?: string | null } | null>("/auth/me", () => null);
 
 /** GET /artists/{slug}/ranking: ranking Fã Super do Vintage. */
 export const getRanking = (slug: string) => get<Ranking | null>(`/artists/${slug}/ranking`, () => null);

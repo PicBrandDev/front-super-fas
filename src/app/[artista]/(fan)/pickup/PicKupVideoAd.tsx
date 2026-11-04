@@ -37,9 +37,11 @@ export function PicKupVideoAd({
   ad,
   onDone,
   onDismiss,
+  doneLabel = "Girar agora",
 }: {
   ad: InAppAd;
-  onDone: () => void; // "Girar agora"
+  onDone: () => void; // "Girar agora" (ou o `doneLabel`)
+  doneLabel?: string; // no resgate do brinde: "Pegar meu brinde"
   onDismiss: (watched: boolean) => void; // "Agora não" ou Esc depois de liberado: fecha sem girar (não gasta o giro)
 }) {
   const { slug } = useArtist();
@@ -333,7 +335,7 @@ export function PicKupVideoAd({
         </div>
         <button ref={goBtn} type="button" className="btn btn-primary btn-block" disabled={locked} onClick={onDone}>
           {!locked ? (
-            "Girar agora"
+            doneLabel
           ) : left === null ? (
             "Seu giro libera no fim do vídeo"
           ) : (

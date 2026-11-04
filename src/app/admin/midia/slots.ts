@@ -16,7 +16,8 @@ export const slotPrice = (slot: Pick<AdSlot, "priceCents" | "priceLabel">, examp
  * Situação de uma vitrine ocupada. A API ainda não informa até quando;
  * no modo exemplo fica o placeholder "[data]" do mock.
  */
-export const occupiedLabel = (exampleMode: boolean) => (exampleMode ? "Ocupada até [data]" : "Ocupada");
+export const occupiedLabel = (exampleMode: boolean, by?: string | null) =>
+  by ? `Ocupada por ${by}` : exampleMode ? "Ocupada até [data]" : "Ocupada";
 
 /** "Onde" de uma campanha: o fã clube ou o ambiente do cantor, e o cantor. */
 export const campaignWhere = (c: Pick<Campaign, "club" | "fanClub">) => ({
@@ -27,5 +28,5 @@ export const campaignWhere = (c: Pick<Campaign, "club" | "fanClub">) => ({
 /** Chave da vitrine: "oficial.pickup_video" ou "pickup_video" → "pickup_video". */
 export const slotKey = (slotId: string | null | undefined) => (slotId ?? "").split(".").pop() ?? "";
 
-/** Vitrines que exigem vídeo (o fã assiste antes de girar a roleta). */
-export const VIDEO_SLOTS = new Set(["pickup_video"]);
+/** Vitrines que exigem vídeo: o que o fã assiste antes de girar a roleta e o de quando ele pega o brinde. */
+export const VIDEO_SLOTS = new Set(["pickup_video", "pickup_resgate"]);

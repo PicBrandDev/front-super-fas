@@ -2,7 +2,7 @@ import { roleLabel } from "./auth";
 import { getMe, getSession } from "./api";
 import { initialsOf } from "./format";
 
-export type ShellUser = { initials: string; name: string; role: string; avatar?: string | null };
+export type ShellUser = { initials: string; name: string; role: string; email?: string; avatar?: string | null };
 
 export { initialsOf };
 
@@ -12,5 +12,7 @@ export async function shellUser(fallback: ShellUser): Promise<ShellUser> {
   if (!s) return fallback;
   // A foto de perfil de quem está logado aparece no rodapé; se a API falhar, fica só a inicial.
   const me = await getMe().catch(() => null);
-  return { initials: initialsOf(s.name), name: s.name, role: roleLabel[s.role], avatar: me?.avatar ?? null };
+  // O nome vem da API (o cookie guarda o do login e não acompanha uma troca de nome).
+  const name = me?.name ?? s.name;
+  return { initials: initialsOf(name), name, role: roleLabel[s.role], email: me?.email, avatar: me?.avatar ?? null };
 }

@@ -5,11 +5,15 @@
  * Posições:
  * - `entry`: modal ao abrir o app logo depois do login.
  * - `pickupVideo`: vídeo obrigatório (toca uma vez, na duração real) antes do primeiro giro do período.
- * - `pickupClaim`: modal ao resgatar a recompensa da roleta.
- * - `feed`: post pequeno entre os cartazes do Mural.
+ * - `pickupClaim`: vídeo quando o fã toca para pegar o brinde da roleta.
+ * - `feed`: post patrocinado do Mural, depois de cada post.
+ * - `news`: post patrocinado em posição aleatória entre as notícias da Comunidade.
+ * - `shop`: banner em cima da lojinha.
+ * - `shopPurchase`: anúncio depois da compra da camiseta.
+ * - `pickupLayers` (lista): as camadas da roleta, da 1ª à 4ª (só as alugadas).
  */
 
-export type AdPlacement = "entry" | "pickupVideo" | "pickupClaim" | "feed";
+export type AdPlacement = "entry" | "pickupVideo" | "pickupClaim" | "feed" | "news" | "shop" | "shopPurchase";
 
 export type InAppAd = {
   id: string;
@@ -25,12 +29,12 @@ export type InAppAd = {
   minSeconds?: number | null;
 };
 
-export type InAppAds = Partial<Record<AdPlacement, InAppAd | null>>;
+export type InAppAds = Partial<Record<AdPlacement, InAppAd | null>> & { pickupLayers?: InAppAd[] };
 
-/** O post patrocinado entra depois de cada N cartazes/posts do Mural. */
-export const FEED_AD_EVERY = 4;
-/** Na Comunidade, o post patrocinado entra depois de cada N posts (posições 8, 16, …). */
-export const COMMUNITY_AD_EVERY = 7;
+/** O anúncio do Mural entra depois de cada post. */
+export const MURAL_AD_EVERY = 1;
+/** No feed de cada fã clube (e na Comunidade filtrada por clube), o anúncio entra depois de cada 2 posts. */
+export const CLUB_AD_EVERY = 2;
 
 /**
  * Criativos de exemplo (enquanto o back não manda GET /artists/{slug}/ads/in-app).
