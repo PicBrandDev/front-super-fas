@@ -979,3 +979,31 @@ body {
 .adm-noite[data-brand="departamento"] main :is(section, article, dl).rounded-xl {
   border-color: #101010;
 }
+
+/*
+ * Prévias da área do fã dentro do admin do Departamento (cartões da loja, Drops Hits, calendário da agenda): usam a classe `.fan`,
+ * que traz o tema escuro do app. No admin, que é papel branco com tinta preta, elas pegam as mesmas cores do painel (acento azul).
+ * `!important` porque o tema do cantor entra como estilo direto no elemento.
+ */
+.adm-noite[data-brand="departamento"] .fan {
+  --fc-bg: #ffffff !important;
+  --fc-surface: #f0f0f0 !important;
+  --fc-raised: #e4e4e4 !important;
+  --fc-line: #cfcfcf !important;
+  --fc-line-strong: #101010 !important;
+  --fc-fg: #101010 !important;
+  --fc-fg-muted: #555555 !important;
+  --fc-amber: #0000ff !important;
+  --fc-amber-text: #0000ff !important;
+  --fc-on-amber: #ffffff !important;
+  --fc-sun: #101010 !important;
+  --fc-lagoon: #0000ff !important;
+  --fc-lagoon-deep: #0034cc !important;
+  --fc-chrome: #555555 !important;
+  --fc-poster-grey: #c8c8c8 !important;
+  --fc-mist: #f0f0f0 !important;
+  --fc-ink: #101010 !important;
+  --fc-paper: #ffffff !important;
+  --fc-signal: #c4001a !important;
+  color-scheme: light;
+}
