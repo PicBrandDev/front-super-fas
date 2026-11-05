@@ -60,7 +60,6 @@ export default async function AnunciosPage({ searchParams }: { searchParams: Pro
       subtitle="Admin da plataforma"
       nav={masterNav}
       active="anuncios"
-      extraLink={{ label: "Ver portal do patrocinador", href: "/patrocinador" }}
       user={await shellUser({ initials: "AD", name: "Você", role: "Admin da plataforma" })}
     >
       <AdminPageHeader

@@ -19,7 +19,6 @@ export default async function MidiaPage() {
       subtitle="Admin da plataforma"
       nav={masterNav}
       active="midia"
-      extraLink={{ label: "Ver portal do patrocinador", href: "/patrocinador" }}
       user={await shellUser({ initials: "AD", name: "Você", role: "Admin da plataforma" })}
     >
       <MidiaClient

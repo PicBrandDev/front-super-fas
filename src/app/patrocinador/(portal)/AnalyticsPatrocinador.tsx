@@ -71,11 +71,11 @@ export function AnalyticsPatrocinador({ ads }: { ads: AdsAnalytics }) {
                   <span className="flex items-center gap-3">
                     {c.artUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element -- banner do anúncio
-                      <img src={c.artUrl} alt="" className="h-9 w-14 flex-none rounded object-cover" />
+                      <img src={c.artUrl} alt="" className="h-[72px] w-28 flex-none rounded-lg object-cover" />
                     ) : c.videoUrl && /\.(mp4|webm)(\?|$)/i.test(c.videoUrl) ? (
-                      <video src={`${c.videoUrl}#t=0.5`} preload="metadata" muted playsInline aria-hidden="true" className="h-9 w-14 flex-none rounded bg-adm-line-soft object-cover" />
+                      <video src={`${c.videoUrl}#t=0.5`} preload="metadata" muted playsInline aria-hidden="true" className="h-[72px] w-28 flex-none rounded-lg bg-adm-line-soft object-cover" />
                     ) : (
-                      <span aria-hidden="true" className="h-9 w-14 flex-none rounded bg-adm-line-soft" />
+                      <span aria-hidden="true" className="h-[72px] w-28 flex-none rounded-lg bg-adm-line-soft" />
                     )}
                     <strong className="font-semibold">{c.title}</strong>
                   </span>
