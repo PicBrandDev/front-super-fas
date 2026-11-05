@@ -434,9 +434,14 @@ function KitPlate({ p, framed = false }: { p: Poster; framed?: boolean }) {
     return (
       <div className={`${pst} ${s.dB}`} style={{ "--hl": fit(17, 120, p.headline) } as CSSProperties}>
         {cap(s.t1, p.credits[0])}
-        <div className={s.q} aria-hidden="true" style={kit.glyphSize ? { fontSize: `${kit.glyphSize}cqw` } : undefined}>
-          {kit.glyph}
-        </div>
+        {kit.photo ? (
+          /* eslint-disable-next-line @next/next/no-img-element -- arte oficial estática (public/media) */
+          <img className={s.photo} src={kit.photo} alt="" />
+        ) : (
+          <div className={s.q} aria-hidden="true" style={kit.glyphSize ? { fontSize: `${kit.glyphSize}cqw` } : undefined}>
+            {kit.glyph}
+          </div>
+        )}
         <div className={s.hl} aria-hidden="true">
           {lines(p.headline)}
         </div>

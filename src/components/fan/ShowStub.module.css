@@ -88,3 +88,16 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
+
+/* VEIGH: lâmina de data no papel com o número vinho (a cor do cabeçalho); nome na tag de spray em minúsculas. */
+:global([data-brand="veigh"]) .slab:not(.past) {
+  background: var(--fc-mist);
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="veigh"]) .slab:not(.past) :global(.mono) {
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="veigh"]) .name {
+  font: 400 23px/25px var(--fc-font-display);
+  text-transform: lowercase;
+}

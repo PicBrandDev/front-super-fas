@@ -123,7 +123,7 @@ export function buildPosters({
       by: artistName,
       text: brand.mottoText,
       headline: brand.motto,
-      credits: [artistName, kit ? kit.legal : "Fanzone"],
+      credits: [kit?.kicker ?? artistName, kit ? kit.legal : "Fanzone"],
       image: kit ? null : hero, // no padrão do kit o cartaz é tipo + glifo, sem foto do artista
       cta: null,
       likes: 5100,

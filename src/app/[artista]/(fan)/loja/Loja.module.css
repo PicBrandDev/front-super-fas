@@ -111,3 +111,17 @@
 :global([data-brand="anitta"]) .price {
   color: var(--fc-fg);
 }
+
+/* VEIGH: foto de produto no papel da evom.art, canto vivo; nome na tag de spray em minúsculas; preço em creme. */
+:global([data-brand="veigh"]) .img,
+:global([data-brand="veigh"]) .bag b {
+  border-radius: 0;
+}
+:global([data-brand="veigh"]) .prod h3 {
+  font: 400 19px/21px var(--fc-font-display);
+  text-transform: lowercase;
+  overflow-wrap: anywhere;
+}
+:global([data-brand="veigh"]) .price {
+  color: var(--fc-fg);
+}

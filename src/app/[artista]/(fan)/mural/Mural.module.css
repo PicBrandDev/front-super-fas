@@ -386,9 +386,11 @@
   }
 }
 
-/* ---------- CARTAZES DO KIT (Departamento, Anitta): campos A–E, tipo em caixa alta ----------
+/* ---------- CARTAZES DO KIT (Departamento, Anitta, Veigh): campos A–E, tipo em caixa alta ----------
    As cores de cada campo vêm das variáveis da pele (`--field-a` … `--field-e`, `-ink`, `-accent`, no globals.css);
-   sem elas, valem as do Departamento (duas tintas, grotesca 900; o Mural do Departamento fica no tema blue). */
+   sem elas, valem as do Departamento (duas tintas, grotesca 900; o Mural do Departamento fica no tema blue).
+   A fonte das manchetes também: `--kit-display` (família), `--kit-display-weight` e `--display-case` (o Veigh usa a
+   tag de spray em minúsculas); sem elas, a grotesca 900 em caixa alta. */
 .dA,
 .dB,
 .dC,
@@ -404,9 +406,9 @@
 .dE .hl,
 .dB .q,
 .dC .mon {
-  font-family: var(--fc-font-grotesk);
-  font-weight: 900;
-  text-transform: uppercase;
+  font-family: var(--kit-display, var(--fc-font-grotesk));
+  font-weight: var(--kit-display-weight, 900);
+  text-transform: var(--display-case, uppercase);
   letter-spacing: var(--track-display, -0.035em);
   white-space: nowrap;
 }
@@ -476,6 +478,15 @@
   letter-spacing: -0.05em;
   color: var(--field-b-accent, inherit);
 }
+.dB .photo {
+  position: absolute;
+  right: -4cqw;
+  bottom: 0;
+  height: 82cqw;
+  width: auto;
+  max-width: none;
+  mix-blend-mode: multiply;
+}
 .dB .hl {
   left: 4.5cqw;
   top: 13cqw;
@@ -518,7 +529,8 @@
   position: absolute;
   right: 4.5cqw;
   top: 35cqw;
-  width: 22cqw;
+  /* marca larga (estrela do Departamento) a 22cqw; marca quadrada (globo do Veigh) menor, via `--kit-acc-w` */
+  width: var(--kit-acc-w, 22cqw);
   color: var(--field-c-accent, var(--electric));
 }
 .dC .t1 {
@@ -732,4 +744,11 @@
 }
 :global([data-brand="anitta"]) .counter b {
   color: var(--fc-amber-text);
+}
+
+/* VEIGH: Drops na tag de spray em minúsculas */
+:global([data-brand="veigh"]) .drop h3 {
+  font: 400 26px/0.95 var(--fc-font-display);
+  text-transform: lowercase;
+  letter-spacing: 0;
 }

@@ -36,6 +36,8 @@ export type ArtistTheme = {
   mast?: string;
   mastInk?: string;
   mastRule?: [string, string];
+  /** Opcional: tema claro (campo de papel, tinta escura). Padrão: escuro. */
+  colorScheme?: "light" | "dark";
 };
 
 export const vintageTheme: ArtistTheme = {
@@ -163,6 +165,61 @@ export const anittaFeatureTheme: ArtistTheme = {
   chrome: "#B3BDD1",
 };
 
+/*
+ * VEIGH (era EVOM): valores de veigh-fanzone-refs/05-tokens/tokens.json (a loja oficial evom.art).
+ * Dois tons, como a loja e a merch: preto com texto creme nas telas de serviço (base) e papel off-white com tinta vinho
+ * no Mural e no PicKup (feature, tema claro). Cabeçalhos vinho com palavra creme. Duas fontes da identidade:
+ * Sedgwick Ave Display (tag de spray, em minúsculas) no display e Courier Prime (máquina de escrever) no resto.
+ */
+const VEIGH_TAG = "var(--font-sedgwick), 'Sedgwick Ave Display', 'Arial Black', sans-serif";
+const VEIGH_TYPE = "var(--font-courier-prime), 'Courier Prime', 'Courier New', monospace";
+
+export const veighTheme: ArtistTheme = {
+  bg: "#0E0B0B", // preto
+  surface: "#1A1414",
+  surfaceRaised: "#241C1C",
+  line: "#2F2626",
+  lineStrong: "#6E5F5C",
+  text: "#F3EEE7", // creme
+  textMuted: "#B9AEA6",
+  amber: "#8E1A22", // botão no escuro (texto creme 7,8:1)
+  amberText: "#D7AE98", // ouro-rose claro: link e ativo no escuro
+  onAmber: "#F3EEE7",
+  sun: "#D7AE98",
+  signalRed: "#FF8A80",
+  lagoon: "#56070C", // vinho
+  lagoonDeep: "#3B0508", // vinho-escuro
+  chrome: "#B9AEA6",
+  greyPoster: "#0E0B0B",
+  mist: "#EDEBE7", // papel
+  ink: "#0E0B0B",
+  paper: "#F3EEE7",
+  fontDisplay: VEIGH_TAG,
+  fontGrotesk: VEIGH_TYPE,
+  fontMono: VEIGH_TYPE,
+  mast: "#56070C",
+  mastInk: "#F3EEE7",
+};
+
+/** Tema `feature` (papel off-white, tinta vinho, claro): Mural e PicKup. */
+export const veighFeatureTheme: ArtistTheme = {
+  ...veighTheme,
+  bg: "#EDEBE7",
+  surface: "#E3DFD9",
+  surfaceRaised: "#D9D4CC",
+  line: "#D3CEC5", // areia
+  lineStrong: "#8C7F78",
+  text: "#3B0508",
+  textMuted: "#6B4A4C",
+  amber: "#56070C",
+  amberText: "#56070C",
+  onAmber: "#F3EEE7",
+  sun: "#56070C",
+  signalRed: "#B3121F",
+  chrome: "#6B4A4C",
+  colorScheme: "light",
+};
+
 /** Tema padrão para ambientes recém-criados (antes do design próprio): neutro, escuro. */
 export const blankTheme: ArtistTheme = {
   bg: "#121214",
@@ -227,6 +284,6 @@ export function themeStyle(t: ArtistTheme): CSSProperties {
     "--fc-font-mono": t.fontMono,
     ...(t.mast && { "--fc-mast": t.mast, "--fc-mast-ink": t.mastInk ?? t.text }),
     ...(t.mastRule && { "--fc-mast-rule-1": t.mastRule[0], "--fc-mast-rule-2": t.mastRule[1] }),
-    colorScheme: "dark",
+    colorScheme: t.colorScheme ?? "dark",
   } as CSSProperties;
 }

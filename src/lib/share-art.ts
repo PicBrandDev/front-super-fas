@@ -38,6 +38,8 @@ const LOOKS: Record<BrandKey, Look> = {
   departamento: { bg: "#0000FF", warm: "#0000FF", accent: "#FFFFFF", fade: "16,16,16", display: SANS, upper: true },
   // Anitta: céu azul-noite chapado, hashtag em ouro, Averia Serif Libre em caixa alta.
   anitta: { bg: "#0A1A31", warm: "#0A1A31", accent: "#EAC62E", fade: "10,26,49", display: "Georgia, serif", upper: true, fontVar: "--font-averia" },
+  // Veigh: vinho chapado, hashtag em ouro-rose, tag de spray em minúsculas.
+  veigh: { bg: "#56070C", warm: "#56070C", accent: "#D7AE98", fade: "14,11,11", display: '"Arial Black", sans-serif', upper: false, fontVar: "--font-sedgwick" },
 };
 
 async function loadImage(src: string): Promise<HTMLImageElement | null> {

@@ -226,3 +226,26 @@
   font-weight: 700;
   letter-spacing: 0.02em;
 }
+
+/* VEIGH: herói do evento na lâmina de papel com o número vinho (como a lâmina de data da Agenda). */
+:global([data-brand="veigh"]) .ehero {
+  background: var(--fc-mist);
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="veigh"]) .ehero :global(.mono) {
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="veigh"]) .ehero .m {
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+/* VEIGH: título do show e das seções na tag de spray em minúsculas (como "line-up" no Artifact). */
+:global([data-brand="veigh"]) .etitle h1,
+:global([data-brand="veigh"]) .sect h2,
+:global([data-brand="veigh"]) .lineup .h {
+  font-family: var(--fc-font-display);
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
