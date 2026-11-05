@@ -53,12 +53,13 @@ export function FeedAd({ ad, className = "" }: { ad: AdCreative; className?: str
       <div className="relative overflow-hidden rounded-field" style={{ background: st.bg, color: st.fg }}>
         {art && (
           // eslint-disable-next-line @next/next/no-img-element -- arte do anunciante (/ads ou /uploads)
-          <img src={art} alt="" loading="lazy" className="block max-h-64 w-full object-contain" />
+          <img src={art} alt="" loading="lazy" className="block h-auto w-full" />
         )}
         <div className="grid gap-1.5 p-4">
           {!art && <span className="text-xs font-black uppercase tracking-[0.12em]">{ad.sponsor}</span>}
-          <strong className="text-lg font-extrabold leading-[22px]">{ad.title}</strong>
-          {ad.text && <p className="m-0 text-sm leading-5 opacity-90">{ad.text}</p>}
+          {/* Com arte, o título e o texto já estão na imagem: só o botão fica embaixo. Sem arte, entram como texto. */}
+          {!art && <strong className="text-lg font-extrabold leading-[22px]">{ad.title}</strong>}
+          {!art && ad.text && <p className="m-0 text-sm leading-5 opacity-90">{ad.text}</p>}
           <a
             href={ad.url}
             target="_blank"

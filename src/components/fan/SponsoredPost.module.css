@@ -49,7 +49,7 @@
 .media {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: auto; /* a arte aparece inteira, no formato dela: sem recorte e sem moldura */
   border-radius: 2px;
   background: var(--fc-raised);
   object-fit: cover;
