@@ -133,6 +133,8 @@ function Visao({ ads, href, logoOf }: { ads: AdsAnalytics; href: (name?: string)
                       {c.artUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element -- banner do anunciante
                         <img src={c.artUrl} alt="" className="absolute inset-0 size-full object-cover" />
+                      ) : c.videoUrl && /\.(mp4|webm)(\?|$)/i.test(c.videoUrl) ? (
+                        <video src={`${c.videoUrl}#t=0.5`} preload="metadata" muted playsInline className="absolute inset-0 size-full object-cover" />
                       ) : (
                         <span className="absolute inset-0 flex items-end bg-adm-blue-soft p-1.5 text-[9px] font-bold uppercase leading-3 text-adm-blue-dark">{c.slotName}</span>
                       )}

@@ -1,20 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { campaignWhere } from "@/app/admin/midia/slots";
 import { HBars } from "@/components/admin/charts";
 import { AdminEmpty, Badge, btnPrimary, type Tone } from "@/components/admin/ui";
-import { getMyCampaigns, getSession } from "@/lib/api";
+import { AnuncioCard, type AnuncioStatus } from "@/components/admin/vitrines/AnuncioCard";
+import { getMyAdsAnalytics, getMyCampaigns, getMySponsor, getSession } from "@/lib/api";
 import { formatBRL, formatCount } from "@/lib/format";
+import { AnalyticsPatrocinador } from "./AnalyticsPatrocinador";
 import { campaignStats, sumStats } from "@/lib/sponsor-stats";
-import type { CampaignStatus } from "@/lib/types";
+import type { Campaign, CampaignStatus } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Minhas campanhas" };
 
-const look: Record<CampaignStatus, { label: string; tone: Tone }> = {
+const _look: Record<CampaignStatus, { label: string; tone: Tone }> = {
   live: { label: "No ar", tone: "ok" },
   approved: { label: "Aprovada", tone: "info" },
   pending: { label: "Aguardando aprovação", tone: "warn" },
   rejected: { label: "Recusada", tone: "off" },
+};
+
+/** A API diz "approved" tanto para a campanha agendada quanto para a já encerrada. */
+const phase = (c: Campaign): AnuncioStatus => {
+  const today = new Date().toISOString().slice(0, 10);
+  return c.status === "approved" ? (c.end && c.end < today ? "ended" : c.start && c.start > today ? "scheduled" : "live") : c.status;
 };
 
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
@@ -23,7 +30,10 @@ const pct = (n: number) => `${n.toLocaleString("pt-BR", { minimumFractionDigits:
 export default async function MinhasCampanhasPage() {
   const session = await getSession();
   const notSponsor = !!session && session.role !== "sponsor";
-  const campaigns = notSponsor ? [] : await getMyCampaigns();
+  const [campaigns, me] = await Promise.all([notSponsor ? Promise.resolve([]) : getMyCampaigns(), notSponsor ? Promise.resolve(null) : getMySponsor()]);
+  const logo = me?.logo ?? null;
+  const ads = notSponsor ? null : await getMyAdsAnalytics(30);
+  const stat = new Map((ads?.sponsors ?? []).flatMap((x) => x.campaigns).map((x) => [x.id, x]));
   const rows = campaigns.map((c) => ({ c, s: campaignStats(c) }));
   const total = sumStats(rows.map((r) => r.s));
   const topCities = total.cities.slice(0, 6);
@@ -62,6 +72,10 @@ export default async function MinhasCampanhasPage() {
         />
       ) : (
         <>
+          {ads && ads.sponsors.length > 0 ? (
+            <AnalyticsPatrocinador ads={ads} />
+          ) : (
+            <>
           <dl aria-label="Resumo" className="m-0 grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))]">
             {kpis.map((k) => (
               <div key={k.label} className="flex flex-col gap-1 rounded-xl border border-adm-line bg-white p-4">
@@ -83,58 +97,41 @@ export default async function MinhasCampanhasPage() {
             </section>
           )}
 
+            </>
+          )}
+
           <section aria-labelledby="lista" className="flex flex-col gap-3">
             <h2 id="lista" className="m-0 text-base font-bold">
               Suas campanhas
             </h2>
-            <ul className="m-0 grid list-none gap-3.5 p-0 [grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr))]">
-              {rows.map(({ c, s }) => {
-                const where = campaignWhere(c);
-                return (
-                  <li key={c.id} className="flex flex-col gap-3.5 rounded-[14px] border border-adm-line bg-white p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <strong className="block text-base">{c.title}</strong>
-                        <span className="block text-[13px] text-adm-muted">
-                          {c.slotName} · {where.place}
-                          {where.artist ? ` · ${where.artist}` : ""}
-                        </span>
-                        <span className="block font-adm-mono text-xs text-adm-muted">{c.period}</span>
-                        {c.targetCity ? (
-                          <span className="block text-xs text-adm-muted">
-                            {c.targetRadiusKm ? `${c.targetRadiusKm} km ao redor de ${c.targetCity}` : "País todo"}
-                            {c.budgetCents ? ` · ${formatBRL(c.budgetCents)}` : ""}
-                          </span>
-                        ) : null}
-                      </div>
-                      <Badge tone={look[c.status].tone}>{look[c.status].label}</Badge>
-                    </div>
-                    {s.views > 0 ? (
-                      <>
-                        <dl className="m-0 grid grid-cols-3 gap-2">
-                          {[
-                            ["Visualizações", formatCount(s.views)],
-                            ["Cliques", formatCount(s.clicks)],
-                            ["Taxa", pct(s.ctr)],
-                          ].map(([k, v]) => (
-                            <div key={k} className="rounded-[10px] bg-adm-bg p-2.5">
-                              <dt className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">{k}</dt>
-                              <dd className="m-0 text-lg font-bold">{v}</dd>
-                            </div>
-                          ))}
-                        </dl>
-                        <p className="m-0 text-[13px] text-adm-muted">
-                          Maior parte do público: <strong className="text-adm-ink">{s.cities[0].label}</strong>, depois {s.cities[1].label} e {s.cities[2].label}.
-                        </p>
-                      </>
-                    ) : (
-                      <p className="m-0 text-[13px] text-adm-muted">Os números aparecem quando a campanha for aprovada e for ao ar.</p>
-                    )}
-                  </li>
-                );
-              })}
+            <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
+              {rows.map(({ c, s }) => (
+                <li key={c.id}>
+                  <AnuncioCard
+                    ad={{
+                      id: c.id,
+                      href: `/patrocinador/anuncio/${c.id}`,
+                      sponsor: c.sponsor,
+                      sponsorLogo: logo,
+                      title: c.title,
+                      text: c.text,
+                      cta: c.cta,
+                      artUrl: c.artUrl,
+                      videoUrl: c.videoUrl,
+                      status: phase(c),
+                      slotName: c.slotName,
+                      artist: c.club,
+                      fanClub: c.fanClub,
+                      start: c.start,
+                      end: c.end,
+                      views: stat.get(c.id)?.views ?? c.views ?? s.views,
+                      clicks: stat.get(c.id)?.clicks ?? c.clicks ?? s.clicks,
+                      series: stat.get(c.id)?.series.map((p) => p.views),
+                    }}
+                  />
+                </li>
+              ))}
             </ul>
-            <p className="m-0 text-xs text-adm-muted">Números de exemplo: a medição real entra quando os anúncios forem ao ar.</p>
           </section>
         </>
       )}

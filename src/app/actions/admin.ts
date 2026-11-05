@@ -163,6 +163,13 @@ export async function setSponsorLogo(sponsorId: string, form: FormData): Promise
   return res;
 }
 
+/** O próprio patrocinador troca a foto de perfil (JPG, PNG ou WebP, até 5 MB). */
+export async function setMySponsorLogo(form: FormData): Promise<Res> {
+  const res = await send("POST", "/sponsor/me/logo", form);
+  if (res.ok) revalidatePath("/patrocinador", "layout");
+  return res;
+}
+
 /** Troca a foto de perfil de um fã clube (JPG, PNG ou WebP, até 5 MB). */
 export async function setClubAvatar(slug: string, club: string, form: FormData): Promise<Res> {
   if (!slugOk(slug) || !slugOk(club)) return bad("Pedido inválido.");

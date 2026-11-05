@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition, type ChangeEvent, type ReactNode, type Ref } from "react";
 import { createCampaign } from "@/app/actions/admin";
-import { VIDEO_SLOTS, occupiedLabel, slotKey, slotPrice } from "@/app/admin/midia/slots";
+import { CATEGORIES, ELEMENTS, VIDEO_SLOTS, milliBrl, occupiedLabel, slotKey, slotPrice } from "@/app/admin/midia/slots";
 import { AdminEmpty, AdminNotice, SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { AdPhonePreview } from "@/components/sponsor/AdPhonePreview";
 import { PriceCalculator, RadiusPicker, type Targeting } from "@/components/sponsor/AdTargeting";
@@ -20,6 +20,10 @@ export type SponsorClub = {
   members: string;
   brandColor: string;
   theme: ArtistTheme;
+  /** false = o ambiente ainda está em construção: aparece, mas não dá para anunciar. */
+  ready?: boolean;
+  /** Cantos retos (a identidade do Departamento). */
+  square?: boolean;
 };
 
 type Step = 1 | 2 | 3 | 4;
@@ -340,46 +344,76 @@ export function PatrocinadorClient({
       </div>
 
       {!sent && step === 1 && (
-        <section className="flex flex-col gap-3.5">
-          <StepHeading ref={headingRef}>Para os fãs de qual cantor você quer anunciar?</StepHeading>
+        <section className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <StepHeading ref={headingRef}>Para os fãs de qual cantor você quer anunciar?</StepHeading>
+            <span className="text-sm text-adm-muted">
+              {clubs.filter((c) => c.ready !== false).length} no ar · {clubs.filter((c) => c.ready === false).length} em construção
+            </span>
+          </div>
           {clubs.length === 0 && (
-            <AdminEmpty
-              title="Nenhum cantor no ar ainda"
-              text="Assim que um ambiente de cantor estiver no ar, ele aparece aqui para você anunciar."
-            />
+            <AdminEmpty title="Nenhum cantor ainda" text="Assim que um ambiente de cantor estiver no ar, ele aparece aqui para você anunciar." />
           )}
-          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr))]">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))]">
             {clubs.map((c) => {
               const on = c.slug === clubSlug;
               const free = freeCount(c.slug);
+              const ready = c.ready !== false;
+              const total = (slotsByClub[c.slug] ?? []).filter((v) => v.active).length;
               return (
                 <button
                   key={c.slug}
                   type="button"
-                  onClick={() => pickClub(c.slug)}
+                  onClick={() => ready && pickClub(c.slug)}
+                  disabled={!ready}
                   aria-pressed={on}
-                  className={`flex cursor-pointer items-center gap-3.5 rounded-[14px] border-2 p-[18px] text-left text-adm-ink ${
-                    on ? "border-adm-blue bg-adm-blue-tint" : "border-adm-line bg-white hover:border-adm-input"
+                  className={`group relative flex flex-col gap-5 overflow-hidden ${c.square ? "rounded-none" : "rounded-2xl"} p-5 text-left transition-transform ${
+                    ready ? "cursor-pointer hover:-translate-y-0.5" : "cursor-not-allowed opacity-60"
                   }`}
+                  style={{
+                    background: c.theme.bg,
+                    color: c.theme.text,
+                    boxShadow: on ? `0 0 0 3px ${c.theme.amberText}` : "0 0 0 1px rgba(0,0,0,.12)",
+                  }}
                 >
-                  <span
-                    aria-hidden="true"
-                    className="flex size-14 flex-none items-center justify-center rounded-[14px] text-[26px]"
-                    style={{ background: c.brandColor, color: c.theme.text, fontFamily: c.theme.fontDisplay }}
-                  >
-                    {c.initial}
+                  <span className="flex items-start justify-between gap-3">
+                    <span
+                      aria-hidden="true"
+                      className={`flex size-16 flex-none items-center justify-center ${c.square ? "rounded-none" : "rounded-2xl"} text-[32px] font-black`}
+                      style={{ background: c.theme.amber, color: c.theme.onAmber, fontFamily: c.theme.fontDisplay }}
+                    >
+                      {c.initial}
+                    </span>
+                    {on ? (
+                      <span aria-hidden="true" className="flex size-7 items-center justify-center rounded-full" style={{ background: c.theme.amberText, color: c.theme.bg }}>
+                        <Icon name="check" size={16} strokeWidth={3} />
+                      </span>
+                    ) : (
+                      !ready && <span className="rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider" style={{ borderColor: c.theme.lineStrong }}>Em construção</span>
+                    )}
                   </span>
-                  <span className="flex flex-1 flex-col gap-[3px]">
-                    <strong className="text-[17px] font-bold">{c.name}</strong>
-                    <span className="text-[13px] text-adm-muted">{c.members} membros</span>
-                    <span className={`text-[13px] font-semibold ${free > 0 ? "text-adm-ok" : "text-adm-muted"}`}>
-                      {free === 1 ? "1 vitrine livre" : `${free} vitrines livres`}
+                  <span className="flex flex-col gap-1">
+                    <strong className="text-[26px] font-black uppercase leading-7" style={{ fontFamily: c.theme.fontDisplay }}>
+                      {c.name}
+                    </strong>
+                    <span className="text-[13px]" style={{ color: c.theme.textMuted }}>
+                      {ready ? `${c.members} membros no ambiente` : "Ambiente ainda não recebe anúncios"}
                     </span>
                   </span>
-                  <span
-                    aria-hidden="true"
-                    className={`size-[22px] flex-none rounded-full border-2 ${on ? "border-adm-blue bg-adm-blue" : "border-adm-line bg-white"}`}
-                  />
+                  {ready && (
+                    <span className="flex items-center justify-between gap-3 border-t pt-3" style={{ borderColor: c.theme.line }}>
+                      <span className="text-[13px] font-bold" style={{ color: free > 0 ? c.theme.amberText : c.theme.textMuted }}>
+                        {free === 1 ? "1 vitrine livre" : `${free} vitrines livres`}
+                        <span className="font-medium" style={{ color: c.theme.textMuted }}>
+                          {" "}
+                          de {total}
+                        </span>
+                      </span>
+                      <span aria-hidden="true" className="text-lg font-bold" style={{ color: c.theme.amberText }}>
+                        →
+                      </span>
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -388,77 +422,137 @@ export function PatrocinadorClient({
       )}
 
       {!sent && step === 2 && (
-        <section className="flex flex-col gap-3.5">
-          <StepHeading ref={headingRef}>Onde anunciar para os fãs de {clubName}</StepHeading>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="ad-place" className="text-[13px] font-semibold">
-              Ambiente ou fã clube
-            </label>
-            <select
-              id="ad-place"
-              value={place}
-              onChange={(e) => {
-                setPlace(e.target.value);
-                setSlotId(null);
-              }}
-              aria-describedby="ad-place-hint"
-              disabled={places.length === 0}
-              className={`${inputClass} max-w-[420px] disabled:bg-adm-bg`}
+        <section className="flex flex-col gap-5">
+          {club && (
+            <div
+              className={`flex flex-wrap items-center gap-4 border border-adm-line p-5 ${club.square ? "rounded-none" : "rounded-2xl"}`}
+              style={{ background: club.theme.bg, color: club.theme.text }}
             >
-              <option value="">Ambiente de {clubName} — todos os fãs do cantor</option>
-              {places.map((p) => (
-                <option key={p.slug} value={p.slug}>
-                  Fã clube {p.name} — só os membros desse fã clube
-                </option>
-              ))}
-            </select>
-            <span id="ad-place-hint" className="text-xs text-adm-muted">
-              {places.length === 0
-                ? "Este cantor ainda não tem fã clubes no ar: o anúncio vai para todo o ambiente, para todos os fãs."
-                : "No ambiente, o anúncio aparece para todos os fãs do cantor; num fã clube, só para os membros dele. Quem administra o lugar escolhido aprova a campanha."}
-            </span>
+              <span
+                aria-hidden="true"
+                className={`flex size-14 flex-none items-center justify-center ${club.square ? "rounded-none" : "rounded-2xl"} text-[28px] font-black`}
+                style={{ background: club.theme.amber, color: club.theme.onAmber, fontFamily: club.theme.fontDisplay }}
+              >
+                {club.initial}
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: club.theme.amberText }}>
+                  Você vai anunciar para os fãs de
+                </span>
+                <StepHeading ref={headingRef}>
+                  <span className="uppercase" style={{ fontFamily: club.theme.fontDisplay }}>{clubName}</span>
+                </StepHeading>
+              </span>
+              <button
+                type="button"
+                onClick={() => goTo(1)}
+                className="min-h-10 cursor-pointer rounded-lg border bg-transparent px-4 text-sm font-semibold"
+                style={{ borderColor: club.theme.lineStrong, color: club.theme.text }}
+              >
+                Trocar cantor
+              </button>
+            </div>
+          )}
+
+          <div role="radiogroup" aria-label="Ambiente ou fã clube" className="flex flex-wrap gap-2">
+            {[{ slug: "", name: `Ambiente de ${clubName}`, hint: "todos os fãs" }, ...places.map((p) => ({ slug: p.slug, name: `Fã clube ${p.name}`, hint: "só os membros" }))].map((o) => {
+              const on = place === o.slug;
+              return (
+                <button
+                  key={o.slug || "ambiente"}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => {
+                    setPlace(o.slug);
+                    setSlotId(null);
+                  }}
+                  className={`flex cursor-pointer flex-col items-start rounded-xl border-2 px-4 py-2.5 text-left ${on ? "border-adm-ink bg-adm-ink text-white" : "border-adm-line bg-white text-adm-ink hover:border-adm-input"}`}
+                >
+                  <strong className="text-sm font-bold">{o.name}</strong>
+                  <span className={`text-xs ${on ? "text-white/70" : "text-adm-muted"}`}>{o.hint}</span>
+                </button>
+              );
+            })}
           </div>
+          {places.length === 0 && <p className="m-0 -mt-2 text-xs text-adm-muted">Este cantor ainda não tem fã clubes no ar: o anúncio vai para todo o ambiente, para todos os fãs.</p>}
+
           {slots.length === 0 && (
             <AdminEmpty
               title="Nenhuma vitrine disponível aqui"
               text={place ? "Escolha outro lugar: este fã clube ainda não abriu vitrines." : "Escolha outro cantor ou fã clube, ou volte mais tarde."}
             />
           )}
-          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
-            {slots.map((v) => {
-              const on = v.id === slotId;
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => setSlotId(v.id)}
-                  disabled={v.occupied}
-                  aria-pressed={on}
-                  className={`flex items-start gap-3.5 rounded-[14px] border-2 p-4 text-left text-adm-ink ${
-                    on ? "border-adm-blue bg-adm-blue-tint" : "border-adm-line bg-white"
-                  } ${v.occupied ? "cursor-not-allowed opacity-55" : "cursor-pointer hover:border-adm-input"}`}
-                >
-                  <SlotDiagram
-                    small
-                    top={Math.round(v.diagram.top * 0.9)}
-                    height={Math.round(v.diagram.height * 0.9)}
-                  />
-                  <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <strong className="text-[15px] font-bold">{v.name}</strong>
-                    <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
-                    <span className="text-[13px] font-semibold">{slotPrice(v, exampleMode)}</span>
-                    <span
-                      className={`mt-1 self-start rounded-full px-[9px] py-[3px] text-xs font-semibold ${
-                        v.occupied ? "bg-adm-off-bg text-adm-off" : "bg-adm-ok-bg text-adm-ok"
-                      }`}
-                    >
-                      {v.occupied ? occupiedLabel(exampleMode) : "Disponível"}
-                    </span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+
+          {CATEGORIES.map((cat) => {
+            const list = slots.filter((v) => (v.category ?? "feed") === cat.id);
+            if (list.length === 0) return null;
+            return (
+              <div key={cat.id} className="flex flex-col gap-3">
+                <div className="flex flex-col">
+                  <h3 className="m-0 font-display text-2xl font-black">
+                    {cat.label} <span className="font-adm-mono text-sm font-semibold text-adm-muted">{list.length}</span>
+                  </h3>
+                  <span className="text-[13px] text-adm-muted">{cat.hint}</span>
+                </div>
+                <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))]">
+                  {list.map((v) => {
+                    const on = v.id === slotId;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setSlotId(v.id)}
+                        disabled={v.occupied}
+                        aria-pressed={on}
+                        className={`flex flex-col gap-3 rounded-2xl border-2 p-4 text-left text-adm-ink ${
+                          on ? "border-adm-ink bg-adm-blue-tint shadow-md" : "border-adm-line bg-white"
+                        } ${v.occupied ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-adm-input"}`}
+                      >
+                        <span className="flex items-start gap-3.5">
+                          <SlotDiagram small top={Math.round(v.diagram.top * 0.9)} height={Math.round(v.diagram.height * 0.9)} />
+                          <span className="flex min-w-0 flex-1 flex-col gap-1">
+                            <strong className="text-base font-bold leading-5">{v.name}</strong>
+                            <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
+                          </span>
+                          {on && (
+                            <span aria-hidden="true" className="flex size-6 flex-none items-center justify-center rounded-full bg-adm-ink text-white">
+                              <Icon name="check" size={14} strokeWidth={3} />
+                            </span>
+                          )}
+                        </span>
+
+                        <span className="flex flex-wrap gap-1.5">
+                          {(v.elements ?? []).map((e) => (
+                            <span key={e} className="rounded-full bg-adm-bg px-2.5 py-0.5 text-[11px] font-semibold text-adm-muted">
+                              {ELEMENTS.find((x) => x.id === e)?.label ?? e}
+                            </span>
+                          ))}
+                        </span>
+
+                        <span className="grid grid-cols-2 gap-2">
+                          <span className="flex flex-col rounded-lg bg-adm-bg px-3 py-2">
+                            <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">Por view</span>
+                            <strong className="font-adm-mono text-[15px]">{v.viewPriceMilli ? milliBrl(v.viewPriceMilli) : "—"}</strong>
+                          </span>
+                          <span className="flex flex-col rounded-lg bg-adm-bg px-3 py-2">
+                            <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">Por clique</span>
+                            <strong className="font-adm-mono text-[15px]">{v.clickPriceMilli ? milliBrl(v.clickPriceMilli) : "—"}</strong>
+                          </span>
+                        </span>
+
+                        <span
+                          className={`self-start rounded-full px-2.5 py-1 text-xs font-semibold ${v.occupied ? "bg-adm-off-bg text-adm-off" : "bg-adm-ok-bg text-adm-ok"}`}
+                        >
+                          {v.occupied ? occupiedLabel(exampleMode, v.occupiedBy) : "Disponível"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </section>
       )}
 

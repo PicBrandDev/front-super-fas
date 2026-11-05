@@ -591,6 +591,9 @@ export const getRentals = (slug: string) => get<Rental[]>(`/artists/${slug}/rent
 export const getAdsAnalytics = (slug: string, days = 30) => get<AdsAnalytics | null>(`/artists/${slug}/ads-analytics?days=${days}`, () => null, { notFound: null });
 
 /** GET /admin/ads-analytics: views e cliques de cada anúncio de cada patrocinador, em todos os ambientes (admin master). */
+/** GET /sponsor/analytics: o desempenho dos anúncios da própria marca. */
+export const getMyAdsAnalytics = (days = 30) => get<AdsAnalytics | null>(`/sponsor/analytics?days=${days}`, () => null, { notFound: null });
+
 export const getAdsAnalyticsAll = (days = 30) => get<AdsAnalytics | null>(`/admin/ads-analytics?days=${days}`, () => null, { notFound: null });
 
 /** GET /artists/{slug}/campaigns (administração do ambiente) */

@@ -1,9 +1,26 @@
 import type { Metadata } from "next";
+import { orderArtists } from "@/lib/artist-order";
 import { apiEnabled, getAdSlots, getClubAdSlots, getClubs, listArtists } from "@/lib/api";
+import { blankTheme, departamentoBlueTheme, type ArtistTheme } from "@/lib/themes";
 import type { AdSlot } from "@/lib/types";
 import { PatrocinadorClient, type SponsorClub } from "../PatrocinadorClient";
 
 export const metadata: Metadata = { title: "Portal do patrocinador — Nova campanha" };
+
+/** Quem ainda não tem design próprio aparece cru: papel branco, tinta preta, sem cor de marca. */
+const rawTheme: ArtistTheme = {
+  ...blankTheme,
+  bg: "#FFFFFF",
+  text: "#111111",
+  textMuted: "#6B6B6B",
+  line: "#E4E4E4",
+  lineStrong: "#BDBDBD",
+  amber: "#111111",
+  amberText: "#111111",
+  onAmber: "#FFFFFF",
+  fontDisplay: "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif",
+};
+const hasDesign = (slug: string) => slug === "vintage-culture" || slug === "departamento";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -11,7 +28,8 @@ export default async function NovaCampanhaPage() {
   // Anúncio de exemplo já preenchido (Coca-Cola), com início hoje e fim em 14 dias.
   const hoje = new Date();
   const fim = new Date(hoje.getTime() + 14 * 86400000);
-  const artists = (await listArtists()).filter((a) => a.status === "active");
+  const all = orderArtists(await listArtists()); // Vintage Culture primeiro, Departamento em segundo
+  const artists = all.filter((a) => a.status === "active");
   // Vitrines do ambiente de cada cantor ("cantor") e de cada fã clube no ar ("cantor/clube").
   const slotsByClub: Record<string, AdSlot[]> = {};
   const placesByClub: Record<string, { slug: string; name: string }[]> = {};
@@ -28,13 +46,15 @@ export default async function NovaCampanhaPage() {
       );
     }),
   );
-  const clubs: SponsorClub[] = artists.map((a) => ({
+  const clubs: SponsorClub[] = all.map((a) => ({
+    ready: a.status === "active",
     slug: a.slug,
     name: a.name,
     initial: a.initial,
     members: a.members,
     brandColor: a.brandColor,
-    theme: a.theme,
+    theme: a.slug === "departamento" ? departamentoBlueTheme : hasDesign(a.slug) ? a.theme : rawTheme, // Departamento: azul elétrico; sem design: cru
+    square: a.slug === "departamento",
   }));
 
   return (
@@ -42,7 +62,7 @@ export default async function NovaCampanhaPage() {
       <div className="flex flex-col gap-1">
         <h1 className="m-0 text-[28px] font-bold">Nova campanha</h1>
         <p className="m-0 text-[15px] text-adm-muted">
-          Escolha o cantor, onde anunciar (todo o ambiente ou um fã clube) e monte seu anúncio. Quem administra o lugar aprova antes de ir ao ar.
+          Escolha o cantor, a vitrine do ambiente dele (ou de um fã clube) e monte seu anúncio. Quem administra o lugar aprova antes de ir ao ar.
         </p>
       </div>
       <PatrocinadorClient

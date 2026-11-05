@@ -699,6 +699,7 @@ export type AdsCampaignStats = {
   views: number;
   clicks: number;
   ctr: number;
+  spentCents?: number;
   goalViews: number;
   goalClicks: number;
   series: AdsPoint[];
@@ -710,6 +711,7 @@ export type AdsAnalytics = {
   views: number;
   clicks: number;
   ctr: number;
+  spentCents?: number;
   series: AdsPoint[];
-  sponsors: { name: string; email?: string; avatar?: string | null; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[] }[];
+  sponsors: { name: string; email?: string; avatar?: string | null; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[]; spentCents?: number }[];
 };

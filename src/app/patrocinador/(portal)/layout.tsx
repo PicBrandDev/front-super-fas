@@ -2,8 +2,8 @@ import { logout } from "@/app/actions/auth";
 import { PlatformBrand } from "@/components/PlatformBrand";
 import { authEnabled } from "@/lib/auth";
 import { getMySponsor, getSession } from "@/lib/api";
-import { initialsOf } from "@/lib/shell";
 import { SponsorNav } from "./SponsorNav";
+import { SponsorPhoto } from "./SponsorPhoto";
 
 export default async function SponsorLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -18,10 +18,8 @@ export default async function SponsorLayout({ children }: { children: React.Reac
         <nav aria-label="Conta" className="flex flex-wrap items-center gap-1.5">
           <SponsorNav />
           <span className="ml-2 flex items-center gap-2 border-l border-adm-line pl-3">
-            <span aria-hidden="true" className="flex size-8 items-center justify-center rounded-full bg-adm-ink text-xs font-bold text-white">
-              {initialsOf(name)}
-            </span>
             <span className="text-sm font-semibold">{name}</span>
+            <SponsorPhoto name={name} src={sponsor?.logo} editable={!!sponsor} />
           </span>
           {authEnabled() && (
             <form action={logout}>
