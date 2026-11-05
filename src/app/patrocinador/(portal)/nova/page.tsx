@@ -54,7 +54,6 @@ export default async function NovaCampanhaPage() {
     members: a.members,
     brandColor: a.brandColor,
     theme: a.slug === "departamento" ? departamentoBlueTheme : hasDesign(a.slug) ? a.theme : rawTheme, // Departamento: azul elétrico; sem design: cru
-    square: a.slug === "departamento",
   }));
 
   return (
