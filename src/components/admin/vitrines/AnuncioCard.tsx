@@ -29,12 +29,13 @@ export type AnuncioItem = {
   href?: string; // com isso o cartão inteiro vira um link (ex.: para o analytics do anúncio)
 };
 
-/** As cores de cada cantor (as mesmas do app do fã): Vintage Culture em marrom e laranja, Departamento em azul elétrico e branco, Anitta em azul-noite e vermelho. */
+/** As cores de cada cantor (as mesmas do app do fã): Vintage Culture em marrom e laranja, Departamento em azul elétrico e branco, Anitta em azul-noite e vermelho, Veigh em preto e vinho. */
 function artistLook(name?: string | null) {
   const n = (name ?? "").toLowerCase();
   if (n.includes("vintage")) return { bg: "#120907", fg: "#FFFFFF", accent: "#FE9900", onAccent: "#120907", radius: "9999px" };
   if (n.includes("departamento")) return { bg: "#0000FF", fg: "#FFFFFF", accent: "#FFFFFF", onAccent: "#0000FF", radius: "0px" };
   if (n.includes("anitta")) return { bg: "#0A1A31", fg: "#FAF8EC", accent: "#DD2325", onAccent: "#FFFFFF", radius: "9999px" };
+  if (n.includes("veigh")) return { bg: "#0E0B0B", fg: "#F3EEE7", accent: "#8E1A22", onAccent: "#F3EEE7", radius: "0px" };
   return { bg: "#1b1f2a", fg: "#FFFFFF", accent: "#8FB0FF", onAccent: "#1b1f2a", radius: "9999px" };
 }
 

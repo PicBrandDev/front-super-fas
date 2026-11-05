@@ -1,6 +1,15 @@
 import type { MastTone } from "@/components/fan/Masthead";
-import { ANITTA_STAR, DEPARTAMENTO_STAR, MONO_D, MONO_D_VIEWBOX, type FilledMark } from "@/components/fan/mark-shape";
-import { anittaFeatureTheme, anittaTheme, departamentoBlueTheme, departamentoTheme, vintageTheme, type ArtistTheme } from "./themes";
+import { ANITTA_STAR, ANITTA_SUN, DEPARTAMENTO_STAR, MONO_D, MONO_D_VIEWBOX, VEIGH_GLOBE, type FilledMark } from "@/components/fan/mark-shape";
+import {
+  anittaFeatureTheme,
+  anittaTheme,
+  departamentoBlueTheme,
+  departamentoTheme,
+  veighFeatureTheme,
+  veighTheme,
+  vintageTheme,
+  type ArtistTheme,
+} from "./themes";
 
 /**
  * Pele de cada artista: o que não cabe nas variáveis --fc-* do tema (marca, roleta,
@@ -8,7 +17,7 @@ import { anittaFeatureTheme, anittaTheme, departamentoBlueTheme, departamentoThe
  * mesmas para todos; aqui só muda a aparência e a voz. Artista sem pele própria usa
  * a do Vintage Culture (o primeiro artista e o padrão da plataforma).
  */
-export type BrandKey = "vintage" | "departamento" | "anitta";
+export type BrandKey = "vintage" | "departamento" | "anitta" | "veigh";
 
 /** Os cinco moldes dos cartazes do Mural (A lançamento, B assinatura, C data, D PicKup, E loja). */
 export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
@@ -22,6 +31,10 @@ export type KitPosters = {
   /** Glifo gigante do campo B (o "?" do Departamento, o "IV" da Anitta) e o tamanho dele em cqw (padrão 100). */
   glyph: string;
   glyphSize?: number;
+  /** Arte oficial sem pessoa no lugar do glifo do campo B (o lustre do Veigh, em `public/`). */
+  photo?: string;
+  /** Linha do topo do campo B (o "João 16:33" do Veigh); sem ela, o nome do cantor. */
+  kicker?: string;
   /** Linha pequena embaixo da manchete do campo B. */
   micro: string;
   /** Rodapé do campo B (crédito da assinatura). */
@@ -75,8 +88,8 @@ export type ArtistBrand = {
   sky?: { url: string; size: number };
   /** Roleta: o toca-discos (agulha) ou a roda de linhas com o ponteiro-estrela no topo. */
   wheel: "turntable" | "star";
-  /** Roda `star`: o texto do selo do centro e o desenho dentro dele. */
-  wheelSeal?: { text: string; center: "globe" | "sun" };
+  /** Roda `star`: o texto do selo do centro e o desenho dentro dele (o globo de linhas ou uma marca de `mark-shape.ts`). */
+  wheelSeal?: { text: string; center: "globe" | FilledMark };
   /** Vinil (Drops, cartaz do lançamento): disco, sulcos, rótulo e a marca no rótulo; sem isso, o vinil do Vintage. */
   vinyl?: { disc: string; groove: string; grooveOpacity: number; label: string; labelInk: string };
   /** Cartazes no padrão do kit (campos A–E); sem isso, os moldes do Vintage. */
@@ -228,7 +241,7 @@ const anitta: ArtistBrand = {
   mastTones: { night: "mast", amber: "mast", sun: "mast", "lagoon-deep": "mast", "poster-grey": "mast" },
   sky: { url: "/media/anitta/ceu.svg", size: 340 },
   wheel: "star",
-  wheelSeal: { text: "RODA DA FORTUNA · EQUILIBRIVM II · ANITTA ·", center: "sun" },
+  wheelSeal: { text: "RODA DA FORTUNA · EQUILIBRIVM II · ANITTA ·", center: ANITTA_SUN },
   vinyl: { disc: "var(--fc-ink)", groove: "var(--fc-line-strong)", grooveOpacity: 0.55, label: "var(--fc-amber)", labelInk: "var(--fc-sun)" },
   store: { name: "Anitta Shop", word: "Anitta", mastTone: "mast", pickupPlace: "lojinha da Anitta" },
   // [P] fora da pasta de identidade: a hashtag e os nomes do ranking seguem o padrão dos outros cantores (GAPS).
@@ -272,10 +285,79 @@ const anitta: ArtistBrand = {
   },
 };
 
-const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta };
+/**
+ * VEIGH (era EVOM): veigh-fanzone-refs (tokens.json, DESIGN.md, VOICE.md) e o Artifact "Fanzone Veigh".
+ * A loja evom.art em forma de app: papel off-white com tinta vinho no Mural e no PicKup, preto com texto creme nas telas
+ * de serviço, cabeçalhos vinho, tag de spray em minúsculas (Sedgwick Ave Display) e máquina de escrever (Courier Prime),
+ * raio 0, sem sombra, sem grão, sem gradiente. Ornamento: o globo-lustre com cruz.
+ * Proibido: foto do artista (a pasta não tem fotos de pessoas), redesenhar o logo "evom", palavrão e letra explícita.
+ */
+const veigh: ArtistBrand = {
+  key: "veigh",
+  theme: veighTheme,
+  toneTheme: veighFeatureTheme,
+  toneRoutes: ["/mural", "/pickup"],
+  adminTheme: null,
+  themeColor: "#0E0B0B",
+  phone: true,
+  short: "Veigh",
+  the: "o Veigh",
+  of: "do Veigh",
+  mark: VEIGH_GLOBE,
+  // TODO oficial: o menu do admin leva o globo-lustre vinho no quadrado papel (o ícone do app, 00-brand/icons).
+  adminMark: { shape: VEIGH_GLOBE, bg: "#EDEBE7", fg: "#56070C" },
+  adminMastTone: "mast",
+  // Cabeçalhos vinho com a palavra creme em toda tela de serviço; o Mural e o Início ficam no campo ("sky").
+  mastTones: { night: "mast", amber: "mast", sun: "mast", "lagoon-deep": "mast", "poster-grey": "mast" },
+  wheel: "star",
+  wheelSeal: { text: "EU VENCI O MUNDO · EVOM · VEIGH ·", center: VEIGH_GLOBE },
+  // Disco preto, sulcos em fio, rótulo vinho com o globo em ouro-rose (tokens.json > roles.disc*).
+  vinyl: { disc: "#0E0B0B", groove: "#2F2626", grooveOpacity: 1, label: "#56070C", labelInk: "#D7AE98" },
+  store: { name: "EVOM Merch", word: "EVOM Merch", mastTone: "mast", pickupPlace: "lojinha do Veigh" },
+  // [P] fora da pasta de identidade: a hashtag e os nomes do ranking seguem o padrão dos outros cantores (GAPS).
+  superFan: "Fã Super do Veigh",
+  hyperFans: "HyperFans do Veigh",
+  hashtag: "EuSouUmSuperFaDoVeigh",
+  motto: ["Eu venci", "o mundo"],
+  // Fala real do Veigh (VOICE.md, S21).
+  mottoText: "\"Eu venci o mundo. Só de pronunciar isso já te traz uma força e uma vontade de vencer absurda assim.\"",
+  pickup: {
+    screen: "text-fg", // sem fundo próprio: o papel do tema de tom aparece atrás da roda
+    mastTone: "mast",
+    lead: "Gira a roleta e concorre a brinde da fanzone, rapaziada.",
+    sub: "text-fg-muted",
+    list: "divide-line border-line text-fg",
+    listDate: "text-fg-muted",
+    outline: "border-fg text-fg",
+    keyIdle: "Girar a roleta",
+    keyBusy: "Girando",
+    pointer: "o globo",
+  },
+  posters: {
+    glyph: "evom",
+    photo: "/media/veigh/lustre-evom.png",
+    kicker: "João 16:33",
+    micro: "Supernova Ent.",
+    legal: "Veigh · 2025",
+    pick: { headline: ["PicKup"], tag: "Aberto", micro: "Hora certa" },
+    // "Blusa de Moletom Hoodie EVOM Vinho - Veigh Merch Oficial" → MOLETOM / EVOM (sem o sufixo da loja, o tipo e a cor).
+    storeHeadline: (name) => {
+      const words = name
+        .split(" - ")[0]
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w && !/^(blusa|de|hoodie|vinho|preta|preto|branca|branco)$/i.test(w));
+      if (!words.length) return ["EVOM", "Merch"];
+      return words.length > 2 ? [words.slice(0, -1).join(" "), words[words.length - 1]] : words;
+    },
+    cover: "/media/veigh/evom-logo-branco.png",
+  },
+};
+
+const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta, veigh };
 
 /** Slug do ambiente (como o admin master criou) → pele. Slug fora daqui usa a pele do Vintage. */
-const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta" };
+const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta", veigh: "veigh" };
 
 export const brandKeyFor = (slug: string): BrandKey => BY_SLUG[slug] ?? "vintage";
 export const brandFor = (slug: string): ArtistBrand => BRANDS[brandKeyFor(slug)];

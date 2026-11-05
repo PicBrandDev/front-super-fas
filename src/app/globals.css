@@ -951,6 +951,117 @@ body {
   }
 }
 
+/*
+ * VEIGH (data-brand no wrapper do FanShell; pele em src/lib/brands.ts; valores de veigh-fanzone-refs/05-tokens/tokens.json).
+ * A loja evom.art em forma de app: tag de spray (Sedgwick Ave Display) em minúsculas no display, máquina de escrever
+ * (Courier Prime) 700 caixa alta nos rótulos e 400 no corpo, raio 0 em tudo, sem sombra, sem grão, sem gradiente.
+ * As variáveis `--field-*` pintam os cartazes do Mural; `--kit-display*` e `--display-case` dão a tag às manchetes.
+ */
+.fan[data-brand="veigh"] {
+  --radius-hair: 0px;
+  --radius-field: 0px;
+  --radius-device: 0px;
+  --track-display: 0;
+  --kit-display: var(--fc-font-display);
+  --kit-display-weight: 400;
+  --display-case: lowercase;
+  --kit-acc-w: 10cqw;
+  /* campos A–E (tokens.json > poster_fields) */
+  --field-a: #56070c;
+  --field-a-ink: #f3eee7;
+  --field-b: #edebe7;
+  --field-b-ink: #3b0508;
+  --field-b-accent: #b7927d;
+  --field-c: #0e0b0b;
+  --field-c-ink: #f3eee7;
+  --field-c-accent: #b3121f;
+  --field-d: #3b0508;
+  --field-d-ink: #f3eee7;
+  --field-e: #edebe7;
+  --field-e-ink: #56070c;
+  /* roda: segmento do prêmio em vinho com tinta creme */
+  --wheel-on: var(--fc-lagoon);
+  --wheel-on-ink: var(--fc-paper);
+}
+/* No papel (tom feature: Mural e PicKup) a roda risca na tinta vinho-escuro; o cartaz D redefine a tinta no campo dele. */
+.fan[data-brand="veigh"] [data-tone="feature"] {
+  --wheel-ink: var(--fc-fg);
+}
+@layer components {
+  .fan[data-brand="veigh"] .btn,
+  .fan[data-brand="veigh"] .tag,
+  .fan[data-brand="veigh"] .deck,
+  .fan[data-brand="veigh"] .key,
+  .fan[data-brand="veigh"] .toast,
+  .fan[data-brand="veigh"] .sheet,
+  .fan[data-brand="veigh"] .field {
+    border-radius: 0;
+  }
+  .fan[data-brand="veigh"] .btn {
+    font-weight: 700;
+  }
+  .fan[data-brand="veigh"] .btn-primary {
+    border-color: var(--fc-amber);
+  }
+  .fan[data-brand="veigh"] .btn-primary:hover {
+    background: var(--fc-bg);
+    color: var(--fc-amber-text);
+    border-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="veigh"] .btn-primary:active {
+    transform: none;
+  }
+  .fan[data-brand="veigh"] .mono {
+    font: 700 11px/14px var(--fc-font-mono);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="veigh"] .poster,
+  .fan[data-brand="veigh"] .serif,
+  .fan[data-brand="veigh"] .font-display {
+    font-family: var(--fc-font-display);
+    font-weight: 400;
+    text-transform: lowercase;
+    letter-spacing: 0;
+  }
+  .fan[data-brand="veigh"] .tag {
+    font: 700 11px/12px var(--fc-font-mono);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="veigh"] .tag-key {
+    border-color: var(--fc-amber);
+    background: var(--fc-amber);
+    color: var(--fc-on-amber);
+  }
+  .fan[data-brand="veigh"] .avatar {
+    font: 700 11px/1 var(--fc-font-mono);
+  }
+  .fan[data-brand="veigh"] .tab[aria-selected="true"],
+  .fan[data-brand="veigh"] .tab[aria-current="page"] {
+    border-bottom-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="veigh"] .mast-word {
+    font-family: var(--fc-font-display);
+    font-weight: 400;
+    text-transform: lowercase;
+    letter-spacing: 0;
+  }
+  .fan[data-brand="veigh"] .key[aria-current="page"] {
+    color: var(--fc-fg);
+  }
+  .fan[data-brand="veigh"] .key[aria-current="page"]::after {
+    background: var(--fc-amber-text);
+  }
+  .fan[data-brand="veigh"] .scrim {
+    background: color-mix(in srgb, var(--fc-ink) 72%, transparent);
+  }
+  .fan[data-brand="veigh"] .sheet h2 {
+    font: 400 38px/0.95 var(--fc-font-display);
+    text-transform: lowercase;
+    letter-spacing: 0;
+    color: var(--fc-fg);
+  }
+}
+
 @keyframes fan-up {
   from {
     transform: translateY(24px);
@@ -1178,6 +1289,58 @@ body {
 /* etiquetas em pílula, caixa alta; avatares continuam redondos */
 .adm-noite[data-brand="anitta"] [data-badge] {
   border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/*
+ * ADMIN DO VEIGH (`data-brand="veigh"` no wrapper do ClubAdminShell; pele em src/lib/brands.ts).
+ * A identidade da área do fã no painel: menu lateral e dados no preto com tinta creme, topo vinho (Masthead tom "mast"),
+ * máquina de escrever no texto e a tag de spray em minúsculas no título, raio 0, sem sombra.
+ * Acento: botão vinho aberto com texto creme; como texto (links), o ouro-rose claro.
+ */
+.adm-noite[data-brand="veigh"] {
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --color-adm-side: #0e0b0b;
+  --color-adm-side-line: #2f2626;
+  --color-adm-side-muted: #b9aea6;
+  --color-adm-side-text: #f3eee7;
+  /* acento do painel (os utilitários adm-blue leem estas variáveis) */
+  --pf-brand: #8e1a22;
+  --pf-brand-dark: #56070c;
+  --pf-brand-soft: color-mix(in srgb, #8e1a22 22%, #0e0b0b);
+  --pf-brand-tint: color-mix(in srgb, #8e1a22 10%, #0e0b0b);
+}
+/* Courier Prime no painel inteiro (a regra da identidade: nada de sans genérica). */
+.adm-noite[data-brand="veigh"],
+.adm-noite[data-brand="veigh"] :is(.font-adm, .font-adm-mono) {
+  font-family: var(--fc-font-grotesk);
+}
+.adm-noite[data-brand="veigh"] h1,
+.adm-noite[data-brand="veigh"] .font-display,
+.adm-noite[data-brand="veigh"] .mast-word {
+  font-family: var(--fc-font-display);
+  font-weight: 400;
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+.adm-noite[data-brand="veigh"] :is(h2, h3) {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.adm-noite[data-brand="veigh"] :is(.text-adm-blue, .text-adm-blue-dark) {
+  color: var(--fc-amber-text);
+}
+.adm-noite[data-brand="veigh"] .bg-adm-blue {
+  color: #f3eee7;
+}
+.adm-noite[data-brand="veigh"] [data-badge] {
+  border-radius: 0;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 11px;

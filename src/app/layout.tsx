@@ -13,8 +13,9 @@ const archivo = localFont({
   fallback: ["Helvetica Neue", "Arial", "sans-serif"],
 });
 
-// Fonte de pele: um cantor pode ter a fonte da identidade dele (uma só, nos três campos do tema). Sem preload: só baixa
-// onde o tema do cantor usa a variável. Averia Serif Libre = Anitta (a fonte do site oficial).
+// Fontes de pele: um cantor pode ter a fonte (ou o par display + texto) da identidade dele. Sem preload: só baixa
+// onde o tema do cantor usa a variável. Averia Serif Libre = Anitta (a fonte do site oficial);
+// Sedgwick Ave Display (tag de spray) + Courier Prime (máquina de escrever da evom.art) = Veigh.
 const averia = localFont({
   src: [
     { path: "../fonts/averia-serif-libre-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -25,6 +26,24 @@ const averia = localFont({
   display: "swap",
   preload: false,
   fallback: ["Georgia", "serif"],
+});
+const sedgwick = localFont({
+  src: [{ path: "../fonts/sedgwick-ave-display-latin-400-normal.woff2", weight: "400", style: "normal" }],
+  variable: "--font-sedgwick",
+  display: "swap",
+  preload: false,
+  fallback: ["Arial Black", "sans-serif"],
+});
+const courierPrime = localFont({
+  src: [
+    { path: "../fonts/courier-prime-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/courier-prime-latin-400-italic.woff2", weight: "400", style: "italic" },
+    { path: "../fonts/courier-prime-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-courier-prime",
+  display: "swap",
+  preload: false,
+  fallback: ["Courier New", "monospace"],
 });
 
 export const metadata: Metadata = {
@@ -49,7 +68,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="pt-BR"
-      className={`${archivo.variable} ${averia.variable}`}
+      className={`${archivo.variable} ${averia.variable} ${sedgwick.variable} ${courierPrime.variable}`}
       style={brandStyle}
     >
       <body className="antialiased">{children}</body>

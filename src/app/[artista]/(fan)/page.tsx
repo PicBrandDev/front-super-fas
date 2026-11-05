@@ -75,8 +75,8 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
       <HomeMuralSwitch base={base} current="inicio" />
       <Masthead word="Início" tone="sky" steps={1} />
 
-      {brand.posters?.card ? (
-        /* Cartaz de abertura em carta de tarô (Anitta): o molde B (assinatura) dentro da moldura, como no Mural. */
+      {brand.posters?.card || brand.posters?.photo ? (
+        /* Cartaz de abertura no molde B (assinatura) do Mural: em carta de tarô (Anitta) ou com a arte oficial (o lustre do Veigh). */
         <>
           <KitPoster
             p={{
@@ -86,13 +86,15 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
               by: artist.name,
               text: brand.mottoText,
               headline: brand.motto,
-              credits: [artist.name, brand.posters.legal],
+              credits: [brand.posters.kicker ?? artist.name, brand.posters.legal],
               likes: 0,
               comments: 0,
               reposts: 0,
-              numeral: brand.posters.card.numerals.culture,
-              plaque: brand.posters.card.plaques.culture,
-              side: brand.posters.card.sides.culture,
+              ...(brand.posters.card && {
+                numeral: brand.posters.card.numerals.culture,
+                plaque: brand.posters.card.plaques.culture,
+                side: brand.posters.card.sides.culture,
+              }),
             }}
           />
           <h2 className="sr-only">{brand.mottoText}</h2>

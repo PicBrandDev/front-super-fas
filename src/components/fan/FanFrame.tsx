@@ -30,13 +30,14 @@ export function FanFrame({ avatar = null, children }: { avatar?: string | null; 
   const chrome = !isChatThread(pathname, base);
   const toned = !!brand.toneTheme && usesTone(brand, pathname, base);
   const tone = toned && brand.toneTheme ? themeStyle(brand.toneTheme) : undefined;
+  // `text-fg` na coluna: a cor herdada do .fan é a do tema base; num tema de tom claro (o papel do Veigh) a tinta tem que ser a do tom.
   // Céu da pele (ex.: estrelas da Anitta) só nas telas de assinatura, repetido sobre o campo.
   const sky: CSSProperties | undefined =
     toned && brand.sky ? { backgroundImage: `url(${brand.sky.url})`, backgroundSize: `${brand.sky.size}px ${brand.sky.size}px` } : undefined;
   return (
     <div className="contents" style={tone}>
       <div
-        className={`pb-navspace relative min-h-dvh w-full min-w-0 flex-1 bg-night lg:mx-auto lg:border-x lg:border-line ${brand.phone ? "lg:max-w-[430px]" : "lg:max-w-[600px] lg:pb-12"}`}
+        className={`pb-navspace relative min-h-dvh w-full min-w-0 flex-1 bg-night text-fg lg:mx-auto lg:border-x lg:border-line ${brand.phone ? "lg:max-w-[430px]" : "lg:max-w-[600px] lg:pb-12"}`}
         style={{ ...sky, ...(chrome ? undefined : ({ "--navspace": "0px" } as CSSProperties)) }}
         data-tone={toned ? "feature" : undefined}
         data-nav-hidden={(chrome && hidden) || undefined}

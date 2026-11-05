@@ -14,8 +14,8 @@ O app é white label: as telas, as rotas e a lógica são as mesmas para todo ca
 
 ## Roteiro
 1. **Tema** em `src/lib/themes.ts` (`xTheme` e, se Mural e PicKup tiverem outro fundo, `xFeatureTheme`). Para o de-para de papéis, use `MIGRATION-MAP.md` da pasta.
-2. **Fonte**, se a identidade pedir: o woff2 latin em `src/fonts`, a partir do pacote `@fontsource/<fonte>` (`npm pack` numa pasta temporária, só copie os arquivos). Depois um `localFont` com `preload: false` em `src/app/layout.tsx`.
-3. **Pele** em `src/lib/brands.ts`: copie `const anitta`, que é o exemplo mais completo, e troque os valores. O `tsc` aponta o que falta.
+2. **Fonte** (ou par display + texto), se a identidade pedir: o woff2 latin em `src/fonts`, a partir do pacote `@fontsource/<fonte>` (`npm pack` numa pasta temporária, só copie os arquivos). Depois um `localFont` com `preload: false` em `src/app/layout.tsx`.
+3. **Pele** em `src/lib/brands.ts`: copie `const anitta` (tema escuro, carta de tarô) ou `const veigh` (tom claro, par de fontes, arte oficial no cartaz B) e troque os valores. O `tsc` aponta o que falta.
 4. **Marca** em `src/components/fan/mark-shape.ts`, como `FilledMark`. Marque com `TODO oficial` todo desenho aproximado.
 5. **CSS**: o bloco `.fan[data-brand="x"]` (variáveis `--field-*` e `--card-*`, mais a forma) e o `.adm-noite[data-brand="x"]` no `globals.css`. Depois os blocos `[data-brand="x"]` nos CSS Modules das telas que o Artifact pinta diferente.
 6. **Mídia** em `public/media/<slug>/` e `src/lib/media.ts`. Use só arquivos da pasta de identidade, nunca foto de pessoa sem licença. Converta PNG grande para JPG de cerca de 900 px.
@@ -24,6 +24,6 @@ O app é white label: as telas, as rotas e a lógica são as mesmas para todo ca
 
 ## Verificação (obrigatória)
 - `npx tsc --noEmit` e `npx eslint src`, sem erros novos.
-- Rode o app com `npm run dev` em modo exemplo, sem `API_URL`, a 375 px. Compare Início, Mural (as 5 cartas), Drops, PicKup, Agenda, Evento, Loja, Comunidade e o admin com o Artifact.
-- **Vintage e Departamento não podem mudar.** Suba o `origin/main` numa worktree temporária em outra porta e compare, rota a rota, a impressão digital dos estilos computados de cada elemento visível: tag, texto, cores, fonte, peso, tamanho, raio, bordas e tamanho do elemento. Use um iframe de 375 px e espere as fontes carregarem. Tudo fora dos SVGs tem que ser idêntico. Nos SVGs, confira que a caixa de cada `path` é a mesma. Remova a worktree temporária no fim.
+- Rode o app com `npm run dev` em modo exemplo, sem `API_URL`, a 375 px. Num tema de tom claro, confira que nada some no papel (texto herdado, linhas da roda). Compare Início, Mural (as 5 cartas), Drops, PicKup, Agenda, Evento, Loja, Comunidade e o admin com o Artifact.
+- **Os cantores que já existem (Vintage, Departamento, Anitta…) não podem mudar.** Suba o `origin/main` numa worktree temporária em outra porta e compare, rota a rota, a impressão digital dos estilos computados de cada elemento visível: tag, texto, cores, fonte, peso, tamanho, raio, bordas e tamanho do elemento. Use um iframe de 375 px e espere as fontes carregarem. Tudo fora dos SVGs tem que ser idêntico. Nos SVGs, confira que a caixa de cada `path` é a mesma. Remova a worktree temporária no fim.
 - Commit no branch `feat/<cantor>`. Push e PR só com o OK do usuário.

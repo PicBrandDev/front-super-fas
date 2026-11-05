@@ -3,7 +3,7 @@
  * Tudo que está entre colchetes ([PREÇO], [Local do evento]...) é para
  * ser preenchido com dados reais.
  */
-import { anittaTheme, departamentoTheme, vintageTheme } from "./themes";
+import { anittaTheme, departamentoTheme, veighTheme, vintageTheme } from "./themes";
 import type {
   FanClub,
   AdSlot,
@@ -66,6 +66,20 @@ export const artists: Artist[] = [
     members: "[n]",
     adSlotsSummary: "2 de 6 ocupadas",
     brandColor: "#DD2325",
+  },
+  {
+    id: "vg",
+    slug: "veigh",
+    name: "Veigh",
+    initial: "V",
+    fanClubName: "[Nome do fã clube]",
+    instagram: "@veigh",
+    status: "active",
+    theme: veighTheme,
+    memberPriceCents: 1690,
+    members: "[n]",
+    adSlotsSummary: "2 de 6 ocupadas",
+    brandColor: "#56070C",
   },
 ];
 

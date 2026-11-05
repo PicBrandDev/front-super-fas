@@ -382,3 +382,9 @@ a.ticket:focus-visible .compactBar {
 :global([data-brand="anitta"]) .ticket[data-field="amber"] .face {
   --on-field: var(--fc-on-amber);
 }
+
+/* VEIGH: no campo vinho a tinta é creme (preto sobre o vinho do botão fica abaixo de 4,5:1). */
+:global([data-brand="veigh"]) .ticket:not([data-field]) .face,
+:global([data-brand="veigh"]) .ticket[data-field="amber"] .face {
+  --on-field: var(--fc-on-amber);
+}

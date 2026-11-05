@@ -63,7 +63,52 @@ export const media: Record<string, ArtistMedia> = {
   },
   departamento: dpMedia(),
   anitta: anittaMedia(),
+  veigh: veighMedia(),
 };
+
+/**
+ * Veigh: fotos oficiais de produto da EVOM Merch (veigh-fanzone-refs/06-store, as 9 peças, todas sem pessoas), achatadas
+ * sobre o papel da loja. Sem foto do artista (política da pasta de identidade; as capas dos álbuns mostram o artista): o
+ * Início e o Mural usam cartazes de tipo, o logo "evom" e o lustre da home (brands.ts).
+ * TODO oficial: confirmar a licença das fotos de produto e do logo com a Supernova Ent.
+ */
+function veighMedia(): ArtistMedia {
+  const vg = (file: string) => `/media/veigh/${file}`;
+  const hoodieVinho: MediaImage = { src: vg("hoodie-evom-vinho.jpg"), alt: "Moletom vinho com tag EVOM em spray e globo-lustre no peito" };
+  const hoodiePreta: MediaImage = { src: vg("hoodie-evom-preta.jpg"), alt: "Moletom preto com tag EVOM vermelha e costuras vinho" };
+  const tee: MediaImage = { src: vg("camiseta-evom.jpg"), alt: "Camiseta branca com tag EVOM em spray vinho" };
+  const astro: MediaImage = { src: vg("camiseta-astro.jpg"), alt: "Camiseta preta com estrela amarela e tag EVOM" };
+  const regata: MediaImage = { src: vg("regata-evom.jpg"), alt: "Regata off-white com globo-lustre e tag EVOM" };
+  const calcaVinho: MediaImage = { src: vg("calca-moletom-evom-vinho.jpg"), alt: "Calça de moletom vinho com costuras pretas" };
+  const calcaPreta: MediaImage = { src: vg("calca-moletom-evom-preta.jpg"), alt: "Calça de moletom EVOM preta" };
+  const kitVinho: MediaImage = { src: vg("kit-moletom-evom-vinho.jpg"), alt: "Kit moletom EVOM vinho" };
+  const kitPreta: MediaImage = { src: vg("kit-moletom-evom-preta.jpg"), alt: "Kit moletom EVOM preto" };
+  return {
+    hero: null,
+    press: [],
+    products: {
+      // ids do catálogo da evom.art
+      "hoodie-evom-vinho": hoodieVinho,
+      "hoodie-evom-preta": hoodiePreta,
+      "camiseta-evom": tee,
+      "camiseta-astro": astro,
+      "regata-evom": regata,
+      "calca-moletom-evom-vinho": calcaVinho,
+      "calca-moletom-evom-preta": calcaPreta,
+      "kit-moletom-evom-vinho": kitVinho,
+      "kit-moletom-evom-preta": kitPreta,
+      // palavras do nome (API)
+      hoodie: hoodieVinho,
+      moletom: hoodieVinho,
+      astro,
+      regata,
+      cal: calcaVinho, // "calça" vira "cal" + "a" na busca por palavra
+      kit: kitVinho,
+      camiseta: tee,
+    },
+    productFallback: [hoodieVinho, hoodiePreta, tee, astro, regata, calcaVinho, calcaPreta, kitVinho, kitPreta],
+  };
+}
 
 /**
  * Anitta: fotos oficiais de produto da Anitta Shop (anitta-fanzone-refs/06-store, só peças sem pessoas) e a capa de

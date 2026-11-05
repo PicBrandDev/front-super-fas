@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { brandByKey, type BrandKey } from "@/lib/brands";
-import { ANITTA_SUN, DEPARTAMENTO_STAR, MARK_POINTS, markBox } from "./mark-shape";
+import { DEPARTAMENTO_STAR, MARK_POINTS, markBox } from "./mark-shape";
 import s from "./Turntable.module.css";
 
 /**
@@ -144,7 +144,8 @@ function LabelLines({ lines, size }: { lines: string[]; size: number }) {
  * Roda de linhas (porte de `wheel()` do Fanzone Artist Kit): roda de linhas na tinta do papel sobre o campo, régua de
  * 80 traços, um segmento cheio no prêmio, selo no centro e a marca do cantor no topo como ponteiro.
  * O campo do selo é `--wheel-field` (padrão: o fundo). Selo e centro vêm de `wheelSeal` na pele:
- * Departamento = globo (TODO oficial: reconstrução do selo das costas do moletom, GAPS G-01); Anitta = o sol.
+ * Departamento = globo (TODO oficial: reconstrução do selo das costas do moletom, GAPS G-01); Anitta = o sol;
+ * Veigh = o globo-lustre (qualquer desenho de `mark-shape.ts`, num quadrado de 54).
  */
 const SW = { cx: 180, cy: 192, r: 156, ri: 64 };
 
@@ -231,9 +232,9 @@ function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", clas
           {seal.text}
         </textPath>
       </text>
-      {seal.center === "sun" ? (
-        <svg x={cx - 27} y={cy - 27} width="54" height="54" viewBox={ANITTA_SUN.viewBox} fill={paper}>
-          <path d={ANITTA_SUN.d} />
+      {seal.center !== "globe" ? (
+        <svg x={cx - 27} y={cy - 27} width="54" height="54" viewBox={seal.center.viewBox} fill={paper}>
+          <path d={seal.center.d} fillRule={seal.center.fillRule} />
         </svg>
       ) : (
         <>
