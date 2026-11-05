@@ -189,5 +189,7 @@ export function buildPosters({
     reposts: 150,
   });
 
-  return out;
+  // PicKup e Loja (os dois últimos) abrem o Mural; os Drops, a data e a foto do artista vêm depois.
+  const [pickup, store] = out.splice(-2);
+  return [pickup, store, ...out];
 }
