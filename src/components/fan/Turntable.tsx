@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import { MARK_POINTS, STAR_D } from "./mark-shape";
+import { brandByKey, type BrandKey } from "@/lib/brands";
+import { ANITTA_SUN, DEPARTAMENTO_STAR, MARK_POINTS, markBox } from "./mark-shape";
 import s from "./Turntable.module.css";
 
 /**
@@ -57,8 +58,10 @@ export const PRIZES = ["Camiseta", "Boné", "Pôster", "Vinil", "Ingresso", "Ade
 export const recAngleFor = (i: number, n = PRIZES.length, variant: WheelVariant = "turntable") => recordAngleFor(i, n, variant);
 
 export type TurntableProps = {
-  /** `star`: a roda do Departamento (sem braço nem deck; `arm`, `deck`, `vu`, `volume` e `playing` não se aplicam). */
+  /** `star`: a roda de linhas (sem braço nem deck; `arm`, `deck`, `vu`, `volume` e `playing` não se aplicam). */
   variant?: WheelVariant;
+  /** Roda `star`: pele que dá o selo do centro e o ponteiro (`wheelSeal` e `mark` em brands.ts). Padrão: Departamento. */
+  brand?: BrandKey;
   prizes: string[];
   deck?: boolean;
   on?: number;
@@ -93,20 +96,26 @@ const origin = (x: number, y: number, deg: number): CSSProperties => ({
   transform: `rotate(${deg}deg)`,
 });
 
-export function Turntable({ variant = "turntable", ...props }: TurntableProps) {
-  return variant === "star" ? <StarWheel {...props} /> : <Deck {...props} />;
+export function Turntable({ variant = "turntable", brand, ...props }: TurntableProps) {
+  return variant === "star" ? <StarWheel brand={brand} {...props} /> : <Deck {...props} />;
 }
 
 /**
- * Roleta do Departamento (porte de `wheel()` do protótipo da identidade): roda de linhas
- * brancas sobre o campo, régua de 80 traços, um segmento cheio no prêmio, selo do globo
- * no centro e a estrela no topo como ponteiro. O campo do selo é `--wheel-field` (padrão: o fundo).
- * TODO oficial: o selo do globo é reconstrução do selo das costas do moletom (GAPS G-01).
+ * Roda de linhas (porte de `wheel()` do Fanzone Artist Kit): roda de linhas na tinta do papel sobre o campo, régua de
+ * 80 traços, um segmento cheio no prêmio, selo no centro e a marca do cantor no topo como ponteiro.
+ * O campo do selo é `--wheel-field` (padrão: o fundo). Selo e centro vêm de `wheelSeal` na pele:
+ * Departamento = globo (TODO oficial: reconstrução do selo das costas do moletom, GAPS G-01); Anitta = o sol.
  */
 const SW = { cx: 180, cy: 192, r: 156, ri: 64 };
 
-function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", className = "" }: Omit<TurntableProps, "variant">) {
+function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", className = "", brand: brandKey }: Omit<TurntableProps, "variant">) {
   const { cx, cy, r, ri } = SW;
+  const skin = brandByKey(brandKey ?? "departamento");
+  const seal = skin.wheelSeal ?? { text: "TROUBLE DANCING? · 1-800-DEPARTAMENTO ·", center: "globe" as const };
+  const pointer = skin.mark === "chevrons" ? DEPARTAMENTO_STAR : skin.mark;
+  const pb = markBox(pointer.viewBox);
+  const ph = 39.44; // altura do ponteiro (a medida da estrela do Departamento), centrado em cx
+  const pw = ph * pb.ratio;
   const n = Math.max(prizes.length, 1);
   const step = 360 / n;
   const P = (a: number, rr: number): [number, number] => {
@@ -125,7 +134,7 @@ function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", clas
     const [x1, y1] = P(k * 4.5, r - (k % 10 === 0 ? 1 : 5));
     return { x0, y0, x1, y1 };
   });
-  const paper = "var(--fc-paper)";
+  const paper = "var(--wheel-ink, var(--fc-paper))"; // tinta das linhas (no campo D da Anitta, o azul-noite)
   const arcId = `${prefix}Arc`;
 
   return (
@@ -174,22 +183,30 @@ function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", clas
       <path id={arcId} d={`M${cx - 44} ${cy}a44 44 0 1 1 88 0a44 44 0 1 1 -88 0`} fill="none" />
       <text fontWeight="800" fontSize="8.4" fill={paper} style={grotesk}>
         <textPath href={`#${arcId}`} textLength="262" lengthAdjust="spacing">
-          TROUBLE DANCING? · 1-800-DEPARTAMENTO ·
+          {seal.text}
         </textPath>
       </text>
-      <circle cx={cx} cy={cy} r="24" fill="none" stroke={paper} strokeWidth="1.2" />
-      {[9, 18].map((rx) => (
-        <ellipse key={rx} cx={cx} cy={cy} rx={rx} ry="24" fill="none" stroke={paper} strokeWidth="1" />
-      ))}
-      <line x1={cx} y1={cy - 24} x2={cx} y2={cy + 24} stroke={paper} strokeWidth="1" />
-      {[-14, 0, 14].map((dy) => {
-        const hw = Math.sqrt(24 * 24 - dy * dy);
-        return <line key={dy} x1={+(cx - hw).toFixed(2)} y1={cy + dy} x2={+(cx + hw).toFixed(2)} y2={cy + dy} stroke={paper} strokeWidth="1" />;
-      })}
-      {/* ponteiro */}
-      <g transform={`translate(${cx - 29} 6) scale(.58)`} fill={paper}>
-        <path d={STAR_D} />
-      </g>
+      {seal.center === "sun" ? (
+        <svg x={cx - 27} y={cy - 27} width="54" height="54" viewBox={ANITTA_SUN.viewBox} fill={paper}>
+          <path d={ANITTA_SUN.d} />
+        </svg>
+      ) : (
+        <>
+          <circle cx={cx} cy={cy} r="24" fill="none" stroke={paper} strokeWidth="1.2" />
+          {[9, 18].map((rx) => (
+            <ellipse key={rx} cx={cx} cy={cy} rx={rx} ry="24" fill="none" stroke={paper} strokeWidth="1" />
+          ))}
+          <line x1={cx} y1={cy - 24} x2={cx} y2={cy + 24} stroke={paper} strokeWidth="1" />
+          {[-14, 0, 14].map((dy) => {
+            const hw = Math.sqrt(24 * 24 - dy * dy);
+            return <line key={dy} x1={+(cx - hw).toFixed(2)} y1={cy + dy} x2={+(cx + hw).toFixed(2)} y2={cy + dy} stroke={paper} strokeWidth="1" />;
+          })}
+        </>
+      )}
+      {/* ponteiro: a marca do cantor */}
+      <svg x={+(cx - pw / 2).toFixed(2)} y={4.26} width={+pw.toFixed(2)} height={ph} viewBox={pointer.viewBox} fill={paper}>
+        <path d={pointer.d} fillRule={pointer.fillRule} />
+      </svg>
     </svg>
   );
 }

@@ -96,3 +96,18 @@
   font: 700 11px/14px var(--fc-font-grotesk);
   letter-spacing: 0.06em;
 }
+
+/* ANITTA: foto de produto no campo creme, canto reto; nome em Averia 700 caixa alta; preço em creme (como na Anitta Shop do protótipo). */
+:global([data-brand="anitta"]) .img,
+:global([data-brand="anitta"]) .bag b {
+  border-radius: 0;
+}
+:global([data-brand="anitta"]) .prod h3 {
+  font: 700 16px/18px var(--fc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+:global([data-brand="anitta"]) .price {
+  color: var(--fc-fg);
+}

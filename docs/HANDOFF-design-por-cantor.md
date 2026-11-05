@@ -10,21 +10,29 @@ Referências que já existem: `docs/visual-noite.md` (tokens e vocabulário da �
 
 | Camada | Arquivo | O que define |
 | --- | --- | --- |
-| **Tema** (cores e fontes) | `src/lib/themes.ts` | Os tokens `--fc-*` do cantor: fundo, superfície, fios, texto, acento, cores de apoio. Ex.: `vintageTheme`, `departamentoTheme`, `departamentoBlueTheme`. |
-| **Pele** (voz e variações) | `src/lib/brands.ts` | O que não cabe em cor: nome da loja, palavra do cabeçalho, roleta (`turntable` ou `star`), tema das telas de assinatura (`toneTheme` + `toneRoutes`), tema do admin (`adminTheme`), hashtag, lema, textos do PicKup. |
-| **CSS** (forma) | `src/app/globals.css` | Cantos, pesos, caixa alta, botões, tags. Os ajustes de um cantor ficam em `.fan[data-brand="x"] { ... }` (veja o bloco do Departamento, linha ~710). |
-| **Marca** (logo) | `src/components/fan/mark-shape.ts` + `Mark.tsx` | O desenho da marca: chevrons (Vintage), estrela (Departamento), monograma D. Para o admin: `src/components/admin/ClubAdminShell.tsx` (quadradinho do menu). |
+| **Tema** (cores e fontes) | `src/lib/themes.ts` | Os tokens `--fc-*` do cantor: fundo, superfície, fios, texto, acento, cores de apoio e, opcional, o cabeçalho (`mast`, `mastInk`, `mastRule`). Ex.: `vintageTheme`, `departamentoTheme`, `departamentoBlueTheme`, `anittaTheme`, `anittaFeatureTheme`. |
+| **Pele** (voz, marca e variações) | `src/lib/brands.ts` | Tudo que não cabe em cor, **como dado**: marca (`mark`, `adminMark`), tons dos cabeçalhos (`mastTones`, `adminMastTone`), céu das telas de assinatura (`sky`), roleta (`wheel`, `wheelSeal`), vinil (`vinyl`), cartazes do Mural no padrão do kit (`posters`, com `card` para carta de tarô), loja, hashtag, lema, textos do PicKup, artigo (`the`, `of`). |
+| **CSS** (forma) | `src/app/globals.css` | Cantos, pesos, caixa alta, botões, tags e as cores dos cartazes (`--field-*`, `--card-*`). Os ajustes de um cantor ficam em `.fan[data-brand="x"] { ... }` (blocos do Departamento e da Anitta) e `.adm-noite[data-brand="x"]` (admin). |
+| **Marca** (desenho) | `src/components/fan/mark-shape.ts` | O desenho da marca como `FilledMark` (`{ d, viewBox }`): estrela do Departamento, estrela de 5 pontas e sol da Anitta. `Mark`, `Vinyl`, a roleta e o menu do admin leem a marca da pele; não há mais `if (cantor)` nesses componentes. |
 
 Como o app escolhe o cantor: `brandKeyFor(slug)` (em `brands.ts`) devolve a chave da pele. **Cantor sem pele própria usa a do Vintage.** A área do fã põe `data-brand="<chave>"` no wrapper (`src/components/fan/FanShell.tsx`), e o tema vira variáveis CSS pelo `themeStyle()`.
 
 ### Passo a passo para um cantor novo
-1. **Tema:** em `themes.ts`, crie `xTheme: ArtistTheme` (copie `departamentoTheme` e troque os valores). Uma fonte só: use `var(--font-archivo)` nos três campos de fonte (veja a seção 5).
-2. **Pele:** em `brands.ts`, adicione a chave em `BrandKey`, crie `const x: ArtistBrand` (tema, `adminTheme`, loja, hashtag, lema, `pickup`, `wheel`...), ponha em `BRANDS` e mapeie o slug em `BY_SLUG` (ex.: `{ "bts": "bts" }`).
-3. **Marca:** desenhe o SVG em `mark-shape.ts` e trate a chave nova em `Mark.tsx` (e no quadradinho do admin em `ClubAdminShell.tsx`, hoje com um `if` para Departamento e outro para Vintage).
-4. **CSS:** só o que for de forma (raio, peso, caixa alta) em `globals.css`, dentro de `.fan[data-brand="x"]`. Cor nunca com hex em componente: use `var(--fc-...)` ou as classes (`bg-night`, `text-fg`, `bg-amber`...).
-5. **Logo/ícone:** arquivos em `public/` (ex.: `public/logo-vc.png`).
-6. **Colocar no ar:** o ambiente nasce em "setup". Enquanto estiver em setup e **sem pele própria**, o fã vê a tela em branco "Em construção" (`src/components/fan/UnderConstruction.tsx`). Ao criar a pele (chave diferente de `vintage`), o design aparece; para o público ver, o master usa "Colocar no ar" em `/admin/fas-clubes`.
-7. **Teste:** veja `/<slug>` (fã) e `/<slug>/admin` (admin) logado como master. Rode `npx tsc --noEmit` e `npx eslint src`.
+A fonte de identidade é a pasta `<cantor>-fanzone-refs` (tokens.json, DESIGN.md, VOICE.md) e o Artifact "Fanzone <Cantor>" do Fanzone Artist Kit. A Anitta (`const anitta` em `brands.ts`) é o exemplo mais completo: copie e troque os valores.
+
+1. **Fonte (se a identidade pedir uma):** o woff2 latin em `src/fonts` (OFL) e um `localFont` com `preload: false` em `src/app/layout.tsx` (veja `averia`). Uma fonte por cantor, nos três campos de fonte do tema. Sem fonte própria, use `var(--font-archivo)`. Avise a Julia.
+2. **Tema:** em `themes.ts`, `xTheme: ArtistTheme` (e `xFeatureTheme` se Mural/PicKup tiverem outro fundo). Hex só aqui e no CSS do cantor.
+3. **Pele:** em `brands.ts`, a chave em `BrandKey`, `const x: ArtistBrand`, a entrada em `BRANDS` e o slug em `BY_SLUG`. O TypeScript aponta tudo que falta (inclusive a arte do Instagram em `share-art.ts`).
+   - Marca: desenhe em `mark-shape.ts` como `FilledMark` e ponha em `mark` (e em `adminMark` com as cores do quadradinho).
+   - Cabeçalhos: `mastTones` troca o tom que cada tela pede (ex.: a Anitta põe tudo no vermelho `mast`; Início e Mural pedem `sky` e ficam no campo).
+   - Cartazes do Mural: `posters` usa os moldes A–E do kit (glifo, linha pequena, legenda, PicKup, manchete da loja, capa). `posters.card` coloca cada molde numa carta de tarô (numeral, plaqueta, lateral).
+   - Roleta `star`: `wheelSeal` (texto do selo e centro `globe` ou `sun`); o ponteiro é a `mark`.
+4. **CSS:** em `globals.css`, `.fan[data-brand="x"]` com as variáveis dos cartazes (`--field-a` … `--field-e`, `-ink`, `-accent`; `--card-*` se usar carta; `--wheel-on*`) e a forma (raios, pesos, caixa alta). Para o admin, `.adm-noite[data-brand="x"]` (acento em `--pf-brand*`). Telas com bloco por cantor nos CSS Modules: PicKup, Loja, ShowStub, EventoView, Ticket, Mural (copie o bloco do Departamento ou da Anitta).
+5. **Mídia:** `public/media/<slug>/` (produtos, capa, céu) e o mapa em `src/lib/media.ts`. Sem foto de pessoa sem licença.
+6. **Painéis que reconhecem cantor pelo nome:** `src/components/admin/vitrines/AnuncioCard.tsx` (`artistLook`). O portal do patrocinador (`/patrocinador/nova`) já usa a pele.
+7. **Modo exemplo:** o cantor em `src/lib/mock.ts > artists` para ver sem a API.
+8. **Colocar no ar:** o ambiente nasce em "setup". Enquanto estiver em setup e **sem pele própria**, o fã vê a tela em branco "Em construção" (`src/components/fan/UnderConstruction.tsx`). Ao criar a pele (chave diferente de `vintage`), o design aparece; para o público ver, o master usa "Colocar no ar" em `/admin/fas-clubes`. O slug criado no admin master tem que ser o mesmo de `BY_SLUG`.
+9. **Teste:** `/<slug>` (fã) e `/<slug>/admin` (admin) logado como master, em 375 px, lado a lado com o Artifact. Confira que Vintage e Departamento não mudaram. Rode `npx tsc --noEmit` e `npx eslint src`.
 
 ---
 
@@ -109,13 +117,14 @@ Esses seguem neutros (tokens `adm-*` da plataforma).
 
 ## 5. Regras e armadilhas
 
-- **Fonte:** `fontDisplay`, `fontGrotesk` e `fontMono` de todo tema apontam para `var(--font-archivo)`. Não carregue outra fonte sem avisar a Julia.
+- **Fonte:** `fontDisplay`, `fontGrotesk` e `fontMono` de todo tema apontam para uma fonte só: `var(--font-archivo)`, ou a fonte de pele do cantor quando a identidade pede (Anitta: `var(--font-averia)`, Averia Serif Libre, a fonte do site oficial). Não carregue outra fonte sem avisar a Julia.
 - **Cor:** nunca escreva hex de cantor num componente; use os tokens. Para outro cantor trocar o tema, o componente não pode ter cor fixa.
 - **Contraste no admin:** o acento do admin (`adm-blue`) vem de `--fc-amber`. Se o acento for claro (como o branco do Departamento), botão e item ativo do menu precisam de texto escuro: ajuste em `adminTheme` (`amber`, `amberText`, `onAmber`).
 - **O admin tem `data-brand`:** o wrapper do admin do ambiente recebe `data-brand="<chave>"` (via `ClubAdminShell.tsx` → `AdminShell` → prop `brandKey`). Os estilos de forma e cor do admin de um cantor ficam em `globals.css`, em `.adm-noite[data-brand="x"]`. O do Departamento (no fim do arquivo) é o modelo.
 - **Acento do admin:** as cores de acento (botões, links, item ativo) dos utilitários `adm-blue*` leem `--pf-brand`, `--pf-brand-dark`, `--pf-brand-soft` e `--pf-brand-tint`, **não** os `--color-adm-blue*`. Para trocar o acento de um cantor, sobrescreva essas quatro variáveis no seletor dele (o Vintage ainda usa o azul da plataforma).
 - **Modo celular no computador:** a pele aceita `phone: true` (hoje ligado em **todos** os cantores: Vintage e Departamento, e os que usam a pele do Vintage). No computador a área do fã vira uma coluna de celular de 430 px, com o topo e o menu de baixo, sem o menu lateral (`FanFrame`, `FanTopBar`, `BottomNav`, `FanSidebar`; classe `.nav-phone` em `globals.css`). Com `phone: false` (ou sem a flag), o computador mostra o menu lateral e a coluna de 600 px.
 - **Avatares redondos:** `ClubAvatar`/`PersonAvatar` são círculos de propósito; se você zerar o raio global, mantenha os avatares redondos.
+- **Anitta é a referência mais completa** (fonte própria, dois tons, céu, cartas de tarô, sol na roleta): `anittaTheme`/`anittaFeatureTheme`, `const anitta` em `brands.ts` e os blocos `[data-brand="anitta"]` no CSS.
 - **Departamento é a referência** de um cantor com pele própria: veja `departamentoTheme`, `departamentoBlueTheme`, o bloco `.fan[data-brand="departamento"]` (área do fã) e `const departamento` em `brands.ts`.
 - **Admin do Departamento (modelo de admin por cantor):** menu lateral e topo em azul elétrico (#0000FF, tinta branca; o topo usa `tone="electric"` no `Masthead`), área dos dados em papel branco (#F0F0F0 / #FFFFFF) com tinta preta, cantos retos, títulos em caixa alta 900, etiquetas em caixa alta (`data-badge` no `Badge`), botão primário azul com texto branco que inverte no hover. Avatares redondos (`data-avatar`). Tudo em `.adm-noite[data-brand="departamento"]`.
 

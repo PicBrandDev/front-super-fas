@@ -386,7 +386,9 @@
   }
 }
 
-/* ---------- DEPARTAMENTO: campos A–E, duas tintas, grotesca 900 (o Mural fica no tema blue) ---------- */
+/* ---------- CARTAZES DO KIT (Departamento, Anitta): campos A–E, tipo em caixa alta ----------
+   As cores de cada campo vêm das variáveis da pele (`--field-a` … `--field-e`, `-ink`, `-accent`, no globals.css);
+   sem elas, valem as do Departamento (duas tintas, grotesca 900; o Mural do Departamento fica no tema blue). */
 .dA,
 .dB,
 .dC,
@@ -405,7 +407,7 @@
   font-family: var(--fc-font-grotesk);
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: -0.035em;
+  letter-spacing: var(--track-display, -0.035em);
   white-space: nowrap;
 }
 .dcap {
@@ -427,8 +429,17 @@
 }
 
 .dA {
-  background: var(--electric);
-  color: var(--fc-paper);
+  background: var(--field-a, var(--electric));
+  color: var(--field-a-ink, var(--fc-paper));
+}
+.dA .cover {
+  position: absolute;
+  left: 6cqw;
+  top: 8cqw;
+  width: 44cqw;
+  height: 44cqw;
+  object-fit: cover;
+  max-width: none;
 }
 .dA .sleeve {
   position: absolute;
@@ -453,8 +464,8 @@
 }
 
 .dB {
-  background: var(--fc-paper);
-  color: var(--electric);
+  background: var(--field-b, var(--fc-paper));
+  color: var(--field-b-ink, var(--electric));
 }
 .dB .q {
   position: absolute;
@@ -463,6 +474,7 @@
   font-size: 100cqw;
   line-height: 0.8;
   letter-spacing: -0.05em;
+  color: var(--field-b-accent, inherit);
 }
 .dB .hl {
   left: 4.5cqw;
@@ -484,8 +496,8 @@
 }
 
 .dC {
-  background: var(--fc-ink);
-  color: var(--fc-paper);
+  background: var(--field-c, var(--fc-ink));
+  color: var(--field-c-ink, var(--fc-paper));
 }
 .dC .hl {
   left: -6cqw;
@@ -507,7 +519,7 @@
   right: 4.5cqw;
   top: 35cqw;
   width: 22cqw;
-  color: var(--electric);
+  color: var(--field-c-accent, var(--electric));
 }
 .dC .t1 {
   left: 4.5cqw;
@@ -520,9 +532,10 @@
 }
 
 .dD {
-  --wheel-field: var(--fc-lagoon-deep);
-  background: var(--fc-lagoon-deep);
-  color: var(--fc-paper);
+  --wheel-field: var(--field-d, var(--fc-lagoon-deep));
+  --wheel-ink: var(--field-d-ink, var(--fc-paper));
+  background: var(--field-d, var(--fc-lagoon-deep));
+  color: var(--field-d-ink, var(--fc-paper));
 }
 .dD :global(.tt) {
   position: absolute;
@@ -547,8 +560,8 @@
 }
 
 .dE {
-  background: var(--fc-mist);
-  color: var(--electric);
+  background: var(--field-e, var(--fc-mist));
+  color: var(--field-e-ink, var(--electric));
 }
 .dE .hl {
   left: 3.5cqw;
@@ -598,4 +611,125 @@
 :global([data-brand="departamento"]) .counter {
   font: 400 12px/14px var(--fc-font-mono);
   letter-spacing: 0.04em;
+}
+
+/* ---------- CARTA DE TARÔ (pele com `posters.card`, ex.: Anitta) ----------
+   Moldura no acento, numeral romano no topo, janela com o molde, plaqueta creme com cantoneiras e o nome do cantor
+   na lateral, como as cartas de faixa de anitta.com.br. Cores: `--card-*` da pele (globals.css). Medidas do kit. */
+.cardPst {
+  border-top: 0;
+}
+.card {
+  position: absolute;
+  inset: 0;
+  background: var(--card-frame, var(--fc-amber));
+  color: var(--card-frame-ink, var(--fc-ink));
+}
+.band {
+  position: absolute;
+  left: 36cqw;
+  right: 36cqw;
+  top: 2cqw;
+  height: 5.4cqw;
+  display: grid;
+  place-items: center;
+  background: var(--card-band, var(--fc-paper));
+  color: var(--card-band-ink, var(--fc-lagoon-deep));
+  font: 700 3.4cqw/1 var(--fc-font-display);
+  letter-spacing: 0.1em;
+  border: 0.5cqw solid var(--card-rule, var(--fc-sun));
+}
+.win {
+  position: absolute;
+  left: 8cqw;
+  top: 9.5cqw;
+  width: 84cqw;
+  height: 98cqw;
+  overflow: hidden;
+  outline: 0.6cqw solid var(--card-rule, var(--fc-sun));
+  container-type: size;
+}
+.inCard {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.plaque {
+  position: absolute;
+  left: 8cqw;
+  right: 8cqw;
+  top: 110.5cqw;
+  height: 10cqw;
+  display: grid;
+  place-items: center;
+  padding: 0 9cqw;
+  background: var(--card-plaque, var(--fc-paper));
+  color: var(--card-plaque-ink, var(--fc-ink));
+  font: 700 4.2cqw/1 var(--fc-font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 0.6cqw solid var(--card-rule, var(--fc-sun));
+}
+.plaque span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.plaque::before,
+.plaque::after {
+  content: "";
+  position: absolute;
+  top: -0.6cqw;
+  bottom: -0.6cqw;
+  width: 7cqw;
+  background: var(--card-rule, var(--fc-sun));
+}
+.plaque::before {
+  left: -0.6cqw;
+}
+.plaque::after {
+  right: -0.6cqw;
+}
+.side {
+  position: absolute;
+  top: 58cqw;
+  font: 700 2.9cqw/1 var(--fc-font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sideL {
+  left: 4cqw;
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+.sideR {
+  right: 4cqw;
+  transform: translate(50%, -50%) rotate(90deg);
+}
+/* `[[trecho]]` pintado no vermelho da marca */
+.k {
+  font-style: normal;
+  color: var(--card-mark, var(--fc-amber));
+}
+/* grão de impressão leve, só nos cartazes da pele que pede (`--poster-grain`) */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--poster-grain, none);
+  background-size: 180px auto;
+  mix-blend-mode: multiply;
+  opacity: var(--poster-grain-opacity, 0.18);
+}
+
+/* ANITTA: Drops em Averia 700 caixa alta */
+:global([data-brand="anitta"]) .drop h3 {
+  font: 700 26px/0.95 var(--fc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+:global([data-brand="anitta"]) .counter b {
+  color: var(--fc-amber-text);
 }

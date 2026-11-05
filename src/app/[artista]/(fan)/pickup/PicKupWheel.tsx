@@ -291,6 +291,7 @@ export function PicKupWheel({
         <div style={{ width: "min(100%, 40vh)", margin: "0 auto" }}>
           <Turntable
             variant={brand.wheel}
+            brand={brand.key}
             prizes={labels}
             deck
             live

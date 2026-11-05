@@ -178,16 +178,21 @@
   color: var(--fc-ink);
 }
 
-/* DEPARTAMENTO: a roda fica no campo azul (tema de tom); tecla plana em inversão, com a estrela. */
+/* DEPARTAMENTO e ANITTA: a roda fica no campo do tema de tom (azul elétrico; céu azul-noite); tecla plana em inversão,
+   com a marca (estrela). */
 :global([data-brand="departamento"]) .lead :global(.mono),
-:global([data-brand="departamento"]) .err {
+:global([data-brand="departamento"]) .err,
+:global([data-brand="anitta"]) .lead :global(.mono),
+:global([data-brand="anitta"]) .err {
   color: var(--fc-fg);
 }
-:global([data-brand="departamento"]) .note {
+:global([data-brand="departamento"]) .note,
+:global([data-brand="anitta"]) .note {
   color: var(--fc-fg-muted);
   opacity: 1;
 }
-:global([data-brand="departamento"]) .startkey {
+:global([data-brand="departamento"]) .startkey,
+:global([data-brand="anitta"]) .startkey {
   background: var(--fc-amber);
   color: var(--fc-on-amber);
   border: 1px solid var(--fc-amber);
@@ -196,7 +201,9 @@
   letter-spacing: 0.06em;
 }
 :global([data-brand="departamento"]) .startkey:hover,
-:global([data-brand="departamento"]) .startkey[aria-busy="true"] {
+:global([data-brand="departamento"]) .startkey[aria-busy="true"],
+:global([data-brand="anitta"]) .startkey:hover,
+:global([data-brand="anitta"]) .startkey[aria-busy="true"] {
   background: var(--fc-bg);
   color: var(--fc-amber-text);
   transform: none;

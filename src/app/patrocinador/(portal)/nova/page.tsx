@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { orderArtists } from "@/lib/artist-order";
 import { apiEnabled, getAdSlots, getClubAdSlots, getClubs, listArtists } from "@/lib/api";
-import { blankTheme, departamentoBlueTheme, type ArtistTheme } from "@/lib/themes";
+import { brandFor, brandKeyFor } from "@/lib/brands";
+import { blankTheme, type ArtistTheme } from "@/lib/themes";
 import type { AdSlot } from "@/lib/types";
 import { PatrocinadorClient, type SponsorClub } from "../PatrocinadorClient";
 
@@ -20,7 +21,8 @@ const rawTheme: ArtistTheme = {
   onAmber: "#FFFFFF",
   fontDisplay: "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif",
 };
-const hasDesign = (slug: string) => slug === "vintage-culture" || slug === "departamento";
+/** Cantor com design: o Vintage Culture e todo cantor com pele própria (brands.ts). */
+const hasDesign = (slug: string) => slug === "vintage-culture" || brandKeyFor(slug) !== "vintage";
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -53,7 +55,8 @@ export default async function NovaCampanhaPage() {
     initial: a.initial,
     members: a.members,
     brandColor: a.brandColor,
-    theme: a.slug === "departamento" ? departamentoBlueTheme : hasDesign(a.slug) ? a.theme : rawTheme, // Departamento: azul elétrico; sem design: cru
+    // Pele com tema de assinatura: o card usa ele (Departamento: azul elétrico; Anitta: céu azul-noite); sem design: cru.
+    theme: (hasDesign(a.slug) && brandFor(a.slug).toneTheme) || (hasDesign(a.slug) ? a.theme : rawTheme),
   }));
 
   return (

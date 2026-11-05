@@ -2,28 +2,34 @@
 
 import type { BrandKey } from "@/lib/brands";
 import { useBrand } from "./ArtistContext";
-import { STAR_D } from "./mark-shape";
+import { DEPARTAMENTO_STAR, markBox } from "./mark-shape";
 
 /**
  * Vinil plano, decorativo. Vintage: disco ink, sulcos line-strong, selo sun.
- * Departamento: 7" cobalt chapado, sulcos em fio, rótulo branco com a estrela azul.
+ * Peles com `vinyl` (brands.ts): 7" chapado com sulcos em fio e a marca do cantor no rótulo
+ * (Departamento: cobalt com rótulo branco e estrela azul; Anitta: azul-noite com rótulo vermelho e estrela ouro).
  */
 export function Vinyl({ className = "", brand }: { className?: string; brand?: BrandKey }) {
-  const { key } = useBrand(brand);
-  if (key === "departamento") {
+  const { vinyl, mark } = useBrand(brand);
+  if (vinyl) {
     const grooves: number[] = [];
     for (let r = 94; r > 36; r -= 8) grooves.push(r);
+    // A marca no rótulo: 21.76 de altura (a medida da estrela do Departamento), centrada na largura.
+    const shape = mark === "chevrons" ? DEPARTAMENTO_STAR : mark;
+    const b = markBox(shape.viewBox);
+    const h = 21.76;
+    const w = h * b.ratio;
     return (
       <svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true" focusable="false" className={className}>
-        <circle cx="100" cy="100" r="99" fill="var(--fc-lagoon-deep)" />
+        <circle cx="100" cy="100" r="99" fill={vinyl.disc} />
         {grooves.map((r) => (
-          <circle key={r} cx="100" cy="100" r={r} fill="none" stroke="var(--fc-paper)" strokeOpacity=".28" strokeWidth="1" />
+          <circle key={r} cx="100" cy="100" r={r} fill="none" stroke={vinyl.groove} strokeOpacity={vinyl.grooveOpacity} strokeWidth="1" />
         ))}
-        <circle cx="100" cy="100" r="30" fill="var(--fc-paper)" />
-        <g transform="translate(84 92) scale(.32)" fill="var(--fc-lagoon-deep)">
-          <path d={STAR_D} />
-        </g>
-        <circle cx="100" cy="100" r="3.5" fill="var(--fc-lagoon-deep)" />
+        <circle cx="100" cy="100" r="30" fill={vinyl.label} />
+        <svg x={+(100 - w / 2).toFixed(2)} y={91.04} width={+w.toFixed(2)} height={h} viewBox={shape.viewBox} fill={vinyl.labelInk}>
+          <path d={shape.d} fillRule={shape.fillRule} />
+        </svg>
+        <circle cx="100" cy="100" r="3.5" fill={vinyl.disc} />
       </svg>
     );
   }

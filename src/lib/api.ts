@@ -117,7 +117,12 @@ function mockFor<T>(path: string, data: T): T {
   const other = slug && slug !== "vintage-culture" ? mock.artists.find((a) => a.slug === slug) : null;
   // Anúncios de exemplo são de marcas reais (ex.: "Toxic: Vintage Culture x Departamento"): ficam como estão.
   if (!other || data == null || path.includes("/ads")) return data;
-  const json = JSON.stringify(data).replaceAll("Vintage Culture", other.name).replaceAll("Vintage", brandFor(other.slug).short);
+  const b = brandFor(other.slug);
+  const json = JSON.stringify(data)
+    .replaceAll("Vintage Culture", other.name)
+    .replace(/\bdo Vintage/g, b.of)
+    .replace(/\bo Vintage/g, b.the)
+    .replaceAll("Vintage", b.short);
   return JSON.parse(json) as T;
 }
 

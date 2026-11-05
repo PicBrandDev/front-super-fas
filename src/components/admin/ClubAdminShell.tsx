@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { AdminShell, clubNav } from "@/components/admin/AdminShell";
 import type { Artist } from "@/lib/types";
 import { getSession } from "@/lib/api";
-import { MONO_D, MONO_D_VIEWBOX } from "@/components/fan/mark-shape";
 import { AdminTopBar } from "@/components/admin/AdminTopBar";
 import { brandFor } from "@/lib/brands";
 import { shellUser } from "@/lib/shell";
@@ -33,13 +32,12 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
       style={themeStyle(brand.adminTheme ?? artist.theme)}
       brandKey={brand.key}
       brand={{
-        // Vintage Culture usa o símbolo oficial (public/logo-vc.png, traço branco sobre transparente); o Departamento,
-        // o monograma D em azul no quadrado branco (o menu do Departamento é azul elétrico); os outros artistas, a inicial.
-        mark:
-          brand.key === "departamento" ? (
-            <span className="flex size-full items-center justify-center" style={{ background: "#FFFFFF", color: "#0000FF" }}>
-              <svg width={24} viewBox={MONO_D_VIEWBOX} fill="currentColor" aria-hidden="true" focusable="false">
-                <path fillRule="evenodd" d={MONO_D} />
+        // A pele com `adminMark` (brands.ts) leva o desenho dela no quadradinho (Departamento: monograma D; Anitta: a estrela);
+        // o Vintage Culture usa o símbolo oficial (public/logo-vc.png, traço branco sobre transparente); os outros, a inicial.
+        mark: brand.adminMark ? (
+            <span className="flex size-full items-center justify-center" style={{ background: brand.adminMark.bg, color: brand.adminMark.fg }}>
+              <svg width={24} viewBox={brand.adminMark.shape.viewBox} fill="currentColor" aria-hidden="true" focusable="false">
+                <path fillRule={brand.adminMark.shape.fillRule} d={brand.adminMark.shape.d} />
               </svg>
             </span>
           ) : artist.slug === "vintage-culture" ? (
@@ -62,7 +60,7 @@ export async function ClubAdminShell({ artist, active, children }: { artist: Art
       nav={clubNav(artist.slug)}
       extraLink={session?.role === "master" ? { label: "Voltar ao admin master", href: "/admin/fas-clubes" } : undefined}
       active={active}
-      topbar={<AdminTopBar word={MAST_WORD[active] ?? artist.name} brand={brand.key} tone={brand.key === "departamento" ? "electric" : "night"} />}
+      topbar={<AdminTopBar word={MAST_WORD[active] ?? artist.name} brand={brand.key} tone={brand.adminMastTone} />}
       user={await shellUser({ initials: "EQ", name: "Equipe do fã clube", role: "Administração do ambiente" })}
     >
       {children}

@@ -76,13 +76,14 @@
   fill: var(--led-red-off);
 }
 
-/* Roda do Departamento: tinta branca sobre o campo, segmento do prêmio em inversão. */
+/* Roda de linhas: tinta do papel sobre o campo, segmento do prêmio em inversão (Departamento).
+   A pele pode trocar a tinta (`--wheel-ink`) e o segmento do prêmio (`--wheel-on`, `--wheel-on-ink`). */
 .star .trk text {
-  fill: var(--fc-paper);
+  fill: var(--wheel-ink, var(--fc-paper));
 }
 .star .trk.on path {
-  fill: var(--fc-paper);
+  fill: var(--wheel-on, var(--wheel-ink, var(--fc-paper)));
 }
 .star .trk.on text {
-  fill: var(--fc-on-amber);
+  fill: var(--wheel-on-ink, var(--fc-on-amber));
 }

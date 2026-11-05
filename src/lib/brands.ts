@@ -1,5 +1,6 @@
 import type { MastTone } from "@/components/fan/Masthead";
-import { departamentoBlueTheme, departamentoTheme, vintageTheme, type ArtistTheme } from "./themes";
+import { ANITTA_STAR, DEPARTAMENTO_STAR, MONO_D, MONO_D_VIEWBOX, type FilledMark } from "@/components/fan/mark-shape";
+import { anittaFeatureTheme, anittaTheme, departamentoBlueTheme, departamentoTheme, vintageTheme, type ArtistTheme } from "./themes";
 
 /**
  * Pele de cada artista: o que não cabe nas variáveis --fc-* do tema (marca, roleta,
@@ -7,7 +8,41 @@ import { departamentoBlueTheme, departamentoTheme, vintageTheme, type ArtistThem
  * mesmas para todos; aqui só muda a aparência e a voz. Artista sem pele própria usa
  * a do Vintage Culture (o primeiro artista e o padrão da plataforma).
  */
-export type BrandKey = "vintage" | "departamento";
+export type BrandKey = "vintage" | "departamento" | "anitta";
+
+/** Os cinco moldes dos cartazes do Mural (A lançamento, B assinatura, C data, D PicKup, E loja). */
+export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
+
+/**
+ * Cartazes no padrão do Fanzone Artist Kit (campos A–E): o cantor só preenche os textos; as cores de cada campo
+ * vêm das variáveis `--field-a` … `--field-e` (e `-ink`, `-accent`) no bloco `.fan[data-brand="x"]` do globals.css.
+ * Sem as variáveis, valem as cores do Departamento (o primeiro cantor nesse padrão).
+ */
+export type KitPosters = {
+  /** Glifo gigante do campo B (o "?" do Departamento, o "IV" da Anitta) e o tamanho dele em cqw (padrão 100). */
+  glyph: string;
+  glyphSize?: number;
+  /** Linha pequena embaixo da manchete do campo B. */
+  micro: string;
+  /** Rodapé do campo B (crédito da assinatura). */
+  legal: string;
+  /** Campo D (PicKup): manchete, etiqueta e linha pequena. */
+  pick: { headline: string[]; tag: string; micro: string };
+  /** Manchete do cartaz da loja (campo E) a partir do nome do produto. */
+  storeHeadline: (productName: string) => string[];
+  /** Capa oficial do lançamento (campo A, em `public/`); sem capa, a marca na luva. */
+  cover?: string;
+  /**
+   * Moldura de carta de tarô (Anitta): moldura no acento, numeral romano no topo, plaqueta creme com o título embaixo
+   * e o nome do cantor na lateral. `[[trecho]]` na plaqueta pinta o trecho no vermelho da marca.
+   */
+  card?: {
+    side: string;
+    numerals: Record<PosterKind, string>;
+    plaques: { lost: string; culture: string; pick: string };
+    sides: { culture: string; pick: string };
+  };
+};
 
 export type ArtistBrand = {
   key: BrandKey;
@@ -22,10 +57,30 @@ export type ArtistBrand = {
   themeColor: string;
   /** No computador, a área do fã fica numa coluna de celular (430 px) com o topo e o menu de baixo, sem o menu lateral (hoje todos os cantores). */
   phone?: boolean;
-  /** Como o artista é chamado no texto: "o Vintage", "o Departamento". */
+  /** Como o artista é chamado no texto: "Vintage", "Departamento", "Anitta". */
   short: string;
+  /** Com artigo: "o Vintage", "a Anitta". */
+  the: string;
+  /** Com "de": "do Vintage", "da Anitta". */
+  of: string;
+  /** Marca (ornamento) do cantor: os chevrons do Vintage (traço) ou um desenho preenchido de `mark-shape.ts`. */
+  mark: "chevrons" | FilledMark;
+  /** Quadradinho do menu do admin; sem ele, o símbolo do Vintage ou a inicial. */
+  adminMark?: { shape: FilledMark; bg: string; fg: string };
+  /** Tom do topo (arte) do admin do ambiente. */
+  adminMastTone: MastTone;
+  /** Troca de tom dos cabeçalhos: cada tela pede um tom e a pele pode trocar (ex.: tudo vira o vermelho do cabeçalho). */
+  mastTones?: Partial<Record<MastTone, MastTone>>;
+  /** Fundo das telas de assinatura (`toneRoutes`): imagem repetida sobre o campo (ex.: o céu estrelado da Anitta). */
+  sky?: { url: string; size: number };
   /** Roleta: o toca-discos (agulha) ou a roda de linhas com o ponteiro-estrela no topo. */
   wheel: "turntable" | "star";
+  /** Roda `star`: o texto do selo do centro e o desenho dentro dele. */
+  wheelSeal?: { text: string; center: "globe" | "sun" };
+  /** Vinil (Drops, cartaz do lançamento): disco, sulcos, rótulo e a marca no rótulo; sem isso, o vinil do Vintage. */
+  vinyl?: { disc: string; groove: string; grooveOpacity: number; label: string; labelInk: string };
+  /** Cartazes no padrão do kit (campos A–E); sem isso, os moldes do Vintage. */
+  posters?: KitPosters;
   store: {
     /** Nome da loja no menu, no Início e no cabeçalho. */
     name: string;
@@ -66,6 +121,10 @@ const vintage: ArtistBrand = {
   themeColor: "#120907",
   phone: true,
   short: "Vintage",
+  the: "o Vintage",
+  of: "do Vintage",
+  mark: "chevrons",
+  adminMastTone: "night",
   wheel: "turntable",
   store: { name: "Loja Vintage", word: "Vintage", mastTone: "lagoon-deep", pickupPlace: "lojinha do Vintage" },
   superFan: "Fã Super do Vintage",
@@ -98,7 +157,31 @@ const departamento: ArtistBrand = {
   themeColor: "#101010",
   phone: true,
   short: "Departamento",
+  the: "o Departamento",
+  of: "do Departamento",
+  mark: DEPARTAMENTO_STAR,
+  // Monograma D em azul no quadrado branco (o menu do Departamento é azul elétrico).
+  adminMark: { shape: { d: MONO_D, viewBox: MONO_D_VIEWBOX, fillRule: "evenodd" }, bg: "#FFFFFF", fg: "#0000FF" },
+  adminMastTone: "electric",
+  // Departamento não tem campo cinza: o tom vira o campo preto (campo C), com tinta branca.
+  mastTones: { "poster-grey": "night" },
   wheel: "star",
+  wheelSeal: { text: "TROUBLE DANCING? · 1-800-DEPARTAMENTO ·", center: "globe" },
+  // 7" cobalt chapado, sulcos em fio, rótulo branco com a estrela azul.
+  vinyl: { disc: "var(--fc-lagoon-deep)", groove: "var(--fc-paper)", grooveOpacity: 0.28, label: "var(--fc-paper)", labelInk: "var(--fc-lagoon-deep)" },
+  posters: {
+    glyph: "?",
+    micro: "1-800-Departamento",
+    legal: "Worldwide 2027 ®",
+    pick: { headline: ["PicKup"], tag: "Aberto", micro: "Dancing Service" },
+    // Os itens se chamam `1-800-<ITEM>`; o número de serviço fica numa linha.
+    storeHeadline: (name) => {
+      const m = name.trim().toUpperCase().match(/^1-800-(.+)$/);
+      if (!m) return ["1-800-", "Store"];
+      const item = m[1].split("-").filter(Boolean);
+      return ["1-800-", item[item.length - 1]];
+    },
+  },
   store: { name: "Loja Trouble Dancing?", word: "Trouble Dancing?", mastTone: "night", pickupPlace: "lojinha do Departamento" },
   superFan: "Fã Super do Departamento",
   hyperFans: "HyperFans do Departamento",
@@ -119,9 +202,80 @@ const departamento: ArtistBrand = {
   },
 };
 
-const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento };
 
-const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento" };
+/**
+ * ANITTA (era EQUILIBRIVM II): anitta-fanzone-refs (tokens.json, DESIGN.md, VOICE.md) e o Artifact "Fanzone Anitta".
+ * Um baralho de tarô sob o céu de Minas: céu azul-noite com estrelas no Mural e no PicKup, azul-painel nas telas de
+ * serviço com cabeçalho vermelho e fio ouro/preto, cartazes em cartas de moldura vermelha, Averia Serif Libre em tudo.
+ * Proibido: foto da artista (a pasta não tem fotos de pessoas), ilustração das cartas do site, entidades e pontos riscados.
+ */
+const anitta: ArtistBrand = {
+  key: "anitta",
+  theme: anittaTheme,
+  toneTheme: anittaFeatureTheme,
+  toneRoutes: ["/mural", "/pickup"],
+  adminTheme: null,
+  themeColor: "#0A1A31",
+  phone: true,
+  short: "Anitta",
+  the: "a Anitta",
+  of: "da Anitta",
+  mark: ANITTA_STAR,
+  // TODO oficial: sem logo oficial (GAPS A-03), o menu do admin leva a estrela ouro no quadrado azul-noite (o ícone do app).
+  adminMark: { shape: ANITTA_STAR, bg: "#0A1A31", fg: "#EAC62E" },
+  adminMastTone: "mast",
+  // Todo cabeçalho de tela de serviço é vermelho com fio ouro/preto; o Mural e o Início ficam no céu ("sky").
+  mastTones: { night: "mast", amber: "mast", sun: "mast", "lagoon-deep": "mast", "poster-grey": "mast" },
+  sky: { url: "/media/anitta/ceu.svg", size: 340 },
+  wheel: "star",
+  wheelSeal: { text: "RODA DA FORTUNA · EQUILIBRIVM II · ANITTA ·", center: "sun" },
+  vinyl: { disc: "var(--fc-ink)", groove: "var(--fc-line-strong)", grooveOpacity: 0.55, label: "var(--fc-amber)", labelInk: "var(--fc-sun)" },
+  store: { name: "Anitta Shop", word: "Anitta", mastTone: "mast", pickupPlace: "lojinha da Anitta" },
+  // [P] fora da pasta de identidade: a hashtag e os nomes do ranking seguem o padrão dos outros cantores (GAPS).
+  superFan: "Fã Super da Anitta",
+  hyperFans: "HyperFans da Anitta",
+  hashtag: "EuSouUmSuperFaDaAnitta",
+  motto: ["Fé e", "festa"],
+  mottoText: "Fé e festa. Esse é o EQUILIBRIVM.",
+  pickup: {
+    screen: "text-fg", // sem fundo próprio: o céu estrelado do FanFrame aparece atrás da roda
+    mastTone: "mast",
+    lead: "Gira a roleta e concorre a brinde da fanzone.",
+    sub: "text-fg-muted",
+    list: "divide-line border-line text-fg",
+    listDate: "text-fg-muted",
+    outline: "border-fg text-fg",
+    keyIdle: "Girar a roleta",
+    keyBusy: "Girando",
+    pointer: "a estrela",
+  },
+  posters: {
+    glyph: "IV",
+    glyphSize: 62,
+    micro: "EQUILIBRIVM",
+    legal: "Anitta · 2026",
+    pick: { headline: ["PicKup"], tag: "Aberto", micro: "Fé e festa" },
+    // "EQUILIBRIVM SUN T-SHIRT" → SUN / T-SHIRT (o nome da era fica fora da manchete).
+    storeHeadline: (name) => {
+      const words = name.trim().split(/\s+/).filter((w) => !/^equilibrivm$/i.test(w));
+      if (!words.length) return ["Anitta", "Shop"];
+      return words.length > 2 ? [words.slice(0, -1).join(" "), words[words.length - 1]] : words;
+    },
+    cover: "/media/anitta/capa-equilibrivm-ii.jpg",
+    card: {
+      side: "Anitta",
+      // II o volume II · IV o IV vermelho do logo · XXI o Mundo (a turnê) · X a Roda da Fortuna · XIX o Sol (a camiseta SUN)
+      numerals: { lost: "II", culture: "IV", date: "XXI", pick: "X", store: "XIX" },
+      plaques: { lost: "Equilibrivm [[II]]", culture: "Fé e festa", pick: "Roda da Fortuna" },
+      sides: { culture: "Ato II", pick: "PicKup" },
+    },
+  },
+};
+
+const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta };
+
+/** Slug do ambiente (como o admin master criou) → pele. Slug fora daqui usa a pele do Vintage. */
+const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta" };
 
 export const brandKeyFor = (slug: string): BrandKey => BY_SLUG[slug] ?? "vintage";
 export const brandFor = (slug: string): ArtistBrand => BRANDS[brandKeyFor(slug)];

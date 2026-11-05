@@ -28,12 +28,17 @@ export function FanFrame({ avatar = null, children }: { avatar?: string | null; 
   const pathname = usePathname();
   const hidden = useScrollDirection();
   const chrome = !isChatThread(pathname, base);
-  const tone = brand.toneTheme && usesTone(brand, pathname, base) ? themeStyle(brand.toneTheme) : undefined;
+  const toned = !!brand.toneTheme && usesTone(brand, pathname, base);
+  const tone = toned && brand.toneTheme ? themeStyle(brand.toneTheme) : undefined;
+  // Céu da pele (ex.: estrelas da Anitta) só nas telas de assinatura, repetido sobre o campo.
+  const sky: CSSProperties | undefined =
+    toned && brand.sky ? { backgroundImage: `url(${brand.sky.url})`, backgroundSize: `${brand.sky.size}px ${brand.sky.size}px` } : undefined;
   return (
     <div className="contents" style={tone}>
       <div
         className={`pb-navspace relative min-h-dvh w-full min-w-0 flex-1 bg-night lg:mx-auto lg:border-x lg:border-line ${brand.phone ? "lg:max-w-[430px]" : "lg:max-w-[600px] lg:pb-12"}`}
-        style={chrome ? undefined : ({ "--navspace": "0px" } as CSSProperties)}
+        style={{ ...sky, ...(chrome ? undefined : ({ "--navspace": "0px" } as CSSProperties)) }}
+        data-tone={toned ? "feature" : undefined}
         data-nav-hidden={(chrome && hidden) || undefined}
       >
         {chrome && <FanTopBar avatar={avatar} hidden={hidden} phone={brand.phone} />}

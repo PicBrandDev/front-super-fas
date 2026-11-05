@@ -4,15 +4,22 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import type { BrandKey } from "@/lib/brands";
 import { useBrand } from "./ArtistContext";
 
-export type MastTone = "night" | "amber" | "sun" | "lagoon-deep" | "poster-grey" | "electric";
+/**
+ * Tons do cabeçalho. `sky` = o campo da tela (como `night`), para as telas de abertura (Início, Mural) que uma pele
+ * pode querer manter no campo mesmo quando troca os outros tons. `mast` = o campo do cabeçalho do tema (`mast`/`mastInk`
+ * em themes.ts; sem eles, o acento), com o fio duplo `mastRule` embaixo quando o tema define.
+ */
+export type MastTone = "night" | "sky" | "amber" | "sun" | "lagoon-deep" | "poster-grey" | "electric" | "mast";
 
 const tones: Record<MastTone, { bg: string; fg: string }> = {
   night: { bg: "var(--fc-bg)", fg: "var(--fc-fg)" },
+  sky: { bg: "var(--fc-bg)", fg: "var(--fc-fg)" },
   amber: { bg: "var(--fc-amber)", fg: "var(--fc-on-amber)" },
   sun: { bg: "var(--fc-sun)", fg: "var(--fc-ink)" },
   "lagoon-deep": { bg: "var(--fc-lagoon-deep)", fg: "var(--fc-fg)" },
   "poster-grey": { bg: "var(--fc-poster-grey)", fg: "var(--fc-mist)" },
   electric: { bg: "#0000FF", fg: "#FFFFFF" }, // azul elétrico do Departamento (campo azul, tinta branca)
+  mast: { bg: "var(--fc-mast, var(--fc-amber))", fg: "var(--fc-mast-ink, var(--fc-on-amber))" },
 };
 
 const SIDE = 16;
@@ -119,10 +126,11 @@ export function Masthead({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Departamento não tem campo cinza: o tom vira o campo preto (campo C), com tinta branca.
-  const { bg, fg } = tones[brand.key === "departamento" && tone === "poster-grey" ? "night" : tone];
+  // A pele pode trocar o tom pedido pela tela (ex.: Departamento sem campo cinza; Anitta com tudo no vermelho do cabeçalho).
+  const shown = brand.mastTones?.[tone] ?? tone;
+  const { bg, fg } = tones[shown];
   return (
-    <header ref={box} className={`mast ${className}`} style={{ background: bg, color: fg }}>
+    <header ref={box} className={`mast ${className}`} data-tone={shown} style={{ background: bg, color: fg }}>
       <div ref={wordRef} className="mast-word" aria-hidden="true">
         {word}
       </div>

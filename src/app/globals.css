@@ -488,6 +488,17 @@ body {
     will-change: transform;
   }
 
+  /* Fio duplo na base do cabeçalho de tom "mast" (tema com `mastRule`, ex.: ouro/preto da Anitta). Corte seco, não degradê. */
+  .mast[data-tone="mast"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 6px;
+    background: linear-gradient(var(--fc-mast-rule-1, transparent) 0 50%, var(--fc-mast-rule-2, transparent) 50% 100%);
+  }
+
   /* ---------- topo do celular: preso no alto, recolhe ao rolar ---------- */
   .topbar {
     position: sticky;
@@ -825,6 +836,121 @@ body {
   }
 }
 
+/*
+ * ANITTA (data-brand no wrapper do FanShell; pele em src/lib/brands.ts; valores de anitta-fanzone-refs/05-tokens/tokens.json).
+ * Mesmo vocabulário de componentes, outra identidade: Averia Serif Libre em tudo (700 caixa alta no display e nos rótulos,
+ * 400 no corpo), botões e etiquetas em pílula com contorno (como "OUÇA AGORA" no site), cartas e cartões retos, sem sombra.
+ * As variáveis `--field-*` e `--card-*` pintam os cartazes do Mural (cartas de tarô); `--wheel-on*`, o prêmio da roda.
+ */
+.fan[data-brand="anitta"] {
+  --radius-hair: 0px;
+  --radius-field: 4px;
+  --radius-device: 0px;
+  --track-display: 0.02em;
+  /* campos A–E (tokens.json > poster_fields) */
+  --field-a: #ede6da;
+  --field-a-ink: #0a1a31;
+  --field-b: #0a1a31;
+  --field-b-ink: #faf8ec;
+  --field-b-accent: #dd2325;
+  --field-c: #13243f;
+  --field-c-ink: #eac62e;
+  --field-c-accent: #dd2325;
+  --field-d: #eac62e;
+  --field-d-ink: #0a1a31;
+  --field-e: #faf8ec;
+  --field-e-ink: #b22e2a;
+  /* carta de tarô (tokens.json > card) */
+  --card-frame: #dd2325;
+  --card-frame-ink: #1a0b0b;
+  --card-band: #faf8ec;
+  --card-band-ink: #a61d1d;
+  --card-plaque: #faf8ec;
+  --card-plaque-ink: #1a0b0b;
+  --card-rule: #ecc542;
+  --card-mark: #dd2325;
+  /* grão de impressão leve, só nos cartazes */
+  --poster-grain: url(/media/anitta/grao.svg);
+  --poster-grain-opacity: 0.18;
+  /* roda: segmento do prêmio em vermelho com tinta creme */
+  --wheel-on: var(--fc-amber);
+  --wheel-on-ink: var(--fc-paper);
+}
+@layer components {
+  .fan[data-brand="anitta"] .btn,
+  .fan[data-brand="anitta"] .tag {
+    border-radius: 999px;
+  }
+  .fan[data-brand="anitta"] .deck,
+  .fan[data-brand="anitta"] .key,
+  .fan[data-brand="anitta"] .toast,
+  .fan[data-brand="anitta"] .sheet {
+    border-radius: 0;
+  }
+  .fan[data-brand="anitta"] .field {
+    border-radius: 4px;
+  }
+  .fan[data-brand="anitta"] .btn-primary {
+    border-color: var(--fc-amber);
+  }
+  .fan[data-brand="anitta"] .btn-primary:hover {
+    background: var(--fc-bg);
+    color: var(--fc-amber-text);
+    border-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="anitta"] .btn-primary:active {
+    transform: none;
+  }
+  .fan[data-brand="anitta"] .mono {
+    font: 700 11px/14px var(--fc-font-mono);
+    letter-spacing: 0.08em;
+  }
+  .fan[data-brand="anitta"] .poster {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .fan[data-brand="anitta"] .serif,
+  .fan[data-brand="anitta"] .font-display {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .fan[data-brand="anitta"] .tag {
+    padding: 3px 8px;
+    font: 700 11px/12px var(--fc-font-mono);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="anitta"] .tag-key {
+    color: var(--fc-ink);
+  }
+  .fan[data-brand="anitta"] .avatar {
+    font: 700 10px/1 var(--fc-font-mono);
+  }
+  .fan[data-brand="anitta"] .tab[aria-selected="true"],
+  .fan[data-brand="anitta"] .tab[aria-current="page"] {
+    border-bottom-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="anitta"] .mast-word {
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  .fan[data-brand="anitta"] .key[aria-current="page"] {
+    color: var(--fc-fg);
+  }
+  .fan[data-brand="anitta"] .key[aria-current="page"]::after {
+    background: var(--fc-amber-text);
+  }
+  .fan[data-brand="anitta"] .scrim {
+    background: color-mix(in srgb, var(--fc-ink) 72%, transparent);
+  }
+  .fan[data-brand="anitta"] .sheet h2 {
+    font: 700 36px/0.95 var(--fc-font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--fc-fg);
+  }
+}
+
 @keyframes fan-up {
   from {
     transform: translateY(24px);
@@ -1006,4 +1132,54 @@ body {
   --fc-paper: #ffffff !important;
   --fc-signal: #c4001a !important;
   color-scheme: light;
+}
+
+/*
+ * ADMIN DA ANITTA (`data-brand="anitta"` no wrapper do ClubAdminShell; pele em src/lib/brands.ts).
+ * A identidade da área do fã no painel: menu lateral no azul-noite, dados no azul-painel com tinta creme, topo vermelho
+ * com fio ouro/preto (Masthead tom "mast"), Averia 700 em caixa alta nos títulos, cartões retos e botões em pílula.
+ * Acento: botão vermelho com texto branco; como texto (links), o ouro (vermelho sobre azul não passa em contraste).
+ */
+.adm-noite[data-brand="anitta"] {
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --color-adm-side: #0a1a31;
+  --color-adm-side-line: #2b3e60;
+  --color-adm-side-muted: #b3bdd1;
+  --color-adm-side-text: #faf8ec;
+  /* acento do painel (os utilitários adm-blue leem estas variáveis) */
+  --pf-brand: #dd2325;
+  --pf-brand-dark: #a61d1d;
+  --pf-brand-soft: color-mix(in srgb, #dd2325 22%, #20293a);
+  --pf-brand-tint: color-mix(in srgb, #dd2325 10%, #20293a);
+}
+/* Averia em tudo também no painel (a regra da identidade: nenhuma outra fonte). */
+.adm-noite[data-brand="anitta"],
+.adm-noite[data-brand="anitta"] :is(.font-adm, .font-adm-mono) {
+  font-family: var(--fc-font-grotesk);
+}
+.adm-noite[data-brand="anitta"] h1,
+.adm-noite[data-brand="anitta"] :is(h2, h3),
+.adm-noite[data-brand="anitta"] .font-display {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.adm-noite[data-brand="anitta"] :is(.text-adm-blue, .text-adm-blue-dark) {
+  color: var(--fc-amber-text);
+}
+.adm-noite[data-brand="anitta"] .bg-adm-blue {
+  color: #ffffff;
+}
+.adm-noite[data-brand="anitta"] main :is(button, a).bg-adm-blue {
+  border-radius: 999px;
+}
+/* etiquetas em pílula, caixa alta; avatares continuam redondos */
+.adm-noite[data-brand="anitta"] [data-badge] {
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 700;
 }

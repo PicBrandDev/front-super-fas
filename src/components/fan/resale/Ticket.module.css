@@ -376,3 +376,9 @@ a.ticket:focus-visible .compactBar {
 :global([data-brand="departamento"]) .ticket[data-field="amber"] .face {
   --on-field: var(--fc-on-amber);
 }
+
+/* ANITTA: no campo vermelho a tinta é branca (azul-noite sobre o vermelho-carta fica abaixo de 4,5:1). */
+:global([data-brand="anitta"]) .ticket:not([data-field]) .face,
+:global([data-brand="anitta"]) .ticket[data-field="amber"] .face {
+  --on-field: var(--fc-on-amber);
+}
