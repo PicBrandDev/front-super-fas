@@ -101,6 +101,46 @@ export function Turntable({ variant = "turntable", brand, ...props }: TurntableP
 }
 
 /**
+ * Cabe o nome do prêmio na fatia: quebra em até 3 linhas e diminui a fonte até a linha mais larga caber na corda da fatia
+ * (largura da fatia no raio do texto). `cw` é a largura média de uma letra em múltiplos do corpo (com o espaçamento).
+ */
+function fitLabel(label: string, n: number, rr: number, base: number, cw: number) {
+  const avail = Math.max(28, 2 * rr * Math.sin(Math.PI / Math.max(n, 2)) * 0.8);
+  const words = label.toUpperCase().split(/\s+/).filter(Boolean);
+  for (let size = base; size >= 6.5; size -= 0.5) {
+    const per = size * cw;
+    const lines: string[] = [];
+    let cur = "";
+    for (const w of words) {
+      const t = cur ? `${cur} ${w}` : w;
+      if (!cur || t.length * per <= avail) cur = t;
+      else {
+        lines.push(cur);
+        cur = w;
+      }
+    }
+    if (cur) lines.push(cur);
+    if (lines.length <= 3 && lines.every((l) => l.length * per <= avail)) return { size, lines };
+  }
+  const max = Math.max(3, Math.floor(avail / (6.5 * cw)));
+  return { size: 6.5, lines: words.map((w) => (w.length > max ? `${w.slice(0, max - 1)}…` : w)).slice(0, 3) };
+}
+
+/** As linhas do nome do prêmio, centradas no ponto do texto. */
+function LabelLines({ lines, size }: { lines: string[]; size: number }) {
+  const lh = size * 1.12;
+  return (
+    <>
+      {lines.map((l, k) => (
+        <tspan key={k} x="0" dy={k === 0 ? -((lines.length - 1) * lh) / 2 : lh}>
+          {l}
+        </tspan>
+      ))}
+    </>
+  );
+}
+
+/**
  * Roda de linhas (porte de `wheel()` do Fanzone Artist Kit): roda de linhas na tinta do papel sobre o campo, régua de
  * 80 traços, um segmento cheio no prêmio, selo no centro e a marca do cantor no topo como ponteiro.
  * O campo do selo é `--wheel-field` (padrão: o fundo). Selo e centro vêm de `wheelSeal` na pele:
@@ -160,16 +200,21 @@ function StarWheel({ prizes, on = -1, rot = 0, live = false, prefix = "tt", clas
             <g key={i}>
               <g className={`${s.trk} trk${i === on ? ` ${s.on} on` : ""}`} data-i={i}>
                 <path d={ring(a - step / 2, a + step / 2, ri, r - 9)} />
-                <text
-                  transform={`rotate(${a} ${cx} ${cy}) translate(${cx} ${cy - r + 34})`}
-                  textAnchor="middle"
-                  fontWeight="800"
-                  fontSize={label.length > 9 ? 10 : 12}
-                  letterSpacing=".5"
-                  style={grotesk}
-                >
-                  {label.toUpperCase()}
-                </text>
+                {(() => {
+                  const f = fitLabel(label, n, r - 34, 12, 0.74);
+                  return (
+                    <text
+                      transform={`rotate(${a} ${cx} ${cy}) translate(${cx} ${cy - r + 34})`}
+                      textAnchor="middle"
+                      fontWeight="800"
+                      fontSize={f.size}
+                      letterSpacing=".5"
+                      style={grotesk}
+                    >
+                      <LabelLines lines={f.lines} size={f.size} />
+                    </text>
+                  );
+                })()}
               </g>
               <line x1={x0} y1={y0} x2={x1} y2={y1} stroke={paper} strokeWidth="1" />
             </g>
@@ -308,15 +353,20 @@ function Deck({
           return (
             <g key={i} className={`${s.trk} trk${i === on ? ` ${s.on} on` : ""}`} data-i={i}>
               <path d={ann(a - step / 2, a + step / 2, 58, 149)} />
-              <text
-                transform={`rotate(${a} ${c.cx} ${c.cy}) translate(${c.cx} ${c.cy - 122})`}
-                textAnchor="middle"
-                fontSize={label.length > 9 ? 8.5 : 10}
-                letterSpacing="1"
-                style={mono}
-              >
-                {label.toUpperCase()}
-              </text>
+              {(() => {
+                const f = fitLabel(label, n, 122, 10, 0.72);
+                return (
+                  <text
+                    transform={`rotate(${a} ${c.cx} ${c.cy}) translate(${c.cx} ${c.cy - 122})`}
+                    textAnchor="middle"
+                    fontSize={f.size}
+                    letterSpacing="1"
+                    style={mono}
+                  >
+                    <LabelLines lines={f.lines} size={f.size} />
+                  </text>
+                );
+              })()}
             </g>
           );
         })}

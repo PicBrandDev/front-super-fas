@@ -69,11 +69,11 @@ export function ClubCard({ club }: { club: FanClub }) {
   const { base } = useArtist();
   const members = `${club.members.toLocaleString("pt-BR")} ${club.members === 1 ? "membro" : "membros"}`;
   return (
-    <article className="flex items-center gap-3 border-b border-line py-3">
+    <article className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line py-3">
       <Link href={`${base}/clubes/${club.slug}`} tabIndex={-1} aria-hidden="true" className="flex-none no-underline">
         <ClubDot name={club.name} avatar={club.avatar} size={52} official={club.isMaster} />
       </Link>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex min-w-[10rem] flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`${base}/clubes/${club.slug}`}
@@ -85,7 +85,10 @@ export function ClubCard({ club }: { club: FanClub }) {
         </div>
         <span className="mono">{[club.city, members].filter(Boolean).join(" · ")}</span>
       </div>
-      <JoinButton club={club} />
+      {/* No celular o botão desce para baixo do nome (alinhado a ele); a partir de sm fica à direita. */}
+      <div className="max-sm:basis-full max-sm:pl-16 max-sm:[&>span]:items-start sm:ml-auto">
+        <JoinButton club={club} />
+      </div>
     </article>
   );
 }

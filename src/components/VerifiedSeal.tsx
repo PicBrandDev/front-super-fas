@@ -20,9 +20,9 @@ export function VerifiedSeal({ size = 16, className = "", label = "Dono de fã c
 }
 
 /** Põe o selo no canto inferior direito de uma foto de `size` px. */
-export function WithSeal({ size, verified, label, children }: { size: number; verified?: boolean; label?: string; children: React.ReactNode }) {
+export function WithSeal({ size, verified, label, ratio = 0.38, min = 14, children }: { size: number; verified?: boolean; label?: string; ratio?: number; min?: number; children: React.ReactNode }) {
   if (!verified) return <>{children}</>;
-  const seal = Math.max(14, Math.round(size * 0.38));
+  const seal = Math.max(min, Math.round(size * ratio));
   return (
     <span className="relative inline-flex flex-none" style={{ width: size, height: size }}>
       {children}

@@ -13,8 +13,9 @@ export function ClubDot({ name, avatar, size = 56, official = false }: { name: s
       {initialsOf(name).charAt(0)}
     </span>
   );
+  // Selo pequeno: um visto grande no canto parecia o fã clube estar selecionado no feed.
   return (
-    <WithSeal size={size} verified={official} label="Fã clube oficial">
+    <WithSeal size={size} verified={official} label="Fã clube oficial" ratio={0.24} min={11}>
       {face}
     </WithSeal>
   );
