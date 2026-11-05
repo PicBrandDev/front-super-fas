@@ -1,50 +1,35 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
-import { decideCampaign, inviteSponsor as inviteSponsorAction, updateAdSlot, type SponsorInvited } from "@/app/actions/admin";
-import { TempPasswordNotice } from "@/components/admin/TempPasswordNotice";
+import { useRef, useState, useTransition, type KeyboardEvent } from "react";
+import { decideCampaign, updateAdSlot } from "@/app/actions/admin";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { FilterChips, Switch } from "@/components/admin/controls";
-import { AdminEmpty, AdminNotice, Badge, SlotDiagram, btnPrimary, inputClass, tdClass, thClass, type Tone } from "@/components/admin/ui";
-import type { AdSlot, Campaign, CampaignStatus, Sponsor } from "@/lib/types";
-import { campaignWhere, occupiedLabel, slotPrice } from "./slots";
+import { AdminEmpty, AdminNotice, Badge, SlotDiagram, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
+import { AnuncioCard, type AnuncioItem, type AnuncioStatus } from "@/components/admin/vitrines/AnuncioCard";
+import type { AdElement, AdSlot, Campaign, CampaignStatus } from "@/lib/types";
+import { CATEGORIES, ELEMENTS, fieldToMilli, milliToField, occupiedLabel, slotPrice } from "./slots";
 
-type Tab = "slots" | "camps" | "sponsors";
-
-const campaignLook: Record<CampaignStatus, { label: string; tone: Tone }> = {
-  live: { label: "No ar", tone: "ok" },
-  approved: { label: "Aprovada", tone: "info" },
-  pending: { label: "Aguardando aprovação", tone: "warn" },
-  rejected: { label: "Recusada", tone: "off" },
-};
-
-type SponsorRow = Sponsor & { local?: boolean };
+type Tab = "slots" | "camps";
 
 export function MidiaClient({
   clubs,
   slotsByClub,
   campaigns,
-  sponsors,
   exampleMode = false,
 }: {
   clubs: { slug: string; name: string }[];
   slotsByClub: Record<string, AdSlot[]>;
   campaigns: Campaign[];
-  sponsors: Sponsor[];
   exampleMode?: boolean;
 }) {
   const [club, setClub] = useState(clubs[0]?.slug ?? "");
   const [tab, setTab] = useState<Tab>("slots");
   const [activeOverride, setActiveOverride] = useState<Record<string, boolean>>({});
   const [decisions, setDecisions] = useState<Record<string, CampaignStatus>>({});
-  const [invited, setInvited] = useState<SponsorRow[]>([]);
-  const [spEmail, setSpEmail] = useState("");
-  const [spError, setSpError] = useState("");
   const [announce, setAnnounce] = useState("");
   const [error, setError] = useState("");
-  const [newSponsor, setNewSponsor] = useState<SponsorInvited | null>(null);
-  const [priceEdit, setPriceEdit] = useState<{ key: string; value: string } | null>(null);
+  const [edit, setEdit] = useState<{ key: string; id: string; view: string; click: string; elements: AdElement[] } | null>(null);
   const [, start] = useTransition();
   const router = useRouter();
 
@@ -65,7 +50,7 @@ export function MidiaClient({
       setAnnounce(done);
       if (res.ok) router.refresh();
     });
-  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ slots: null, camps: null, sponsors: null });
+  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ slots: null, camps: null });
 
   const slots = (slotsByClub[club] ?? []).map((s) => {
     const key = `${club}:${s.id}`;
@@ -76,12 +61,32 @@ export function MidiaClient({
     .filter((c) => !c.clubSlug || c.clubSlug === club)
     .map((c) => ({ ...c, status: decisions[c.id] ?? c.status }));
   const pendingCount = camps.filter((c) => c.status === "pending").length;
-  const sponsorRows: SponsorRow[] = [...invited, ...sponsors];
+  const today = new Date().toISOString().slice(0, 10);
+  /** Situação para mostrar: a API diz "approved" tanto para a campanha agendada quanto para a já encerrada. */
+  const phase = (c: Campaign & { status: CampaignStatus }): AnuncioStatus =>
+    c.status === "approved" ? (c.end && c.end < today ? "ended" : c.start && c.start > today ? "scheduled" : "live") : c.status === "live" ? "live" : c.status;
+  const toItem = (c: Campaign & { status: CampaignStatus }): AnuncioItem => ({
+    id: c.id,
+    sponsor: c.sponsor,
+    title: c.title,
+    text: c.text,
+    cta: c.cta,
+    artUrl: c.artUrl,
+    videoUrl: c.videoUrl,
+    status: phase(c),
+    slotName: c.slotName,
+    artist: c.club,
+    fanClub: c.fanClub,
+    start: c.start,
+    end: c.end,
+    views: c.views,
+    clicks: c.clicks,
+  });
+  const byPhase = (st: AnuncioStatus[]) => camps.filter((c) => st.includes(phase(c)));
 
   const tabs: { id: Tab; label: string; count: string }[] = [
     { id: "slots", label: "Vitrines", count: `${slots.filter((s) => s.on).length}/${slots.length}` },
     { id: "camps", label: "Campanhas", count: `${pendingCount} pendentes` },
-    { id: "sponsors", label: "Patrocinadores", count: String(sponsorRows.length) },
   ];
 
   const decide = (c: Campaign, status: CampaignStatus) =>
@@ -93,33 +98,6 @@ export function MidiaClient({
       },
       `Campanha de ${c.sponsor} ${status === "approved" ? "aprovada" : "recusada"}.`,
     );
-
-  const inviteSponsor = (e: FormEvent) => {
-    e.preventDefault();
-    const email = spEmail.trim();
-    if (!email) return;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setSpError("Digite um e-mail válido.");
-      return;
-    }
-    start(async () => {
-      const res = await inviteSponsorAction({ email });
-      if (!res.ok && res.status !== 0) {
-        setSpError(res.error);
-        return;
-      }
-      if (res.ok) {
-        setNewSponsor(res.data);
-        router.refresh();
-      } else {
-        const id = `inv-${Date.now()}`;
-        setInvited((cur) => [{ id, brand: "—", email, campaigns: 0, status: "invited", local: true }, ...cur]);
-      }
-      setSpEmail("");
-      setSpError("");
-      setAnnounce(`Conta criada para ${email}.`);
-    });
-  };
 
   const onTabKey = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
     let next = -1;
@@ -145,17 +123,9 @@ export function MidiaClient({
         {announce}
       </p>
       {exampleMode && (
-        <AdminNotice tone="info">Modo exemplo: ligue o front à API (API_URL) para aprovar campanhas e convidar patrocinadores de verdade.</AdminNotice>
+        <AdminNotice tone="info">Modo exemplo: ligue o front à API (API_URL) para aprovar campanhas de verdade.</AdminNotice>
       )}
       {error && <AdminNotice tone="error">{error}</AdminNotice>}
-      {newSponsor && (
-        <TempPasswordNotice
-          email={newSponsor.sponsor.email}
-          password={newSponsor.tempPassword}
-          onClose={() => setNewSponsor(null)}
-        />
-      )}
-
       <div className="flex flex-col gap-2">
         <span id="md-club-label" className="text-xs font-semibold text-adm-muted">
           Fã clube
@@ -198,248 +168,197 @@ export function MidiaClient({
       </div>
 
       {tab === "slots" && (
-        <div
-          role="tabpanel"
-          id="panel-slots"
-          aria-labelledby="tab-slots"
-          className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]"
-        >
-          {slots.length === 0 && (
-            <div className="col-span-full">
-              <AdminEmpty title="Nenhuma vitrine neste ambiente" text="As vitrines aparecem aqui quando o ambiente do cantor estiver configurado." />
-            </div>
-          )}
-          {slots.map((v) => {
-            const occ = !v.on
-              ? { label: "Pausada", tone: "off" as const }
-              : v.occupied
-                ? { label: occupiedLabel(exampleMode, v.occupiedBy), tone: "info" as const }
-                : { label: "Livre para venda", tone: "ok" as const };
+        <div role="tabpanel" id="panel-slots" aria-labelledby="tab-slots" className="flex flex-col gap-8">
+          {slots.length === 0 && <AdminEmpty title="Nenhuma vitrine neste ambiente" text="As vitrines aparecem aqui quando o ambiente do cantor estiver configurado." />}
+          {CATEGORIES.map((cat) => {
+            const list = slots.filter((v) => (v.category ?? "entrada") === cat.id);
+            if (list.length === 0) return null;
             return (
-              <article
-                key={v.key}
-                className={`flex flex-col gap-3.5 rounded-xl border border-adm-line bg-white p-[18px] ${v.on ? "" : "opacity-60"}`}
-              >
-                <div className="flex items-start gap-3.5">
-                  <SlotDiagram top={v.diagram.top} height={v.diagram.height} />
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <h2 className="m-0 text-base font-bold">{v.name}</h2>
-                    <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
-                  </div>
-                  <Switch
-                    checked={v.on}
-                    label={`Vitrine ${v.name} ${v.on ? "ativa" : "pausada"}`}
-                    onChange={(val) =>
-                      run(
-                        () => updateAdSlot(club, v.id, { active: val }),
-                        () => setActiveOverride((cur) => ({ ...cur, [v.key]: val })),
-                        `Vitrine ${v.name} ${val ? "ativada" : "pausada"}.`,
-                      )
-                    }
-                  />
+              <section key={cat.id} aria-labelledby={`cat-${cat.id}`} className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 id={`cat-${cat.id}`} className="m-0 font-display text-2xl font-black">
+                    {cat.label}
+                  </h2>
+                  <span className="text-[13px] text-adm-muted">
+                    {list.length} {list.length === 1 ? "vitrine" : "vitrines"} · {cat.hint}
+                  </span>
                 </div>
-                <dl className="m-0 grid grid-cols-2 gap-2.5">
-                  <div className="flex flex-col gap-0.5">
-                    <dt className="font-adm-mono text-[11px] font-semibold uppercase text-adm-muted">Formato</dt>
-                    <dd className="m-0 text-[13px]">{v.format}</dd>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <dt className="font-adm-mono text-[11px] font-semibold uppercase text-adm-muted">Preço</dt>
-                    <dd className="m-0 text-[13px] font-semibold">
-                      {priceEdit?.key === v.key ? (
-                        <form
-                          className="flex items-center gap-1.5"
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            const n = Number(priceEdit.value.replace(/[R$\s.]/g, "").replace(",", "."));
-                            if (!Number.isFinite(n) || n < 0) {
-                              setError("Digite o preço em reais, ex.: 500,00.");
-                              return;
+                <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))]">
+                  {list.map((v) => {
+                    const occ = !v.on
+                      ? { label: "Pausada", tone: "off" as const }
+                      : v.occupied
+                        ? { label: occupiedLabel(exampleMode, v.occupiedBy), tone: "info" as const }
+                        : { label: "Livre para venda", tone: "ok" as const };
+                    const editing = edit?.key === v.key;
+                    const elements = v.elements ?? (["title", "text", "image"] as AdElement[]);
+                    return (
+                      <article key={v.key} className={`flex flex-col gap-3.5 rounded-xl border border-adm-line bg-white p-[18px] ${v.on ? "" : "opacity-60"}`}>
+                        <div className="flex items-start gap-3.5">
+                          <SlotDiagram top={v.diagram.top} height={v.diagram.height} />
+                          <div className="flex min-w-0 flex-1 flex-col gap-1">
+                            <h3 className="m-0 text-base font-bold">{v.name}</h3>
+                            <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
+                          </div>
+                          <Switch
+                            checked={v.on}
+                            label={`Vitrine ${v.name} ${v.on ? "ativa" : "pausada"}`}
+                            onChange={(val) =>
+                              run(
+                                () => updateAdSlot(club, v.id, { active: val }),
+                                () => setActiveOverride((cur) => ({ ...cur, [v.key]: val })),
+                                `Vitrine ${v.name} ${val ? "ativada" : "pausada"}.`,
+                              )
                             }
-                            run(() => updateAdSlot(club, v.id, { priceCents: Math.round(n * 100) }), () => setPriceEdit(null), "Preço salvo.");
-                          }}
-                        >
-                          <label htmlFor={`price-${v.key}`} className="sr-only">
-                            Preço por semana de {v.name}
-                          </label>
-                          <input
-                            id={`price-${v.key}`}
-                            inputMode="decimal"
-                            autoFocus
-                            value={priceEdit.value}
-                            onChange={(e) => setPriceEdit({ key: v.key, value: e.target.value })}
-                            className={`${inputClass} min-h-9 w-24 px-2 text-[13px]`}
                           />
-                          <button type="submit" className="min-h-9 cursor-pointer rounded-lg bg-adm-blue px-2.5 text-[13px] font-semibold text-white">
-                            Salvar
-                          </button>
-                        </form>
-                      ) : (
-                        slotPrice(v, exampleMode)
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="flex items-center justify-between gap-2 border-t border-adm-line-soft pt-3">
-                  <Badge tone={occ.tone}>{occ.label}</Badge>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPriceEdit(
-                        priceEdit?.key === v.key
-                          ? null
-                          : { key: v.key, value: v.priceCents != null ? (v.priceCents / 100).toFixed(2).replace(".", ",") : "" },
-                      )
-                    }
-                    className="flex min-h-10 cursor-pointer items-center border-0 bg-transparent text-[13px] font-semibold text-adm-blue hover:text-adm-blue-dark"
-                  >
-                    {priceEdit?.key === v.key ? "Cancelar" : "Editar preço"}
-                    <span className="sr-only"> de {v.name}</span>
-                  </button>
+                        </div>
+
+                        {!editing ? (
+                          <dl className="m-0 grid grid-cols-2 gap-2.5">
+                            <div className="col-span-2 flex flex-col gap-1">
+                              <dt className="font-adm-mono text-[11px] font-semibold uppercase text-adm-muted">Aceita</dt>
+                              <dd className="m-0 flex flex-wrap gap-1.5">
+                                {ELEMENTS.filter((e) => elements.includes(e.id)).map((e) => (
+                                  <span key={e.id} className="rounded-full border border-adm-line px-2.5 py-0.5 text-[12px] font-semibold">
+                                    {e.label}
+                                  </span>
+                                ))}
+                              </dd>
+                            </div>
+                            <div className="col-span-2 flex flex-col gap-0.5">
+                              <dt className="font-adm-mono text-[11px] font-semibold uppercase text-adm-muted">Preço</dt>
+                              <dd className="m-0 text-[13px] font-semibold">{slotPrice(v, exampleMode)}</dd>
+                            </div>
+                          </dl>
+                        ) : (
+                          <form
+                            className="flex flex-col gap-3 rounded-lg bg-adm-bg p-3.5"
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              const view = fieldToMilli(edit.view);
+                              const click = fieldToMilli(edit.click);
+                              if (view === null || click === null) return setError("Digite os preços em reais, ex.: 0,012 por view e 0,80 por clique.");
+                              if (edit.elements.length === 0) return setError("Escolha pelo menos um item que a vitrine aceita.");
+                              run(
+                                () => updateAdSlot(club, edit.id, { viewPriceMilli: view, clickPriceMilli: click, elements: edit.elements }),
+                                () => setEdit(null),
+                                "Vitrine salva.",
+                              );
+                            }}
+                          >
+                            <div className="grid grid-cols-2 gap-3">
+                              <label className="flex flex-col gap-1 text-[13px] font-semibold">
+                                Preço por view (R$)
+                                <input
+                                  inputMode="decimal"
+                                  value={edit.view}
+                                  onChange={(e) => setEdit({ ...edit, view: e.target.value })}
+                                  className={`${inputClass} min-h-10 text-[14px] font-normal`}
+                                  placeholder="0,012"
+                                />
+                              </label>
+                              <label className="flex flex-col gap-1 text-[13px] font-semibold">
+                                Preço por clique (R$)
+                                <input
+                                  inputMode="decimal"
+                                  value={edit.click}
+                                  onChange={(e) => setEdit({ ...edit, click: e.target.value })}
+                                  className={`${inputClass} min-h-10 text-[14px] font-normal`}
+                                  placeholder="0,80"
+                                />
+                              </label>
+                            </div>
+                            <fieldset className="m-0 flex flex-col gap-1.5 border-0 p-0">
+                              <legend className="mb-1 p-0 text-[13px] font-semibold">O que o anúncio pode ter</legend>
+                              <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                                {ELEMENTS.map((el) => (
+                                  <label key={el.id} className="flex min-h-9 cursor-pointer items-center gap-2 text-[14px]">
+                                    <input
+                                      type="checkbox"
+                                      checked={edit.elements.includes(el.id)}
+                                      onChange={(e) => setEdit({ ...edit, elements: e.target.checked ? [...edit.elements, el.id] : edit.elements.filter((x) => x !== el.id) })}
+                                      className="size-4 accent-[var(--color-adm-blue)]"
+                                    />
+                                    {el.label}
+                                  </label>
+                                ))}
+                              </div>
+                            </fieldset>
+                            <div className="flex gap-2">
+                              <button type="submit" className={btnPrimary}>
+                                Salvar
+                              </button>
+                              <button type="button" className={btnSecondary} onClick={() => setEdit(null)}>
+                                Cancelar
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        <div className="mt-auto flex items-center justify-between gap-2 border-t border-adm-line-soft pt-3">
+                          <Badge tone={occ.tone}>{occ.label}</Badge>
+                          {!editing && (
+                            <button
+                              type="button"
+                              onClick={() => setEdit({ key: v.key, id: v.id, view: milliToField(v.viewPriceMilli), click: milliToField(v.clickPriceMilli), elements })}
+                              className="flex min-h-10 cursor-pointer items-center border-0 bg-transparent text-[13px] font-semibold text-adm-blue hover:text-adm-blue-dark"
+                            >
+                              Editar<span className="sr-only"> {v.name}</span>
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
-              </article>
+              </section>
             );
           })}
         </div>
       )}
 
       {tab === "camps" && (
-        <div
-          role="tabpanel"
-          id="panel-camps"
-          aria-labelledby="tab-camps"
-          className="overflow-x-auto rounded-xl border border-adm-line bg-white"
-        >
-          <table className="w-full min-w-[820px] border-collapse text-sm">
-            <thead>
-              <tr className="bg-adm-bg">
-                <th scope="col" className={thClass}>Patrocinador</th>
-                <th scope="col" className={thClass}>Onde</th>
-                <th scope="col" className={thClass}>Vitrine</th>
-                <th scope="col" className={thClass}>Anúncio</th>
-                <th scope="col" className={thClass}>Período</th>
-                <th scope="col" className={thClass}>Status</th>
-                <th scope="col" className={thClass}>
-                  <span className="sr-only">Ações</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {camps.map((c) => {
-                const look = campaignLook[c.status];
-                const where = campaignWhere(c);
-                return (
-                  <tr key={c.id}>
-                    <td className={`${tdClass} font-semibold`}>{c.sponsor}</td>
-                    <td className={tdClass}>
-                      {where.place}
-                      {where.artist && <span className="block text-xs text-adm-muted">{where.artist}</span>}
-                    </td>
-                    <td className={tdClass}>{c.slotName}</td>
-                    <td className={`${tdClass} text-adm-muted`}>{c.title}</td>
-                    <td className={`${tdClass} font-adm-mono text-[13px]`}>{c.period}</td>
-                    <td className={tdClass}>
-                      <Badge tone={look.tone}>{look.label}</Badge>
-                    </td>
-                    <td className={tdClass}>
-                      {c.status === "pending" && (
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => decide(c, "rejected")}
-                            className="inline-flex min-h-10 cursor-pointer items-center rounded-lg border border-adm-line bg-white px-3 text-[13px] font-semibold text-adm-ink"
-                          >
-                            Recusar<span className="sr-only"> campanha de {c.sponsor}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => decide(c, "approved")}
-                            className="inline-flex min-h-10 cursor-pointer items-center rounded-lg bg-adm-blue px-3 text-[13px] font-semibold text-white"
-                          >
-                            Aprovar<span className="sr-only"> campanha de {c.sponsor}</span>
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {camps.length === 0 && (
-            <div className="p-4">
-              <AdminEmpty title="Nenhuma campanha ainda" text="As campanhas enviadas pelos patrocinadores aparecem aqui para você aprovar ou recusar." />
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === "sponsors" && (
-        <div role="tabpanel" id="panel-sponsors" aria-labelledby="tab-sponsors" className="flex flex-col gap-3.5">
-          <form
-            onSubmit={inviteSponsor}
-            noValidate
-            className="flex flex-wrap items-end gap-2.5 rounded-xl border border-adm-line bg-white p-4"
-          >
-            <div className="flex flex-[1_1_260px] flex-col gap-1.5">
-              <label htmlFor="sp-email" className="text-[13px] font-semibold">
-                Convidar patrocinador
-              </label>
-              <input
-                id="sp-email"
-                type="email"
-                value={spEmail}
-                onChange={(e) => {
-                  setSpEmail(e.target.value);
-                  if (spError) setSpError("");
-                }}
-                placeholder="contato@marca.com"
-                autoComplete="off"
-                aria-invalid={spError ? true : undefined}
-                aria-describedby={spError ? "sp-email-error" : undefined}
-                className={inputClass}
-              />
-            </div>
-            <button type="submit" className={btnPrimary}>
-              Enviar convite
-            </button>
-            {spError && (
-              <span id="sp-email-error" role="alert" className="basis-full text-xs font-semibold text-adm-danger">
-                {spError}
-              </span>
-            )}
-          </form>
-          <div className="overflow-x-auto rounded-xl border border-adm-line bg-white">
-            <table className="w-full min-w-[640px] border-collapse text-sm">
-              <thead>
-                <tr className="bg-adm-bg">
-                  <th scope="col" className={thClass}>Marca</th>
-                  <th scope="col" className={thClass}>Contato</th>
-                  <th scope="col" className={thClass}>Campanhas</th>
-                  <th scope="col" className={thClass}>Acesso</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sponsorRows.map((s) => (
-                  <tr key={s.id}>
-                    <td className={`${tdClass} font-semibold`}>{s.brand}</td>
-                    <td className={`${tdClass} font-adm-mono text-[13px]`}>{s.email}</td>
-                    <td className={tdClass}>{s.campaigns}</td>
-                    <td className={tdClass}>
-                      <Badge tone={s.status === "active" ? "ok" : "warn"}>
-                        {s.status === "active" ? "Ativo" : "Convite pendente"}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {sponsorRows.length === 0 && (
-              <div className="p-4">
-                <AdminEmpty title="Nenhum patrocinador ainda" text="Convide o primeiro pelo e-mail acima. A senha provisória aparece uma única vez." />
-              </div>
-            )}
-          </div>
+        <div role="tabpanel" id="panel-camps" aria-labelledby="tab-camps" className="flex flex-col gap-8">
+          {camps.length === 0 && <AdminEmpty title="Nenhuma campanha neste ambiente" text="Quando um patrocinador pedir uma vitrine, a campanha aparece aqui." />}
+          {(
+            [
+              { id: "pending", title: "Aguardando aprovação", text: "O patrocinador já pediu. Aprove para ir ao ar.", st: ["pending"] as AnuncioStatus[] },
+              { id: "live", title: "No ar agora", text: "As campanhas que os fãs estão vendo hoje, em qual vitrine e por quanto tempo.", st: ["live"] as AnuncioStatus[] },
+              { id: "scheduled", title: "Agendadas", text: "Aprovadas, ainda não começaram.", st: ["scheduled"] as AnuncioStatus[] },
+              { id: "ended", title: "Encerradas e recusadas", text: "", st: ["ended", "rejected"] as AnuncioStatus[] },
+            ]
+          ).map((g) => {
+            const list = byPhase(g.st);
+            if (list.length === 0) return null;
+            return (
+              <section key={g.id} aria-labelledby={`camp-${g.id}`} className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 id={`camp-${g.id}`} className="m-0 font-display text-2xl font-black">
+                    {g.title} <span className="font-adm-mono text-base text-adm-muted">{list.length}</span>
+                  </h2>
+                  {g.text && <span className="text-[13px] text-adm-muted">{g.text}</span>}
+                </div>
+                <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-2 xl:grid-cols-3">
+                  {list.map((c) => (
+                    <li key={c.id}>
+                      <AnuncioCard ad={toItem(c)}>
+                        {c.status === "pending" && (
+                          <div className="flex flex-wrap gap-2 border-t border-adm-line-soft pt-3">
+                            <button type="button" className={btnPrimary} onClick={() => decide(c, "approved")}>
+                              Aprovar<span className="sr-only"> campanha de {c.sponsor}</span>
+                            </button>
+                            <button type="button" className={btnSecondary} onClick={() => decide(c, "rejected")}>
+                              Recusar<span className="sr-only"> campanha de {c.sponsor}</span>
+                            </button>
+                          </div>
+                        )}
+                      </AnuncioCard>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
         </div>
       )}
     </>

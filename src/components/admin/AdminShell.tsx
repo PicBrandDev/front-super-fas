@@ -134,6 +134,7 @@ export function AdminPageHeader({
 export const masterNav: AdminNavItem[] = [
   { key: "fas-clubes", label: "Fã clubes", href: "/admin/fas-clubes", icon: "users" },
   { key: "midia", label: "Plataforma de mídia", href: "/admin/midia", icon: "megaphone" },
+  { key: "anuncios", label: "Anúncios e patrocinadores", href: "/admin/anuncios", icon: "chart" },
 ];
 
 /** Menu da administração do ambiente do cantor (equipe do fã clube master). */

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { formatCount } from "@/lib/format";
+import { Badge, tdClass, thClass } from "@/components/admin/ui";
 import { SponsorAvatar } from "./SponsorAvatar";
 import type { AdsAnalytics, AdsPoint } from "@/lib/types";
 
@@ -411,9 +412,13 @@ function Kpi({
 export function DesempenhoAnuncios({
   data,
   base,
+  periodPath,
+  showAds = false,
 }: {
   data: AdsAnalytics;
   base: string;
+  periodPath?: string; // início do link de cada período (o número de dias vem no fim); padrão: a aba Desempenho do ambiente
+  showAds?: boolean; // no fim, a tabela com cada anúncio (visão geral da plataforma)
 }) {
   const [sel, setSel] = useState<string>("");
   const sponsors = useMemo(
@@ -492,7 +497,7 @@ export function DesempenhoAnuncios({
           {PERIODS.map((d) => (
             <Link
               key={d}
-              href={`${base}/admin/vitrines?aba=desempenho&dias=${d}`}
+              href={periodPath ? `${periodPath}${d}` : `${base}/admin/vitrines?aba=desempenho&dias=${d}`}
               scroll={false}
               aria-current={data.days === d ? "true" : undefined}
               className={`rounded-lg border px-3 py-1.5 text-sm font-semibold no-underline ${data.days === d ? "border-adm-ink bg-adm-ink text-white" : "border-adm-line bg-white text-adm-ink"}`}
@@ -619,6 +624,63 @@ export function DesempenhoAnuncios({
           color={VIEWS}
         />
       </div>
+
+      {showAds && (
+        <section aria-labelledby="todos-anuncios" className="flex flex-col gap-2">
+          <h3 id="todos-anuncios" className="m-0 font-display text-2xl font-black">
+            {sel ? `Anúncios de ${sel}` : "Todos os anúncios"}
+          </h3>
+          <div className="overflow-x-auto rounded-xl border border-adm-line bg-white">
+            <table className="w-full min-w-[980px] border-collapse text-sm">
+              <caption className="sr-only">Cada anúncio, com vitrine, onde aparece, período e números</caption>
+              <thead>
+                <tr className="bg-adm-bg">
+                  <th scope="col" className={thClass}>Anúncio</th>
+                  <th scope="col" className={thClass}>Patrocinador</th>
+                  <th scope="col" className={thClass}>Vitrine</th>
+                  <th scope="col" className={thClass}>Onde</th>
+                  <th scope="col" className={thClass}>Período</th>
+                  <th scope="col" className={thClass}>Situação</th>
+                  <th scope="col" className={`${thClass} text-right`}>Views</th>
+                  <th scope="col" className={`${thClass} text-right`}>Cliques</th>
+                  <th scope="col" className={`${thClass} text-right`}>CTR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...campaigns]
+                  .sort((a, b) => b.views - a.views)
+                  .map((c) => (
+                    <tr key={c.id}>
+                      <td className={`${tdClass} font-semibold`}>{c.title}</td>
+                      <td className={tdClass}>
+                        <span className="flex items-center gap-2">
+                          <SponsorAvatar name={c.sponsor} src={data.sponsors.find((x) => x.name === c.sponsor)?.avatar} size={24} />
+                          {c.sponsor}
+                        </span>
+                      </td>
+                      <td className={tdClass}>{c.slotName}</td>
+                      <td className={`${tdClass} text-[13px]`}>
+                        {c.artist ?? "Ambiente"}
+                        <span className="block text-adm-muted">{c.fanClub ?? "Ambiente do cantor"}</span>
+                      </td>
+                      <td className={`${tdClass} font-adm-mono text-[13px]`}>
+                        {c.start ? dm(c.start) : "—"} a {c.end ? dm(c.end) : "—"}
+                      </td>
+                      <td className={tdClass}>
+                        <Badge tone={c.status === "live" ? "ok" : c.status === "scheduled" ? "info" : "off"}>
+                          {c.status === "live" ? "No ar" : c.status === "scheduled" ? "Agendada" : "Encerrada"}
+                        </Badge>
+                      </td>
+                      <td className={`${tdClass} text-right font-adm-mono`}>{formatCount(c.views)}</td>
+                      <td className={`${tdClass} text-right font-adm-mono`}>{formatCount(c.clicks)}</td>
+                      <td className={`${tdClass} text-right font-adm-mono`}>{pct(c.ctr)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </section>
   );
 }

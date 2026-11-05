@@ -133,6 +133,11 @@ export function PatrocinadorClient({
   const slotName = slot?.name ?? "[vitrine]";
   const clubName = club?.name ?? "[cantor]";
   const needsVideo = VIDEO_SLOTS.has(slotKey(slotId));
+  // O que a vitrine aceita do anúncio (o admin define em Plataforma de mídia): sem a lista, aceita título, texto e foto.
+  const els = slot?.elements;
+  const canText = !els || els.includes("text");
+  const canImage = !els || els.includes("image");
+  const showVideo = needsVideo || (!!els && els.includes("video"));
   const videoLink = videoUrl.trim();
   const videoLinkOk = !videoLink || isHttpUrl(videoLink);
   const hasVideo = !!video || (!!videoLink && videoLinkOk);
@@ -165,7 +170,7 @@ export function PatrocinadorClient({
       fd.set("goal_clicks", String(target.clicks));
       fd.set("budget_cents", String(price.total));
       if (art) fd.set("art", art);
-      if (needsVideo) {
+      if (showVideo) {
         if (videoLink) fd.set("video_url", videoLink);
         if (video) fd.set("video", video);
       }
@@ -251,7 +256,7 @@ export function PatrocinadorClient({
   };
 
   const weeks = weeksBetween(form.start, form.end);
-  const price = adPrice({ weeklyCents: slot?.priceCents, weeks, radiusKm: target.radiusKm, views: target.views, clicks: target.clicks });
+  const price = adPrice({ viewMilli: slot?.viewPriceMilli, clickMilli: slot?.clickPriceMilli, radiusKm: target.radiusKm, views: target.views, clicks: target.clicks });
 
   const period = `${form.start ? formatDate(form.start) : "[início]"} a ${form.end ? formatDate(form.end) : "[fim]"}`;
   const review = [
@@ -259,13 +264,13 @@ export function PatrocinadorClient({
     { k: "Onde", v: place ? `Fã clube ${placeName}` : `Ambiente de ${clubName} (todos os fãs)` },
     { k: "Vitrine", v: slotName },
     { k: "Período", v: period },
-    { k: "Vitrine por semana", v: slot ? slotPrice(slot, exampleMode) : "—" },
+    { k: "Preço da vitrine", v: slot ? slotPrice(slot, exampleMode) : "—" },
     { k: "Região", v: target.radiusKm > 0 ? `${target.radiusKm} km ao redor de ${target.city}` : "País todo" },
     { k: "Metas", v: `${target.views.toLocaleString("pt-BR")} visualizações · ${target.clicks.toLocaleString("pt-BR")} cliques` },
     { k: "Valor da campanha", v: formatBRL(price.total) },
     { k: "Título", v: preview.title },
     { k: "Link", v: form.link.trim() || "—" },
-    ...(needsVideo ? [{ k: "Vídeo", v: video ? video.name : videoLink || "—" }] : []),
+    ...(showVideo ? [{ k: "Vídeo", v: video ? video.name : videoLink || "—" }] : []),
   ];
 
   const freeCount = (slug: string) => (slotsByClub[slug] ?? []).filter((s) => s.active && !s.occupied).length;
@@ -481,6 +486,7 @@ export function PatrocinadorClient({
                 className={inputClass}
               />
             </Field>
+            {canText && (
             <Field id="ad-text" label="Texto curto" counter={`${form.text.length}/90`}>
               <textarea
                 id="ad-text"
@@ -493,6 +499,7 @@ export function PatrocinadorClient({
                 className="resize-none rounded-lg border border-adm-input bg-white px-3 py-2.5 text-[15px] leading-[1.4] text-adm-ink placeholder:text-adm-muted"
               />
             </Field>
+            )}
             <Field id="ad-link" label="Link de destino">
               <input
                 id="ad-link"
@@ -520,6 +527,7 @@ export function PatrocinadorClient({
                 />
               </Field>
             </div>
+            {canImage && (
             <div className="flex flex-wrap items-center gap-3">
               <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-adm-blue bg-adm-blue-tint px-4 text-sm font-semibold text-adm-blue-dark focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-adm-blue">
                 <Icon name="upload" size={18} strokeWidth={2.2} />
@@ -541,10 +549,12 @@ export function PatrocinadorClient({
                 </span>
               )}
             </div>
-            {needsVideo && (
+            )}
+            {showVideo && (
               <div className="flex flex-col gap-3 border-t border-adm-line pt-4">
                 <h3 className="m-0 text-base font-bold">
-                  Vídeo <span className="text-[13px] font-semibold text-adm-danger">obrigatório</span>
+                  Vídeo{" "}
+                  {needsVideo ? <span className="text-[13px] font-semibold text-adm-danger">obrigatório</span> : <span className="text-[13px] font-semibold text-adm-muted">opcional</span>}
                 </h3>
                 <p id="ad-video-hint" className="m-0 text-xs text-adm-muted">
                   30 s mínimos, o fã é obrigado a assistir antes de girar. Cole um link ou envie o arquivo.
@@ -556,7 +566,7 @@ export function PatrocinadorClient({
                     inputMode="url"
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
-                    required={!video}
+                    required={needsVideo && !video}
                     aria-invalid={!videoLinkOk || undefined}
                     aria-describedby="ad-video-hint"
                     placeholder="https://"
@@ -605,7 +615,7 @@ export function PatrocinadorClient({
             </div>
             <div className="flex flex-col gap-3 border-t border-adm-line pt-4">
               <h3 className="m-0 text-base font-bold">Quanto custa</h3>
-              <PriceCalculator value={target} onChange={setTarget} weeklyCents={slot?.priceCents} weeks={weeks} />
+              <PriceCalculator value={target} onChange={setTarget} viewMilli={slot?.viewPriceMilli} clickMilli={slot?.clickPriceMilli} weeks={weeks} />
             </div>
           </div>
 
@@ -621,7 +631,7 @@ export function PatrocinadorClient({
                 text: preview.text,
                 cta: preview.cta,
                 art: artSrc,
-                video: needsVideo ? (videoFileSrc ?? (videoLink && videoLinkOk ? videoLink : null)) : null,
+                video: showVideo ? (videoFileSrc ?? (videoLink && videoLinkOk ? videoLink : null)) : null,
               }}
             />
           </div>

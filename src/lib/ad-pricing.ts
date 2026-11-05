@@ -15,7 +15,13 @@ export const TARGET_CITIES = [
 export const MAX_RADIUS_KM = 500;
 export const CPM_CENTS = 1200; // R$ 12,00 a cada mil visualizações
 export const CPC_CENTS = 80; // R$ 0,80 por clique
-const DEFAULT_WEEK_CENTS = 60000; // vitrine sem preço definido
+const DEFAULT_VIEW_MILLI = 12; // R$ 0,012 por view (vitrine sem preço definido)
+const DEFAULT_CLICK_MILLI = 800; // R$ 0,80 por clique
+
+const milliText = (n: number) => {
+  const t = (n / 1000).toFixed(3).replace(".", ",");
+  return `R$ ${t.endsWith("0") ? t.slice(0, -1) : t}`;
+};
 
 /** Quanto o raio encarece a vitrine: 0 = o país todo (mais caro), senão sobe devagar com os km. */
 export function radiusFactor(radiusKm: number): number {
@@ -39,19 +45,21 @@ export function suggestGoals(radiusKm: number, weeks: number) {
 
 export type PriceLine = { label: string; detail: string; cents: number };
 
-export function adPrice(p: { weeklyCents?: number | null; weeks: number; radiusKm: number; views: number; clicks: number }) {
-  const weekly = p.weeklyCents ?? DEFAULT_WEEK_CENTS;
-  const base = weekly * p.weeks;
+export function adPrice(p: { viewMilli?: number | null; clickMilli?: number | null; radiusKm: number; views: number; clicks: number }) {
+  // Preço da vitrine por view e por clique, em milésimos de real (12 = R$ 0,012); sem preço, o padrão.
+  const viewMilli = p.viewMilli ?? DEFAULT_VIEW_MILLI;
+  const clickMilli = p.clickMilli ?? DEFAULT_CLICK_MILLI;
   const factor = radiusFactor(p.radiusKm);
+  const viewsCents = Math.round((p.views * viewMilli) / 10);
+  const clicksCents = Math.round((p.clicks * clickMilli) / 10);
   const lines: PriceLine[] = [
-    { label: "Vitrine", detail: `${p.weeks} ${p.weeks === 1 ? "semana" : "semanas"}`, cents: base },
+    { label: "Visualizações", detail: `${p.views.toLocaleString("pt-BR")} · ${milliText(viewMilli)} por view`, cents: viewsCents },
+    { label: "Cliques", detail: `${p.clicks.toLocaleString("pt-BR")} · ${milliText(clickMilli)} por clique`, cents: clicksCents },
     {
       label: "Alcance do raio",
       detail: p.radiusKm > 0 ? `${p.radiusKm} km · ×${factor.toFixed(2).replace(".", ",")}` : `país todo · ×${factor.toFixed(2).replace(".", ",")}`,
-      cents: Math.round(base * (factor - 1)),
+      cents: Math.round((viewsCents + clicksCents) * (factor - 1)),
     },
-    { label: "Visualizações", detail: `${p.views.toLocaleString("pt-BR")} · R$ 12,00 por mil`, cents: Math.round((p.views / 1000) * CPM_CENTS) },
-    { label: "Cliques", detail: `${p.clicks.toLocaleString("pt-BR")} · R$ 0,80 por clique`, cents: p.clicks * CPC_CENTS },
   ];
   return { lines, total: lines.reduce((a, l) => a + l.cents, 0) };
 }

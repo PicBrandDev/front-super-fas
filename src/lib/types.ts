@@ -207,6 +207,8 @@ export type HomeAd = {
 /** Post patrocinado do feed: entra depois de cada `every` posts (1 no Mural, 2 nos fã clubes). */
 export type FeedAdItem = HomeAd & { position: number; every?: number };
 
+export type AdElement = "title" | "text" | "image" | "video";
+
 export type AdSlot = {
   id: string;
   name: string;
@@ -216,6 +218,11 @@ export type AdSlot = {
   priceCents?: number | null;
   occupied: boolean;
   occupiedBy?: string | null; // patrocinador que ocupa a vitrine hoje
+  viewPriceMilli?: number | null; // preço de cada view, em milésimos de real (12 = R$ 0,012)
+  clickPriceMilli?: number | null; // preço de cada clique, em milésimos de real (800 = R$ 0,80)
+  elements?: AdElement[]; // o que a vitrine aceita do anúncio
+  category?: string; // entrada | feed | roleta | loja | clubes
+  categoryLabel?: string;
   active: boolean;
   diagram: { top: number; height: number }; // posição no mini desenho do celular (px)
 };
@@ -228,6 +235,10 @@ export type Campaign = {
   slotName: string;
   title: string;
   period: string;
+  start?: string | null; // AAAA-MM-DD
+  end?: string | null;
+  views?: number; // visualizações até hoje
+  clicks?: number;
   status: CampaignStatus;
   club?: string; // nome do cantor
   clubSlug?: string; // slug do cantor
@@ -251,6 +262,7 @@ export type Sponsor = {
   email: string;
   campaigns: number;
   status: "active" | "invited";
+  logo?: string | null; // logo / foto de perfil da marca
 };
 
 export type MemberStatus = "active" | "pending" | "canceled";
@@ -372,7 +384,7 @@ export type VitrineBooking = {
 };
 export type VitrineCard = {
   key: string; name: string; where: string; format: string; group: "entrada" | "feed" | "roleta" | "loja" | "outras";
-  clubSlug: string | null; clubName: string | null; priceCentsPerWeek: number | null; active: boolean;
+  clubSlug: string | null; clubName: string | null; priceCentsPerWeek: number | null; viewPriceMilli?: number | null; clickPriceMilli?: number | null; elements?: AdElement[]; active: boolean;
   diagramTop: number; diagramHeight: number; live: VitrineBooking | null; next: VitrineBooking | null;
 };
 export type VitrinesMap = { artist: string; cards: VitrineCard[] };
@@ -628,7 +640,9 @@ export type Rental = {
   days: number | null;
   status: "live" | "scheduled" | "ended";
   priceCentsPerWeek: number | null;
-  estimatedTotalCents: number | null;
+  viewPriceMilli?: number | null;
+  clickPriceMilli?: number | null;
+  estimatedTotalCents: number | null; // o que a campanha já consumiu (views e cliques até hoje pelo preço da vitrine)
 };
 
 // ---------- Chat privado entre fãs ----------
@@ -669,9 +683,16 @@ export type AdsPoint = { day: string; views: number; clicks: number };
 export type AdsCampaignStats = {
   id: string;
   title: string;
+  artist?: string | null; // cantor da vitrine (visão geral da plataforma)
+  artistSlug?: string | null;
   slotName: string;
   where: string;
   fanClub: string | null;
+  text?: string;
+  cta?: string;
+  url?: string;
+  artUrl?: string | null; // banner do anúncio
+  videoUrl?: string | null;
   status: "live" | "scheduled" | "ended";
   start: string | null;
   end: string | null;
@@ -690,5 +711,5 @@ export type AdsAnalytics = {
   clicks: number;
   ctr: number;
   series: AdsPoint[];
-  sponsors: { name: string; avatar?: string | null; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[] }[];
+  sponsors: { name: string; email?: string; avatar?: string | null; views: number; clicks: number; ctr: number; campaigns: AdsCampaignStats[] }[];
 };

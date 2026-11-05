@@ -54,7 +54,7 @@ export function AlugadasPorPatrocinador({ rentals }: { rentals: Rental[] }) {
               <span className="text-[13px] text-adm-muted">
                 {g.items.length} {g.items.length === 1 ? "vitrine" : "vitrines"}
                 {g.live > 0 ? ` · ${g.live} no ar agora` : ""}
-                {g.total > 0 ? ` · ${formatBRL(g.total)} estimados` : ""}
+                {g.total > 0 ? ` · ${formatBRL(g.total)} consumidos` : ""}
               </span>
             </div>
             <dl className="m-0 flex gap-6">
@@ -89,7 +89,7 @@ export function AlugadasPorPatrocinador({ rentals }: { rentals: Rental[] }) {
                   </span>
                   <span className="text-[12px] text-adm-muted">
                     {duration(r.days)}
-                    {r.estimatedTotalCents ? ` · ${formatBRL(r.estimatedTotalCents)}` : ""}
+                    {r.estimatedTotalCents ? ` · ${formatBRL(r.estimatedTotalCents)} consumidos` : ""}
                   </span>
                 </div>
                 <Badge tone={status[r.status].tone}>{status[r.status].label}</Badge>

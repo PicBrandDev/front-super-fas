@@ -133,7 +133,11 @@ export async function updateFanClub(slug: string, data: Record<string, unknown>)
   return res;
 }
 
-export async function updateAdSlot(slug: string, key: string, data: { active?: boolean; priceCents?: number }): Promise<Res> {
+export async function updateAdSlot(
+  slug: string,
+  key: string,
+  data: { active?: boolean; priceCents?: number; viewPriceMilli?: number; clickPriceMilli?: number; elements?: string[] },
+): Promise<Res> {
   // key da vitrine: "home" (ambiente) ou "fa-clube-sp.home" (fã clube)
   if (!slugOk(slug) || !/^[a-z0-9.-]+$/.test(key)) return bad("Pedido inválido.");
   return send("PATCH", `/artists/${slug}/ad-slots/${key}`, data);
@@ -149,6 +153,14 @@ export type SponsorInvited = { sponsor: { id: string; email: string }; tempPassw
 
 export async function inviteSponsor(data: { email: string; brand?: string }): Promise<Res<SponsorInvited>> {
   return send<SponsorInvited>("POST", "/admin/sponsors/invite", data);
+}
+
+/** Troca o logo (a foto de perfil) de um patrocinador (JPG, PNG ou WebP, até 5 MB). */
+export async function setSponsorLogo(sponsorId: string, form: FormData): Promise<Res> {
+  if (!idOk(sponsorId)) return bad("Pedido inválido.");
+  const res = await send("POST", `/admin/sponsors/${sponsorId}/logo`, form);
+  if (res.ok) revalidatePath("/admin", "layout");
+  return res;
 }
 
 /** Troca a foto de perfil de um fã clube (JPG, PNG ou WebP, até 5 MB). */

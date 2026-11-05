@@ -73,15 +73,17 @@ export function RadiusPicker({ value, onChange }: { value: Targeting; onChange: 
 export function PriceCalculator({
   value,
   onChange,
-  weeklyCents,
+  viewMilli,
+  clickMilli,
   weeks,
 }: {
   value: Targeting;
   onChange: (t: Targeting) => void;
-  weeklyCents?: number | null;
+  viewMilli?: number | null;
+  clickMilli?: number | null;
   weeks: number;
 }) {
-  const { lines, total } = adPrice({ weeklyCents, weeks, radiusKm: value.radiusKm, views: value.views, clicks: value.clicks });
+  const { lines, total } = adPrice({ viewMilli, clickMilli, radiusKm: value.radiusKm, views: value.views, clicks: value.clicks });
   const sug = suggestGoals(value.radiusKm, weeks);
   const ctr = value.views ? (value.clicks / value.views) * 100 : 0;
   const same = sug.views === value.views && sug.clicks === value.clicks;

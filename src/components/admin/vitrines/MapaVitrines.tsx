@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/admin/ui";
+import { priceByUse } from "@/app/admin/midia/slots";
 import { formatBRL } from "@/lib/format";
 import type { VitrineBooking, VitrineCard } from "@/lib/types";
 import { BannerPhone, PlacementPhone } from "./BannerPhone";
@@ -106,7 +107,7 @@ function Card({ c, mode, artist }: { c: VitrineCard; mode: "admin" | "sponsor"; 
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
-          <span className="font-adm-mono text-[12px] text-adm-muted">{c.priceCentsPerWeek ? `${formatBRL(c.priceCentsPerWeek)} por semana` : "Preço a combinar"}</span>
+          <span className="font-adm-mono text-[12px] text-adm-muted">{priceByUse(c.viewPriceMilli, c.clickPriceMilli)}</span>
           {mode === "sponsor" && !c.live && c.active && (
             <Link href="/patrocinador/nova" className="text-[13px] font-semibold text-adm-blue-dark">
               Anunciar aqui
