@@ -180,7 +180,7 @@ export function MuralView({
                 </div>
               </article>
               {(() => {
-                const every = feedAds[0]?.every ?? 1;
+                const every = feedAds[0]?.every ?? 2;
                 if (feedAds.length === 0 || (i + 1) % every !== 0) return null;
                 const ad = feedAds[((i + 1) / every - 1) % feedAds.length]; // alterna entre as marcas da vitrine
                 return <FeedAd key={`ad-${ad.id ?? ad.position}-${i}`} ad={ad} className={s.feedAd} />;

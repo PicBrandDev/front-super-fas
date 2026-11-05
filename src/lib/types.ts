@@ -204,7 +204,7 @@ export type HomeAd = {
 };
 
 /** Post patrocinado do feed: aparece depois do 4º, 8º, 12º ou 16º post. */
-/** Post patrocinado do feed: entra depois de cada `every` posts (1 no Mural, 2 nos fã clubes). */
+/** Post patrocinado do feed: entra depois de cada `every` posts (2, no Mural e nos fã clubes). */
 export type FeedAdItem = HomeAd & { position: number; every?: number };
 
 export type AdElement = "title" | "text" | "image" | "video";

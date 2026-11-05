@@ -134,13 +134,6 @@ export function PostCard({
       </div>
 
       <div className="ml-11">
-        <p className="mb-2 mt-3">{post.text}</p>
-        {post.quote && (
-          <blockquote className="mx-0 mb-0 mt-2 grid gap-1 border-l border-line-strong py-1 pl-3 text-[15px] leading-[22px]">
-            <span className="mono">Repost · Mural</span>
-            <span>{post.quote}</span>
-          </blockquote>
-        )}
         {image && (
           <div className="relative mt-3 aspect-[4/5] overflow-hidden rounded-hair bg-raised">
             {/* As duas primeiras fotos carregam já; as demais, perto de aparecer na tela. */}
@@ -153,6 +146,13 @@ export function PostCard({
               className="block h-full w-full object-cover"
             />
           </div>
+        )}
+        <p className="mb-2 mt-3">{post.text}</p>
+        {post.quote && (
+          <blockquote className="mx-0 mb-0 mt-2 grid gap-1 border-l border-line-strong py-1 pl-3 text-[15px] leading-[22px]">
+            <span className="mono">Repost · Mural</span>
+            <span>{post.quote}</span>
+          </blockquote>
         )}
         {post.kind === "instagram" && post.url && (
           <a href={post.url} target="_blank" rel="noopener noreferrer" className="go mt-2 min-h-11">

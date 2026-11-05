@@ -26,12 +26,12 @@ export type FollowedClub = { slug: string; name: string; avatar: string | null; 
 /**
  * Anúncio que entra depois do post de índice `i` (0-based) do feed já montado, ou null.
  * Conta pela posição na lista que aparece na tela (filtros e posts novos incluídos).
- * Filtrando por um fã clube, o anúncio dos fã clubes entra depois de cada CLUB_AD_EVERY posts.
- * Em "Todos", um post patrocinado das notícias entra uma vez, depois do post `newsAt` (sorteado no servidor).
+ * Um banner de patrocínio depois de cada CLUB_AD_EVERY posts, alternando entre as marcas (em "Todos" e no filtro de um fã clube).
+ * Sem nenhuma marca nos fã clubes, "Todos" mostra o post patrocinado das notícias uma vez, depois do post `newsAt`.
  */
-function adAfter(i: number, club: InAppAd[] | null, news: InAppAd | null, newsAt: number): InAppAd | null {
-  if (club) return club.length && (i + 1) % CLUB_AD_EVERY === 0 ? club[0] : null;
-  return news && i === newsAt ? news : null;
+function adAfter(i: number, pool: InAppAd[], news: InAppAd | null, newsAt: number, filtered: boolean): InAppAd | null {
+  if (pool.length) return (i + 1) % CLUB_AD_EVERY === 0 ? pool[((i + 1) / CLUB_AD_EVERY - 1) % pool.length] : null;
+  return !filtered && news && i === newsAt ? news : null;
 }
 
 /**
@@ -85,7 +85,8 @@ export function ComunidadeView({
     return !!c && followed.has(c);
   });
   const list = clube ? all.filter((p) => clubOf(p) === clube) : all;
-  const pool = clube ? (clubAds[clube] ?? []) : null;
+  // As marcas dos fã clubes: as do clube filtrado ou, em "Todos", as de todos os que o fã segue (sem repetir).
+  const pool = clube ? (clubAds[clube] ?? []) : [...new Map(Object.values(clubAds).flat().map((a) => [a.id, a])).values()];
   const countOf = (slug: string) => all.filter((p) => clubOf(p) === slug).length;
   const fresh = new Set(extra.map((p) => p.id));
 
@@ -141,7 +142,7 @@ export function ComunidadeView({
                 <p className="mono py-8">Nada por aqui ainda. Seja o primeiro do fã clube a postar.</p>
               ) : (
                 list.slice(0, shown).map((p, i) => {
-                  const ad = adAfter(i, pool, newsAd, newsAt);
+                  const ad = adAfter(i, pool, newsAd, newsAt, !!clube);
                   return (
                     <Fragment key={p.id}>
                       <PostCard post={p} index={i} showClub={!clube} fresh={fresh.has(p.id)} />
