@@ -76,6 +76,8 @@ services:
     environment:
       API_URL: http://api:8000
       JWT_SECRET: ${JWT_SECRET}
+      # Modo apresentação: "Meus ingressos" e "Minhas caronas" mostram exemplos para quem não tem nada (só na tela, nada é gravado).
+      DEMO_MEUS_DADOS: ${DEMO_MEUS_DADOS:-false}
     expose:
       - "3000"
 

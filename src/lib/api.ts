@@ -65,6 +65,7 @@ import type {
   ExperiencesOverview,
   CarpoolAdmin,
   MyCarpool,
+  CarpoolWho,
   Ranking,
   Ride,
   VitrinesMap,
@@ -434,9 +435,63 @@ export async function getExperienceBuyers(slug: string, eventId: string, key: st
   return res.ok ? ((await res.json()) as ExperienceBuyerPage) : null;
 }
 
+/**
+ * Modo apresentação (DEMO_MEUS_DADOS=true no servidor do site): "Meus ingressos" e "Minhas caronas" mostram exemplos para quem
+ * ainda não tem nada, para o cliente ver as telas cheias. Só aparece na tela: não grava nada e some quando a chave é desligada.
+ */
+const DEMO_MEUS_DADOS = process.env.DEMO_MEUS_DADOS === "true";
+
+const brDate = (daysAgo: number) => {
+  const d = new Date(Date.now() - daysAgo * 86_400_000);
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+};
+const upcoming = (events: ShowEvent[]) => events.filter((e) => !e.date || e.date >= new Date().toISOString().slice(0, 10));
+
+function demoTickets(events: ShowEvent[]): MyTicket[] {
+  const ev = upcoming(events).slice(0, 4);
+  const plan: Omit<MyTicket, "id" | "eventId" | "event">[] = [
+    { packageName: "Ingresso + transfer", agencyName: "Rota Show Turismo", label: "Camarote + transfer + Jantar com o Vintage + Meet & greet no camarim", kind: "transfer", priceCents: 164000, includesTransfer: true, includesSeal: true, includesPhotoFinder: true, bought: brDate(9) },
+    { packageName: "Pacote com Photo Finder", agencyName: "Caravana Vintage", label: "Pista + transfer + selo + Photo Finder", kind: "photo", priceCents: 29000, includesTransfer: true, includesSeal: true, includesPhotoFinder: true, bought: brDate(6) },
+    { packageName: "Experiências", agencyName: "Rota Show Turismo", label: "Meet & greet no camarim + After", kind: "extras", priceCents: 78000, includesTransfer: false, includesSeal: false, includesPhotoFinder: true, bought: brDate(4) },
+    { packageName: "Experiências", agencyName: "Night Express Transfer", label: "After", kind: "extras", priceCents: 18000, includesTransfer: false, includesSeal: false, includesPhotoFinder: true, bought: brDate(2) },
+  ];
+  return ev.map((e, i) => ({ id: `demo-ingresso-${i + 1}`, eventId: e.id, event: e, ...plan[i % plan.length] }));
+}
+
+function demoCarpool(events: ShowEvent[]): MyCarpool {
+  const [a, b] = upcoming(events);
+  if (!a) return { offered: [], booked: [] };
+  const when = (e: ShowEvent, hour: number) => `${e.date ?? new Date().toISOString().slice(0, 10)}T${String(hour).padStart(2, "0")}:00:00-03:00`;
+  const me: CarpoolWho = { id: "demo-eu", name: "Você", handle: "@voce", avatar: null };
+  const ana: CarpoolWho = { id: "demo-ana", name: "Ana Beatriz", handle: "@ana.bea", avatar: null };
+  const bruno: CarpoolWho = { id: "demo-bruno", name: "Bruno Alves", handle: "@bruno.a", avatar: null };
+  const camila: CarpoolWho = { id: "demo-camila", name: "Camila Duarte", handle: "@cami.d", avatar: null };
+  const paid = (id: string, passenger: CarpoolWho | null, seats: number, price: number, method: "pix" | "cartao") => ({
+    id, seats, amountCents: seats * price, paymentMethod: method, status: "paid" as const, expiresAt: null, passenger,
+  });
+  const ofertada: Ride = {
+    id: "demo-carona-1", eventId: a.id, city: a.city, venue: a.venue, address: a.address, originCity: "Campinas", meetingPoint: "Posto Shell, Av. John Boyd Dunlop",
+    departAt: when(a, 15), seatsTotal: 4, seatsLeft: 2, priceCents: 4500, car: "Honda Civic prata", notes: "Saída 17h, volta depois do show.", status: "open",
+    driver: me, mine: true, myBooking: null,
+    passengers: [paid("demo-res-1", ana, 1, 4500, "pix"), paid("demo-res-2", bruno, 1, 4500, "cartao")],
+  };
+  const reservaDe: Ride = {
+    id: "demo-carona-2", eventId: (b ?? a).id, city: (b ?? a).city, venue: (b ?? a).venue, address: (b ?? a).address, originCity: "Brasília", meetingPoint: "Park Shopping, Setor Industrial Sul",
+    departAt: when(b ?? a, 9), seatsTotal: 3, seatsLeft: 1, priceCents: 6000, car: "HB20 branco", notes: "Aceito malas pequenas.", status: "open",
+    driver: camila, mine: false, myBooking: null, passengers: [],
+  };
+  const minha = paid("demo-res-3", me, 1, 6000, "pix");
+  return { offered: [ofertada], booked: [{ ...minha, ride: { ...reservaDe, myBooking: minha } }] };
+}
+
 /** Caronas: viagens abertas de um show, as minhas e a visão da administração. */
 export const getRides = (slug: string, eventId: string) => get<Ride[]>(`/artists/${slug}/carpool/events/${eventId}/rides`, () => [] as Ride[]);
-export const getMyCarpool = (slug: string) => get<MyCarpool>(`/artists/${slug}/carpool/me`, () => ({ offered: [], booked: [] }));
+export const getMyCarpool = async (slug: string): Promise<MyCarpool> => {
+  const mine = await get<MyCarpool>(`/artists/${slug}/carpool/me`, () => ({ offered: [], booked: [] }));
+  // Modo apresentação: quem ainda não tem carona vê exemplos na tela (nada é gravado no banco).
+  if (DEMO_MEUS_DADOS && mine.offered.length === 0 && mine.booked.length === 0) return demoCarpool(await getEvents(slug));
+  return mine;
+};
 export const getCarpoolAdmin = (slug: string) => get<CarpoolAdmin | null>(`/artists/${slug}/manage/carpool`, () => null, { notFound: null });
 
 /** GET /artists/{slug}/subscribers-analytics */
@@ -457,7 +512,12 @@ export const getMe = () => get<{ name: string; email: string; avatar?: string | 
 export const getRanking = (slug: string) => get<Ranking | null>(`/artists/${slug}/ranking`, () => null);
 
 /** GET /artists/{slug}/me/tickets: os ingressos que o fã comprou. */
-export const getMyTickets = (slug: string) => get<MyTicket[]>(`/artists/${slug}/me/tickets`, () => [] as MyTicket[]);
+export const getMyTickets = async (slug: string): Promise<MyTicket[]> => {
+  const list = await get<MyTicket[]>(`/artists/${slug}/me/tickets`, () => [] as MyTicket[]);
+  // Modo apresentação: quem ainda não tem ingresso vê exemplos na tela (nada é gravado no banco).
+  if (DEMO_MEUS_DADOS && list.length === 0) return demoTickets(await getEvents(slug));
+  return list;
+};
 
 /** GET /artists/{slug}/pickup/spins: os giros do fã, cada um com o motivo. */
 export const getSpinCredits = (slug: string) => get<SpinCredit[]>(`/artists/${slug}/pickup/spins`, () => [] as SpinCredit[]);
