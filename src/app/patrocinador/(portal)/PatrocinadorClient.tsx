@@ -9,7 +9,8 @@ import { AdPhonePreview } from "@/components/sponsor/AdPhonePreview";
 import { PriceCalculator, RadiusPicker, type Targeting } from "@/components/sponsor/AdTargeting";
 import { Icon } from "@/components/icons";
 import { adPrice, weeksBetween } from "@/lib/ad-pricing";
-import { formatBRL } from "@/lib/format";
+import { formatBRL, initialsOf } from "@/lib/format";
+import { thumb } from "@/lib/thumb";
 import { themeStyle, type ArtistTheme } from "@/lib/themes";
 import type { AdSlot } from "@/lib/types";
 
@@ -76,7 +77,7 @@ export function PatrocinadorClient({
   /** Vitrines por lugar: chave "cantor" (ambiente) ou "cantor/fã-clube". */
   slotsByClub: Record<string, AdSlot[]>;
   /** Fã clubes de cada cantor onde dá para anunciar (além do ambiente). */
-  placesByClub: Record<string, { slug: string; name: string }[]>;
+  placesByClub: Record<string, { slug: string; name: string; avatar?: string | null; members?: number }[]>;
   /** Sem API: os preços e datas são placeholders do mock. */
   exampleMode?: boolean;
   /** Anúncio já preenchido ao abrir (e ao começar outra campanha). */
@@ -364,7 +365,11 @@ export function PatrocinadorClient({
                 <button
                   key={c.slug}
                   type="button"
-                  onClick={() => ready && pickClub(c.slug)}
+                  onClick={() => {
+                    if (!ready) return;
+                    pickClub(c.slug);
+                    goTo(2); // escolheu o cantor: já vai para as vitrines dele
+                  }}
                   disabled={!ready}
                   aria-pressed={on}
                   className={`group relative flex flex-col gap-5 overflow-hidden ${c.square ? "rounded-none" : "rounded-2xl"} p-5 text-left transition-transform ${
@@ -454,105 +459,101 @@ export function PatrocinadorClient({
             </div>
           )}
 
-          <div role="radiogroup" aria-label="Ambiente ou fã clube" className="flex flex-wrap gap-2">
-            {[{ slug: "", name: `Ambiente de ${clubName}`, hint: "todos os fãs" }, ...places.map((p) => ({ slug: p.slug, name: `Fã clube ${p.name}`, hint: "só os membros" }))].map((o) => {
-              const on = place === o.slug;
+          {(() => {
+            // As vitrines são únicas: valem para o ambiente do cantor e para todos os fã clubes dele.
+            const groups = [
+              { place: "", name: `Vitrines de ${clubName}`, hint: "o anúncio aparece para todos os fãs e em todos os fã clubes do cantor", avatar: null as string | null, list: (slotsByClub[club?.slug ?? ""] ?? []).filter((v) => v.active) },
+            ];
+            const card = (v: AdSlot, g: (typeof groups)[number]) => {
+              const on = g.place === place && v.id === slotId;
               return (
                 <button
-                  key={o.slug || "ambiente"}
+                  key={v.id}
                   type="button"
-                  role="radio"
-                  aria-checked={on}
                   onClick={() => {
-                    setPlace(o.slug);
-                    setSlotId(null);
+                    setPlace(g.place);
+                    setSlotId(v.id);
                   }}
-                  className={`flex cursor-pointer flex-col items-start rounded-xl border-2 px-4 py-2.5 text-left ${on ? "border-adm-ink bg-adm-ink text-white" : "border-adm-line bg-white text-adm-ink hover:border-adm-input"}`}
+                  disabled={v.occupied}
+                  aria-pressed={on}
+                  className={`flex flex-col gap-3 rounded-2xl border-2 p-4 text-left text-adm-ink ${
+                    on ? "border-adm-ink bg-adm-blue-tint shadow-md" : "border-adm-line bg-white"
+                  } ${v.occupied ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-adm-input"}`}
                 >
-                  <strong className="text-sm font-bold">{o.name}</strong>
-                  <span className={`text-xs ${on ? "text-white/70" : "text-adm-muted"}`}>{o.hint}</span>
+                  <span className="flex items-start gap-3.5">
+                    <SlotDiagram small top={Math.round(v.diagram.top * 0.9)} height={Math.round(v.diagram.height * 0.9)} />
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <strong className="text-base font-bold leading-5">{v.name}</strong>
+                      <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
+                    </span>
+                    {on && (
+                      <span aria-hidden="true" className="flex size-6 flex-none items-center justify-center rounded-full bg-adm-ink text-white">
+                        <Icon name="check" size={14} strokeWidth={3} />
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex flex-wrap gap-1.5">
+                    {(v.elements ?? []).map((e) => (
+                      <span key={e} className="rounded-full bg-adm-bg px-2.5 py-0.5 text-[11px] font-semibold text-adm-muted">
+                        {ELEMENTS.find((x) => x.id === e)?.label ?? e}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="grid grid-cols-2 gap-2">
+                    <span className="flex flex-col rounded-lg bg-adm-bg px-3 py-2">
+                      <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">Por view</span>
+                      <strong className="font-adm-mono text-[15px]">{v.viewPriceMilli ? milliBrl(v.viewPriceMilli) : "—"}</strong>
+                    </span>
+                    <span className="flex flex-col rounded-lg bg-adm-bg px-3 py-2">
+                      <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">Por clique</span>
+                      <strong className="font-adm-mono text-[15px]">{v.clickPriceMilli ? milliBrl(v.clickPriceMilli) : "—"}</strong>
+                    </span>
+                  </span>
+                  <span className={`self-start rounded-full px-2.5 py-1 text-xs font-semibold ${v.occupied ? "bg-adm-off-bg text-adm-off" : "bg-adm-ok-bg text-adm-ok"}`}>
+                    {v.occupied ? occupiedLabel(exampleMode, v.occupiedBy) : "Disponível"}
+                  </span>
                 </button>
               );
-            })}
-          </div>
-          {places.length === 0 && <p className="m-0 -mt-2 text-xs text-adm-muted">Este cantor ainda não tem fã clubes no ar: o anúncio vai para todo o ambiente, para todos os fãs.</p>}
-
-          {slots.length === 0 && (
-            <AdminEmpty
-              title="Nenhuma vitrine disponível aqui"
-              text={place ? "Escolha outro lugar: este fã clube ainda não abriu vitrines." : "Escolha outro cantor ou fã clube, ou volte mais tarde."}
-            />
-          )}
-
-          {CATEGORIES.map((cat) => {
-            const list = slots.filter((v) => (v.category ?? "feed") === cat.id);
-            if (list.length === 0) return null;
-            return (
-              <div key={cat.id} className="flex flex-col gap-3">
-                <div className="flex flex-col">
-                  <h3 className="m-0 font-display text-2xl font-black">
-                    {cat.label} <span className="font-adm-mono text-sm font-semibold text-adm-muted">{list.length}</span>
-                  </h3>
-                  <span className="text-[13px] text-adm-muted">{cat.hint}</span>
-                </div>
-                <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))]">
-                  {list.map((v) => {
-                    const on = v.id === slotId;
-                    return (
-                      <button
-                        key={v.id}
-                        type="button"
-                        onClick={() => setSlotId(v.id)}
-                        disabled={v.occupied}
-                        aria-pressed={on}
-                        className={`flex flex-col gap-3 rounded-2xl border-2 p-4 text-left text-adm-ink ${
-                          on ? "border-adm-ink bg-adm-blue-tint shadow-md" : "border-adm-line bg-white"
-                        } ${v.occupied ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-adm-input"}`}
+            };
+            if (groups.every((g) => g.list.length === 0))
+              return <AdminEmpty title="Nenhuma vitrine disponível" text="Escolha outro cantor, ou volte mais tarde." />;
+            return groups
+              .filter((g) => g.list.length > 0)
+              .map((g) => (
+                <div key={g.place || "ambiente"} className="flex flex-col gap-4 rounded-2xl border border-adm-line bg-white p-5">
+                  <div className="flex items-center gap-3">
+                    {g.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- foto de perfil do fã clube
+                      <img src={thumb(g.avatar, 48)} alt="" width={48} height={48} className="size-12 flex-none rounded-full object-cover" />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex size-12 flex-none items-center justify-center rounded-full text-base font-black"
+                        style={g.place ? { background: "#E4E4E4", color: "#111" } : { background: club?.theme.amber, color: club?.theme.onAmber }}
                       >
-                        <span className="flex items-start gap-3.5">
-                          <SlotDiagram small top={Math.round(v.diagram.top * 0.9)} height={Math.round(v.diagram.height * 0.9)} />
-                          <span className="flex min-w-0 flex-1 flex-col gap-1">
-                            <strong className="text-base font-bold leading-5">{v.name}</strong>
-                            <span className="text-[13px] leading-[1.4] text-adm-muted">{v.where}</span>
-                          </span>
-                          {on && (
-                            <span aria-hidden="true" className="flex size-6 flex-none items-center justify-center rounded-full bg-adm-ink text-white">
-                              <Icon name="check" size={14} strokeWidth={3} />
-                            </span>
-                          )}
-                        </span>
-
-                        <span className="flex flex-wrap gap-1.5">
-                          {(v.elements ?? []).map((e) => (
-                            <span key={e} className="rounded-full bg-adm-bg px-2.5 py-0.5 text-[11px] font-semibold text-adm-muted">
-                              {ELEMENTS.find((x) => x.id === e)?.label ?? e}
-                            </span>
-                          ))}
-                        </span>
-
-                        <span className="grid grid-cols-2 gap-2">
-                          <span className="flex flex-col rounded-lg bg-adm-bg px-3 py-2">
-                            <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">Por view</span>
-                            <strong className="font-adm-mono text-[15px]">{v.viewPriceMilli ? milliBrl(v.viewPriceMilli) : "—"}</strong>
-                          </span>
-                          <span className="flex flex-col rounded-lg bg-adm-bg px-3 py-2">
-                            <span className="font-adm-mono text-[10px] font-semibold uppercase text-adm-muted">Por clique</span>
-                            <strong className="font-adm-mono text-[15px]">{v.clickPriceMilli ? milliBrl(v.clickPriceMilli) : "—"}</strong>
-                          </span>
-                        </span>
-
-                        <span
-                          className={`self-start rounded-full px-2.5 py-1 text-xs font-semibold ${v.occupied ? "bg-adm-off-bg text-adm-off" : "bg-adm-ok-bg text-adm-ok"}`}
-                        >
-                          {v.occupied ? occupiedLabel(exampleMode, v.occupiedBy) : "Disponível"}
-                        </span>
-                      </button>
+                        {g.place ? initialsOf(g.name).slice(0, 2) : club?.initial}
+                      </span>
+                    )}
+                    <span className="flex flex-col">
+                      <strong className="font-display text-2xl font-black leading-7">{g.name}</strong>
+                      <span className="text-[13px] text-adm-muted">{g.hint}</span>
+                    </span>
+                  </div>
+                  {CATEGORIES.map((cat) => {
+                    const list = g.list.filter((v) => (v.category ?? "feed") === cat.id);
+                    if (list.length === 0) return null;
+                    return (
+                      <div key={cat.id} className="flex flex-col gap-3">
+                        <h3 className="m-0 text-sm font-bold uppercase tracking-wider text-adm-muted">
+                          {cat.label} <span className="font-adm-mono">{list.length}</span>
+                        </h3>
+                        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))]">{list.map((v) => card(v, g))}</div>
+                      </div>
                     );
                   })}
                 </div>
-              </div>
-            );
-          })}
+              ));
+          })()}
         </section>
       )}
 

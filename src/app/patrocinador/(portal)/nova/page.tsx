@@ -32,13 +32,13 @@ export default async function NovaCampanhaPage() {
   const artists = all.filter((a) => a.status === "active");
   // Vitrines do ambiente de cada cantor ("cantor") e de cada fã clube no ar ("cantor/clube").
   const slotsByClub: Record<string, AdSlot[]> = {};
-  const placesByClub: Record<string, { slug: string; name: string }[]> = {};
+  const placesByClub: Record<string, { slug: string; name: string; avatar?: string | null; members: number }[]> = {};
   await Promise.all(
     artists.map(async (a) => {
       const [envSlots, clubs] = await Promise.all([getAdSlots(a.slug), getClubs(a.slug)]);
       slotsByClub[a.slug] = envSlots;
       const live = clubs.filter((c) => c.status === "active");
-      placesByClub[a.slug] = live.map((c) => ({ slug: c.slug, name: c.name }));
+      placesByClub[a.slug] = live.map((c) => ({ slug: c.slug, name: c.name, avatar: c.avatar, members: c.members }));
       await Promise.all(
         live.map(async (c) => {
           slotsByClub[`${a.slug}/${c.slug}`] = await getClubAdSlots(a.slug, c.slug);
