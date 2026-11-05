@@ -52,9 +52,12 @@ export function ClubWall({
           list.map((p, i) => (
             <Fragment key={p.id}>
               <PostCard post={p} index={i} showClub={false} fresh={fresh.has(p.id)} />
-              {feedAds.filter((a) => (i + 1) % (a.every ?? 2) === 0).map((a) => (
-                <FeedAd key={`ad-${a.id ?? a.position}-${i}`} ad={a} className="!px-0" />
-              ))}
+              {(() => {
+                const every = feedAds[0]?.every ?? 2;
+                if (feedAds.length === 0 || (i + 1) % every !== 0) return null;
+                const ad = feedAds[((i + 1) / every - 1) % feedAds.length]; // alterna entre as marcas da vitrine
+                return <FeedAd key={`ad-${ad.id ?? ad.position}-${i}`} ad={ad} className="!px-0" />;
+              })()}
             </Fragment>
           ))
         )}
