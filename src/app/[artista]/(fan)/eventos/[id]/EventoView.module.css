@@ -213,3 +213,16 @@
   font-weight: 900;
   letter-spacing: -0.035em;
 }
+
+/* ANITTA: herói do evento na lâmina creme com o número vermelho (como a lâmina de data da Agenda). */
+:global([data-brand="anitta"]) .ehero {
+  background: var(--fc-paper);
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="anitta"]) .ehero :global(.mono) {
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="anitta"]) .ehero .m {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

@@ -2,10 +2,10 @@
  * Cartazes do Mural: dados prontos para o cliente, montados no servidor
  * (page.tsx) a partir da API. Sem imports de lib/api aqui.
  */
-import { brandByKey, type ArtistBrand } from "@/lib/brands";
+import { brandByKey, type ArtistBrand, type PosterKind } from "@/lib/brands";
 import type { MediaImage, Post, Product, ShowEvent, Track } from "@/lib/types";
 
-export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
+export type { PosterKind };
 
 export type Poster = {
   id: string;
@@ -32,6 +32,10 @@ export type Poster = {
   likes: number;
   comments: number;
   reposts: number;
+  /** Carta de tarô (pele com `posters.card`): numeral do topo, plaqueta embaixo e texto da lateral direita. */
+  numeral?: string;
+  plaque?: string;
+  side?: string;
 };
 
 /** "2,4 mil" como no protótipo. */
@@ -64,15 +68,6 @@ const MONTHS: Record<string, string> = {
   dez: "dezembro",
 };
 
-/** Manchete da loja do Departamento: os itens se chamam `1-800-<ITEM>`; o número de serviço fica numa linha. */
-function storeHeadline(product: Product | null): string[] {
-  const name = product?.name.trim().toUpperCase() ?? "";
-  const m = name.match(/^1-800-(.+)$/);
-  if (!m) return ["1-800-", "Store"];
-  const item = m[1].split("-").filter(Boolean);
-  return ["1-800-", item[item.length - 1]];
-}
-
 export function buildPosters({
   artistName,
   drops,
@@ -95,7 +90,7 @@ export function buildPosters({
   /** Pele do artista: assinatura, PicKup e loja mudam de voz (as funções dos cartazes são as mesmas). */
   brand?: ArtistBrand;
 }): Poster[] {
-  const dp = brand.key === "departamento";
+  const kit = brand.posters; // cartazes no padrão do kit (Departamento, Anitta); sem isso, os moldes do Vintage
   const out: Poster[] = [];
   const molds: PosterKind[] = ["lost", "culture"];
   const ex = demo ? " · Exemplo" : "";
@@ -128,8 +123,8 @@ export function buildPosters({
       by: artistName,
       text: brand.mottoText,
       headline: brand.motto,
-      credits: [artistName, dp ? "Worldwide 2027 ®" : "Fanzone"],
-      image: dp ? null : hero, // o Departamento não usa foto dos integrantes: o cartaz é tipo + "?"
+      credits: [artistName, kit ? kit.legal : "Fanzone"],
+      image: kit ? null : hero, // no padrão do kit o cartaz é tipo + glifo, sem foto do artista
       cta: null,
       likes: 5100,
       comments: 902,
@@ -163,9 +158,9 @@ export function buildPosters({
     kind: "pick",
     cap: "PicKup",
     by: "Fanzone",
-    text: `${dp ? "PicKup" : "PicKup da sorte"} aberto para todos os fãs. Gira, concorre e vê o seu brinde na hora.`,
-    headline: dp ? ["PicKup"] : ["Tente", "a", "sorte"],
-    credits: dp ? ["Aberto", "Dancing Service"] : ["PicKup da sorte"],
+    text: `${kit ? "PicKup" : "PicKup da sorte"} aberto para todos os fãs. Gira, concorre e vê o seu brinde na hora.`,
+    headline: kit ? kit.pick.headline : ["Tente", "a", "sorte"],
+    credits: kit ? [kit.pick.tag, kit.pick.micro] : ["PicKup da sorte"],
     cta: { label: "Girar", href: "/pickup" },
     likes: 960,
     comments: 120,
@@ -177,17 +172,30 @@ export function buildPosters({
     kind: "store",
     cap: "Loja",
     by: "Fanzone",
-    text: dp
+    text: kit
       ? `${product?.name ?? "A coleção"} na ${brand.store.name}: a marca de ${artistName}, direto para o fan club.`
       : `Loja VINTAGE na fanzone: a marca de ${artistName}, direto para o fan club.`,
-    headline: dp ? storeHeadline(product) : ["Vin", "tage"],
-    credits: dp ? [brand.store.name + ex, product?.priceLabel ?? "Fanzone"] : ["Loja oficial" + ex, product?.name ?? "Fanzone"],
+    headline: kit ? kit.storeHeadline(product?.name ?? "") : ["Vin", "tage"],
+    credits: kit ? [brand.store.name + ex, product?.priceLabel ?? "Fanzone"] : ["Loja oficial" + ex, product?.name ?? "Fanzone"],
     image: productImg,
     cta: { label: "Ver loja", href: "/loja" },
     likes: 1200,
     comments: 96,
     reposts: 150,
   });
+
+  // Cartas de tarô: cada molde tem o seu numeral; a plaqueta dá o nome da carta e a lateral, a data ou o lugar.
+  const card = kit?.card;
+  if (card) {
+    for (const p of out) {
+      p.numeral = card.numerals[p.kind];
+      if (p.kind === "lost") Object.assign(p, { plaque: card.plaques.lost, side: p.credits[1] });
+      if (p.kind === "culture") Object.assign(p, { plaque: card.plaques.culture, side: card.sides.culture });
+      if (p.kind === "date" && event) Object.assign(p, { plaque: event.venue, side: event.city });
+      if (p.kind === "pick") Object.assign(p, { plaque: card.plaques.pick, side: card.sides.pick });
+      if (p.kind === "store") Object.assign(p, { plaque: brand.store.name, side: product?.priceLabel ?? "" });
+    }
+  }
 
   // PicKup e Loja (os dois últimos) abrem o Mural; os Drops, a data e a foto do artista vêm depois.
   const [pickup, store] = out.splice(-2);

@@ -15,7 +15,16 @@ const SIZE: Record<ShareFormat, { w: number; h: number }> = {
 const SANS = 'Archivo, "Helvetica Neue", Arial, sans-serif';
 
 /** Cores e letra da arte de cada marca (canvas não lê as variáveis --fc-*). */
-type Look = { bg: string; warm: string; accent: string; fade: string; display: string; upper: boolean };
+type Look = {
+  bg: string;
+  warm: string;
+  accent: string;
+  fade: string;
+  display: string;
+  upper: boolean;
+  /** Variável CSS da fonte da pele (next/font dá um nome de família próprio; o canvas precisa dele). */
+  fontVar?: string;
+};
 const LOOKS: Record<BrandKey, Look> = {
   vintage: {
     bg: "#120907",
@@ -27,6 +36,8 @@ const LOOKS: Record<BrandKey, Look> = {
   },
   // Departamento: campo azul elétrico chapado (sem degradê), tinta branca, grotesca em caixa alta.
   departamento: { bg: "#0000FF", warm: "#0000FF", accent: "#FFFFFF", fade: "16,16,16", display: SANS, upper: true },
+  // Anitta: céu azul-noite chapado, hashtag em ouro, Averia Serif Libre em caixa alta.
+  anitta: { bg: "#0A1A31", warm: "#0A1A31", accent: "#EAC62E", fade: "10,26,49", display: "Georgia, serif", upper: true, fontVar: "--font-averia" },
 };
 
 async function loadImage(src: string): Promise<HTMLImageElement | null> {
@@ -81,7 +92,7 @@ export async function buildShareArt({
   const { w, h } = SIZE[format];
   const look = LOOKS[brand];
   const BG = look.bg;
-  const SERIF = look.display;
+  const SERIF = (look.fontVar && getComputedStyle(document.documentElement).getPropertyValue(look.fontVar).trim()) || look.display;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;

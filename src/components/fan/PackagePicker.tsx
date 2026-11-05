@@ -24,8 +24,8 @@ export function PackagePicker({
   onToggleAddon: (packageId: string, key: string) => void;
   labelledBy?: string;
 }) {
-  const { short } = useBrand();
-  const hintOf = (key: string) => experienceHint(key, short);
+  const { the } = useBrand();
+  const hintOf = (key: string) => experienceHint(key, the);
   const several = packages.length > 1;
 
   return (

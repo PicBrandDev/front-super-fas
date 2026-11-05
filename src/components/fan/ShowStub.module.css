@@ -74,3 +74,17 @@
   text-transform: uppercase;
   letter-spacing: -0.03em;
 }
+
+/* ANITTA: lâmina de data creme com o número no vermelho do cabeçalho; nome em Averia 700 caixa alta. */
+:global([data-brand="anitta"]) .slab:not(.past) {
+  background: var(--fc-paper);
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="anitta"]) .slab:not(.past) :global(.mono) {
+  color: var(--fc-mast, var(--fc-amber));
+}
+:global([data-brand="anitta"]) .name {
+  font: 700 21px/22px var(--fc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}

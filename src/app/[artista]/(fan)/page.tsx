@@ -15,6 +15,7 @@ import { brandFor } from "@/lib/brands";
 import { isPastEvent } from "@/lib/events";
 import { mediaFor, productImage } from "@/lib/media";
 import { thumb } from "@/lib/thumb";
+import { KitPoster } from "./mural/MuralView";
 
 /** Título de bloco do Início (`.sect h3` do protótipo). */
 function Block({ title, children, flush = false }: { title: string; children: ReactNode; flush?: boolean }) {
@@ -72,16 +73,38 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
         </Link>
       )}
       <HomeMuralSwitch base={base} current="inicio" />
-      <Masthead word="Início" steps={1} />
+      <Masthead word="Início" tone="sky" steps={1} />
 
-      {brand.key === "departamento" ? (
-        /* Cartaz de abertura do Departamento (campo B): papel branco, tinta azul, "?" gigante cortado, sem foto. */
+      {brand.posters?.card ? (
+        /* Cartaz de abertura em carta de tarô (Anitta): o molde B (assinatura) dentro da moldura, como no Mural. */
+        <>
+          <KitPoster
+            p={{
+              id: "abertura",
+              kind: "culture",
+              cap: "Oficial",
+              by: artist.name,
+              text: brand.mottoText,
+              headline: brand.motto,
+              credits: [artist.name, brand.posters.legal],
+              likes: 0,
+              comments: 0,
+              reposts: 0,
+              numeral: brand.posters.card.numerals.culture,
+              plaque: brand.posters.card.plaques.culture,
+              side: brand.posters.card.sides.culture,
+            }}
+          />
+          <h2 className="sr-only">{brand.mottoText}</h2>
+        </>
+      ) : brand.posters ? (
+        /* Cartaz de abertura no padrão do kit (campo B; Departamento: papel branco, tinta azul, "?" gigante cortado, sem foto). */
         <div className="@container relative aspect-[4/5] overflow-hidden border-t border-line bg-paper text-amber">
           <span className="absolute left-[4.5cqw] top-[4.5cqw] font-grotesk font-bold uppercase leading-[1.25] tracking-[0.06em]" style={{ fontSize: "max(11px, 2.9cqw)" }}>
             {artist.name}
           </span>
           <div aria-hidden="true" className="poster absolute bottom-[-15cqw] right-[-3cqw] text-[100cqw] leading-[0.8] tracking-[-0.05em]">
-            ?
+            {brand.posters.glyph}
           </div>
           <div aria-hidden="true" className="poster absolute left-[4.5cqw] top-[13cqw] whitespace-nowrap text-[17cqw] leading-[0.88]">
             {brand.motto.map((w, i) => (
@@ -92,10 +115,10 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
             ))}
           </div>
           <div aria-hidden="true" className="absolute left-[4.5cqw] top-[44.5cqw] whitespace-nowrap font-grotesk text-[5.1cqw] font-bold uppercase leading-none tracking-[0.02em]">
-            1-800-Departamento
+            {brand.posters.micro}
           </div>
           <span className="absolute bottom-[4.5cqw] left-[4.5cqw] font-grotesk font-bold uppercase leading-[1.25] tracking-[0.06em]" style={{ fontSize: "max(11px, 2.9cqw)" }}>
-            Worldwide 2027 ®
+            {brand.posters.legal}
           </span>
           <h2 className="sr-only">{brand.mottoText}</h2>
         </div>

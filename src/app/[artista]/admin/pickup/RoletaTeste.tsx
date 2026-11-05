@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { TT, Turntable, norm, recordAngleFor, type WheelVariant } from "@/components/fan/Turntable";
+import type { BrandKey } from "@/lib/brands";
 
 type Slice = { label: string; remaining: number | null };
 
@@ -9,7 +10,7 @@ type Slice = { label: string; remaining: number | null };
  * A roleta do fã clube que o admin pode girar para testar: o mesmo disco que o fã vê. Girar aqui é só uma simulação:
  * não gasta giro, não tira do estoque e não aparece no histórico. O resultado é sorteado entre as fatias que ainda têm brinde.
  */
-export function RoletaTeste({ prizes, variant, initial }: { prizes: Slice[]; variant: WheelVariant; initial: number }) {
+export function RoletaTeste({ prizes, variant, brand, initial }: { prizes: Slice[]; variant: WheelVariant; brand?: BrandKey; initial: number }) {
   const n = prizes.length;
   const [rot, setRot] = useState(recordAngleFor(initial, n, variant));
   const [on, setOn] = useState(initial);
@@ -49,6 +50,7 @@ export function RoletaTeste({ prizes, variant, initial }: { prizes: Slice[]; var
       >
         <Turntable
           variant={variant}
+          brand={brand}
           prizes={prizes.map((p) => p.label)}
           deck
           live

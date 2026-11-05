@@ -62,7 +62,46 @@ export const media: Record<string, ArtistMedia> = {
     productFallback: [teeLost, teeFind, teeBootleg, tee93, storeLost, storeFind, store1],
   },
   departamento: dpMedia(),
+  anitta: anittaMedia(),
 };
+
+/**
+ * Anitta: fotos oficiais de produto da Anitta Shop (anitta-fanzone-refs/06-store, só peças sem pessoas) e a capa de
+ * EQUILIBRIVM II (cartaz do lançamento, em brands.ts). Sem foto da artista (política da pasta de identidade): o Início e o
+ * Mural usam cartas de tipo, e os posts com foto ficam sem imagem até o press kit da Rodamoinho.
+ * TODO oficial: confirmar a licença das fotos de produto e pedir a capa em alta (GAPS A-01, A-05).
+ */
+function anittaMedia(): ArtistMedia {
+  const an = (file: string) => `/media/anitta/${file}`;
+  const sun: MediaImage = { src: an("equilibrivm-sun-tee.jpg"), alt: "Camiseta rosa EQUILIBRIVM SUN, frente e costas, com o sol da era" };
+  const water: MediaImage = { src: an("equilibrivm-water-tee.jpg"), alt: "Camiseta EQUILIBRIVM WATER, frente e costas, com jarros d'água" };
+  const moon: MediaImage = { src: an("equilibrivm-moon-tee.jpg"), alt: "Camiseta EQUILIBRIVM MOON, frente e costas, com a lua" };
+  const hand: MediaImage = { src: an("equilibrivm-hand-sweatshirt.jpg"), alt: "Moletom EQUILIBRIVM HAND, frente e costas" };
+  const hoodie: MediaImage = { src: an("baile-funk-hoodie.jpg"), alt: "Moletom com capuz BAILE FUNK" };
+  const bandana: MediaImage = { src: an("sao-paulo-bandana.jpg"), alt: "Bandana São Paulo Game" };
+  return {
+    hero: null,
+    press: [],
+    products: {
+      // ids e nomes inteiros do catálogo da Anitta Shop
+      "equilibrivm-sun-t-shirt": sun,
+      "equilibrivm-water-t-shirt": water,
+      "equilibrivm-moon-t-shirt": moon,
+      "equilibrivm-hand-sweatshirt": hand,
+      "baile-funk-hoodie": hoodie,
+      "sao-paulo-game-bandana": bandana,
+      // palavras do nome (API)
+      sun,
+      water,
+      moon,
+      sweatshirt: hand,
+      hoodie,
+      moletom: hoodie,
+      bandana,
+    },
+    productFallback: [sun, water, moon, hand, hoodie, bandana],
+  };
+}
 
 /**
  * Departamento: fotos oficiais de produto da loja Trouble Dancing? (departamento-fanzone-refs/06-store),

@@ -30,7 +30,7 @@ export default async function FanLayout({
     cookies(),
   ]);
   if (!artist) notFound();
-  // Em construção e sem pele própria (só o Vintage e o Departamento têm): tela em branco, sem o desenho do Vintage.
+  // Em construção e sem pele própria (chave em BY_SLUG de lib/brands.ts): tela em branco, sem o desenho do Vintage.
   if (artist.status === "setup" && brandFor(artist.slug).key === "vintage") return <UnderConstruction artist={artist} />;
   const freshLogin = jar.get(ENTRY_AD_COOKIE)?.value === artist.slug;
   return (

@@ -32,6 +32,10 @@ export type ArtistTheme = {
   fontDisplay: string; // títulos (Archivo, a mesma fonte do cabeçalho)
   fontGrotesk: string; // grotesca (Archivo)
   fontMono: string; // rótulos e números (também Archivo)
+  /** Opcional: campo e tinta do cabeçalho de tom "mast" (Masthead) e o fio duplo embaixo dele (cor de cima, cor de baixo). */
+  mast?: string;
+  mastInk?: string;
+  mastRule?: [string, string];
 };
 
 export const vintageTheme: ArtistTheme = {
@@ -111,6 +115,54 @@ export const departamentoBlueTheme: ArtistTheme = {
   lagoon: "#9999FF",
 };
 
+/*
+ * ANITTA (era EQUILIBRIVM II): valores de anitta-fanzone-refs/05-tokens/tokens.json (o site oficial anitta.com.br).
+ * O azul é o chão: o tema base (azul-painel) fica nas telas de serviço e o tema `feature` (azul-noite, céu com estrelas)
+ * no Mural e no PicKup (ver brands.ts). Vermelho-carta é o acento (botão com texto branco); ouro é texto de destaque e link.
+ * Uma fonte só, a do site: Averia Serif Libre (src/fonts, OFL) nos três campos de fonte.
+ */
+const ANITTA_SERIF = "var(--font-averia), 'Averia Serif Libre', Georgia, serif";
+
+export const anittaTheme: ArtistTheme = {
+  bg: "#20293A", // azul-painel
+  surface: "#283349",
+  surfaceRaised: "#303C55",
+  line: "#3B4864",
+  lineStrong: "#7D8BA8",
+  text: "#FAF8EC", // creme
+  textMuted: "#BCC4D4",
+  amber: "#DD2325", // vermelho-carta
+  amberText: "#EAC62E", // ouro (vermelho como texto sobre azul não passa em contraste)
+  onAmber: "#FFFFFF",
+  sun: "#EAC62E",
+  signalRed: "#FF9A8C",
+  lagoon: "#DD2325",
+  lagoonDeep: "#A61D1D", // vermelho-numeral
+  chrome: "#BCC4D4",
+  greyPoster: "#13243F",
+  mist: "#FAF8EC",
+  ink: "#0A1A31", // azul-noite
+  paper: "#FAF8EC",
+  fontDisplay: ANITTA_SERIF,
+  fontGrotesk: ANITTA_SERIF,
+  fontMono: ANITTA_SERIF,
+  mast: "#B22E2A", // vermelho-cabeçalho
+  mastInk: "#FAF8EC",
+  mastRule: ["#DEBF44", "#000000"], // fio duplo ouro/preto do site
+};
+
+/** Tema `feature` (céu azul-noite com estrelas): Mural e PicKup. */
+export const anittaFeatureTheme: ArtistTheme = {
+  ...anittaTheme,
+  bg: "#0A1A31",
+  surface: "#13243F",
+  surfaceRaised: "#1C2E4D",
+  line: "#2B3E60",
+  lineStrong: "#7184A8",
+  textMuted: "#B3BDD1",
+  chrome: "#B3BDD1",
+};
+
 /** Tema padrão para ambientes recém-criados (antes do design próprio): neutro, escuro. */
 export const blankTheme: ArtistTheme = {
   bg: "#121214",
@@ -173,6 +225,8 @@ export function themeStyle(t: ArtistTheme): CSSProperties {
     "--fc-font-display": t.fontDisplay,
     "--fc-font-grotesk": t.fontGrotesk,
     "--fc-font-mono": t.fontMono,
+    ...(t.mast && { "--fc-mast": t.mast, "--fc-mast-ink": t.mastInk ?? t.text }),
+    ...(t.mastRule && { "--fc-mast-rule-1": t.mastRule[0], "--fc-mast-rule-2": t.mastRule[1] }),
     colorScheme: "dark",
   } as CSSProperties;
 }

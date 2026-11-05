@@ -125,7 +125,7 @@ export function MuralView({
   return (
     <div className={s.screen}>
       <HomeMuralSwitch base={base} current="mural" />
-      <Masthead word="Mural" steps={2} index={tab === "wall" ? 0 : 1} />
+      <Masthead word="Mural" tone="sky" steps={2} index={tab === "wall" ? 0 : 1} />
       <Tabs
         tabs={tabs}
         value={tab}
@@ -259,7 +259,7 @@ export function MuralView({
 /** O cartaz: um campo chapado por molde, tipo medido em cqw da largura. */
 function Plate({ p }: { p: Poster }) {
   const brand = useBrand();
-  if (brand.key === "departamento") return <DpPlate p={p} />;
+  if (brand.posters) return <KitFrame p={p} />;
   const cap = (cls: string, children: React.ReactNode) => <span className={`${s.cap} ${cls}`}>{children}</span>;
   const lines = (arr: string[]) =>
     arr.map((l, i) => (
@@ -343,28 +343,85 @@ function Plate({ p }: { p: Poster }) {
   );
 }
 
+/** Um cartaz do kit fora do Mural (cartaz de abertura do Início), com a mesma medida do feed. */
+export function KitPoster({ p }: { p: Poster }) {
+  return (
+    <div className={s.slide}>
+      <KitFrame p={p} />
+    </div>
+  );
+}
+
+/** `[[trecho]]` pinta o trecho no vermelho da marca (como o IV e o II do lettering EQUILIBRIVM II). */
+function marked(text: string) {
+  return text.split(/(\[\[.+?\]\])/).map((part, i) =>
+    part.startsWith("[[") && part.endsWith("]]") ? (
+      <em key={i} className={s.k}>
+        {part.slice(2, -2)}
+      </em>
+    ) : (
+      part
+    ),
+  );
+}
+
 /**
- * Cartazes do Departamento (campos A–E de tokens.json > poster_fields): os mesmos cinco moldes,
- * com duas tintas, grotesca 900 em caixa alta e a estrela como único ornamento.
- * A = Drop (azul, capa com estrela) · B = assinatura (branco, "?" gigante) · C = data (preto)
- * · D = PicKup (cobalt, roda) · E = loja (papel, foto do produto).
+ * Cartaz no padrão do kit. Com `posters.card` (Anitta) o molde vai dentro de uma carta de tarô: moldura no acento,
+ * numeral romano no topo, janela com o molde, plaqueta creme com o nome da carta e o nome do cantor na lateral.
+ * TODO oficial: a moldura é nossa, inspirada nas cartas de faixa de anitta.com.br (as ilustrações do site não entram).
  */
-function DpPlate({ p }: { p: Poster }) {
+function KitFrame({ p }: { p: Poster }) {
+  const brand = useBrand();
+  const card = brand.posters?.card;
+  if (!card) return <KitPlate p={p} />;
+  return (
+    <div className={`${s.pst} ${s.cardPst}`}>
+      <div className={s.card}>
+        <span className={s.band}>{p.numeral}</span>
+        <div className={s.win}>
+          <KitPlate p={p} framed />
+        </div>
+        <div className={s.plaque}>
+          <span>{marked(p.plaque ?? "")}</span>
+        </div>
+        <span className={`${s.side} ${s.sideL}`}>{card.side}</span>
+        {p.side && <span className={`${s.side} ${s.sideR}`}>{p.side}</span>}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Cartazes no padrão do kit (campos A–E de tokens.json > poster_fields; textos em `brands.ts > posters`): os mesmos
+ * cinco moldes, tipo em caixa alta e a marca do cantor como único ornamento. As cores de cada campo vêm das variáveis
+ * `--field-*` da pele (globals.css); sem elas, as do Departamento.
+ * A = Drop (capa ou luva com a marca) · B = assinatura (glifo gigante) · C = data · D = PicKup (roda) · E = loja (foto do produto).
+ * `framed`: dentro da janela da carta de tarô (a carta é que tem o fio de cima e a altura).
+ */
+function KitPlate({ p, framed = false }: { p: Poster; framed?: boolean }) {
+  const brand = useBrand();
+  const kit = brand.posters!;
+  const pst = framed ? s.inCard : s.pst;
   const cap = (cls: string, children: React.ReactNode) => <span className={`${s.dcap} ${cls}`}>{children}</span>;
   const lines = (arr: string[]) =>
     arr.map((l, i) => (
       <span key={i}>
         {i > 0 && <br />}
-        {l}
+        {marked(l)}
       </span>
     ));
 
   if (p.kind === "lost") {
     return (
-      <div className={`${s.pst} ${s.dA}`} style={{ "--hl": fit(26, 130, p.headline) } as CSSProperties}>
-        <span className={s.sleeve}>
-          <Mark size={80} style={{ width: "100%", height: "auto" }} />
-        </span>
+      <div className={`${pst} ${s.dA}`} style={{ "--hl": fit(26, 130, p.headline) } as CSSProperties}>
+        {kit.cover ? (
+          /* eslint-disable-next-line @next/next/no-img-element -- capa oficial estática (public/media) */
+          <img className={s.cover} src={kit.cover} alt="" />
+        ) : (
+          <span className={s.sleeve}>
+            <Mark size={80} style={{ width: "100%", height: "auto" }} />
+          </span>
+        )}
         {cap(s.t1, <span className="tag">{p.cap}</span>)}
         {cap(s.t2, lines(p.credits))}
         <div className={s.hl} aria-hidden="true">
@@ -375,16 +432,16 @@ function DpPlate({ p }: { p: Poster }) {
   }
   if (p.kind === "culture") {
     return (
-      <div className={`${s.pst} ${s.dB}`} style={{ "--hl": fit(17, 120, p.headline) } as CSSProperties}>
+      <div className={`${pst} ${s.dB}`} style={{ "--hl": fit(17, 120, p.headline) } as CSSProperties}>
         {cap(s.t1, p.credits[0])}
-        <div className={s.q} aria-hidden="true">
-          ?
+        <div className={s.q} aria-hidden="true" style={kit.glyphSize ? { fontSize: `${kit.glyphSize}cqw` } : undefined}>
+          {kit.glyph}
         </div>
         <div className={s.hl} aria-hidden="true">
           {lines(p.headline)}
         </div>
         <div className={s.ml} aria-hidden="true">
-          1-800-Departamento
+          {kit.micro}
         </div>
         {cap(s.t2, p.credits[1])}
       </div>
@@ -392,7 +449,7 @@ function DpPlate({ p }: { p: Poster }) {
   }
   if (p.kind === "date") {
     return (
-      <div className={`${s.pst} ${s.dC}`}>
+      <div className={`${pst} ${s.dC}`}>
         {cap(s.t1, p.cap)}
         <div className={s.mon}>{p.month}</div>
         <span className={s.acc}>
@@ -407,9 +464,9 @@ function DpPlate({ p }: { p: Poster }) {
   }
   if (p.kind === "pick") {
     return (
-      <div className={`${s.pst} ${s.dD}`} style={{ "--rec-rot": `${recAngleFor(PICK_ON, PRIZES.length, "star")}deg` } as CSSProperties}>
+      <div className={`${pst} ${s.dD}`} style={{ "--rec-rot": `${recAngleFor(PICK_ON, PRIZES.length, "star")}deg` } as CSSProperties}>
         {cap(s.t1, <span className="tag">{p.credits[0]}</span>)}
-        <Turntable variant="star" prefix="pp" prizes={PRIZES} on={PICK_ON} rot={recAngleFor(PICK_ON, PRIZES.length, "star")} />
+        <Turntable variant="star" brand={brand.key} prefix="pp" prizes={PRIZES} on={PICK_ON} rot={recAngleFor(PICK_ON, PRIZES.length, "star")} />
         <div className={s.hl} aria-hidden="true">
           {lines(p.headline)}
         </div>
@@ -422,7 +479,7 @@ function DpPlate({ p }: { p: Poster }) {
     );
   }
   return (
-    <div className={`${s.pst} ${s.dE}`} style={{ "--hl": fit(21.5, 120, p.headline) } as CSSProperties}>
+    <div className={`${pst} ${s.dE}`} style={{ "--hl": fit(21.5, 120, p.headline) } as CSSProperties}>
       {cap(s.t1, p.credits[0])}
       <div className={s.hl} aria-hidden="true">
         {lines(p.headline)}

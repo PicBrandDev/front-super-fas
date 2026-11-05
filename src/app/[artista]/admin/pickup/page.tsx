@@ -76,6 +76,7 @@ export default async function PickupAdminPage({ params }: { params: Promise<{ ar
                   {/* A mesma roleta (toca-discos ou roda com estrela) que o fã vê no app; o admin pode girar para testar. */}
                   <RoletaTeste
                     variant={brandFor(artist.slug).wheel}
+                    brand={brandFor(artist.slug).key}
                     prizes={data.prizes.map((p) => ({ label: p.label, remaining: p.remaining ?? null }))}
                     initial={featuredIndex(data.prizes)}
                   />

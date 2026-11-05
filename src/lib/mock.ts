@@ -3,7 +3,7 @@
  * Tudo que está entre colchetes ([PREÇO], [Local do evento]...) é para
  * ser preenchido com dados reais.
  */
-import { departamentoTheme, vintageTheme } from "./themes";
+import { anittaTheme, departamentoTheme, vintageTheme } from "./themes";
 import type {
   FanClub,
   AdSlot,
@@ -52,6 +52,20 @@ export const artists: Artist[] = [
     members: "[n]",
     adSlotsSummary: "2 de 6 ocupadas",
     brandColor: "#0000FF",
+  },
+  {
+    id: "an",
+    slug: "anitta",
+    name: "Anitta",
+    initial: "A",
+    fanClubName: "[Nome do fã clube]",
+    instagram: "@anitta",
+    status: "active",
+    theme: anittaTheme,
+    memberPriceCents: 1690,
+    members: "[n]",
+    adSlotsSummary: "2 de 6 ocupadas",
+    brandColor: "#DD2325",
   },
 ];
 
