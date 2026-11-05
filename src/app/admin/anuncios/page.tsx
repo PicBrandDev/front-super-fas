@@ -6,6 +6,7 @@ import { AnuncioCard, type AnuncioItem } from "@/components/admin/vitrines/Anunc
 import { SponsorAvatar } from "@/components/admin/vitrines/SponsorAvatar";
 import { apiEnabled, getAdsAnalyticsAll, getSponsors } from "@/lib/api";
 import { formatCount } from "@/lib/format";
+import { brandStyle } from "@/lib/brand-style";
 import { shellUser } from "@/lib/shell";
 import type { AdsAnalytics, AdsCampaignStats } from "@/lib/types";
 import { PatrocinadoresAcessos } from "./PatrocinadoresAcessos";
@@ -135,7 +136,9 @@ function Visao({ ads, href, logoOf }: { ads: AdsAnalytics; href: (name?: string)
                       ) : c.videoUrl && /\.(mp4|webm)(\?|$)/i.test(c.videoUrl) ? (
                         <video src={`${c.videoUrl}#t=0.5`} preload="metadata" muted playsInline className="absolute inset-0 size-full object-cover" />
                       ) : (
-                        <span className="absolute inset-0 flex items-end bg-adm-blue-soft p-1.5 text-[9px] font-bold uppercase leading-3 text-adm-blue-dark">{c.slotName}</span>
+                        <span className="absolute inset-0 flex items-end p-1.5 text-[10px] font-black uppercase leading-3" style={{ background: brandStyle(s.name).bg, color: brandStyle(s.name).fg }}>
+                          {s.name}
+                        </span>
                       )}
                     </span>
                   ))}

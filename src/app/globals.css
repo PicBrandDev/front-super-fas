@@ -1183,3 +1183,9 @@ body {
   font-size: 11px;
   font-weight: 700;
 }
+
+/* A roleta de teste do admin: roda em azul (tinta) sobre o branco do painel; a fatia sorteada fica azul cheia. */
+.adm-noite[data-brand="departamento"] .fan.adm-roleta,
+.adm-noite[data-brand="departamento"] .adm-roleta .fan {
+  --fc-paper: #0000ff !important;
+}

@@ -10,6 +10,7 @@ import { HistoricoGiros } from "./HistoricoGiros";
 import { PrizeCard } from "./PrizeCard";
 import { RoletaTeste } from "./RoletaTeste";
 import { brandFor } from "@/lib/brands";
+import { themeStyle } from "@/lib/themes";
 import { kindStyle } from "./RoletaSvg";
 
 export const metadata: Metadata = { title: "PicKup" };
@@ -72,7 +73,15 @@ export default async function PickupAdminPage({ params }: { params: Promise<{ ar
               <AdminEmpty title="Esta roleta ainda não tem prêmios" text="Cadastre os prêmios no painel do fã clube para ela aparecer aqui." />
             ) : (
               <div className="grid items-center gap-6 rounded-xl border border-adm-line bg-white p-5 md:grid-cols-[minmax(0,340px)_1fr]">
-                <div className="fan mx-auto w-full max-w-[360px] bg-transparent">
+                <div
+                  className="fan adm-roleta mx-auto w-full max-w-[380px] rounded-xl p-3"
+                  style={
+                    brandFor(artist.slug).wheel === "star"
+                      ? // A roda do Departamento, em azul sobre o branco do painel (no app ela é branca sobre o campo escuro).
+                        ({ "--fc-paper": "#0000FF", "--fc-bg": "#FFFFFF", "--wheel-field": "#FFFFFF", "--fc-on-amber": "#FFFFFF" } as React.CSSProperties)
+                      : { ...themeStyle(brandFor(artist.slug).theme), background: brandFor(artist.slug).theme.bg }
+                  }
+                >
                   {/* A mesma roleta (toca-discos ou roda com estrela) que o fã vê no app; o admin pode girar para testar. */}
                   <RoletaTeste
                     variant={brandFor(artist.slug).wheel}
