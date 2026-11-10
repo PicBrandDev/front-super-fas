@@ -106,7 +106,7 @@ export function buildPosters({
       text: p.text,
       headline: headlineOf(p, kind === "lost" ? 1 : 2),
       credits: kind === "lost" ? [p.author.name || artistName, p.timeLabel] : [artistName, p.timeLabel],
-      image: kind === "culture" ? hero : null,
+      image: kit?.postPhoto && p.image ? p.image : kind === "culture" ? hero : null,
       cta: kind === "lost" && tracks.length ? { label: "Ouvir", act: "listen" } : null,
       likes: p.likes,
       comments: p.comments,
@@ -199,5 +199,8 @@ export function buildPosters({
 
   // PicKup e Loja (os dois últimos) abrem o Mural; os Drops, a data e a foto do artista vêm depois.
   const [pickup, store] = out.splice(-2);
-  return [pickup, store, ...out];
+  // Marca com `postPhoto` (Ludmilla): o Drop que tem foto abre o Mural, antes do PicKup e da Loja.
+  const comFoto = kit?.postPhoto ? out.filter((p) => p.postId && p.image) : [];
+  const resto = out.filter((p) => !comFoto.includes(p));
+  return [...comFoto, pickup, store, ...resto];
 }

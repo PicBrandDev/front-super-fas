@@ -411,6 +411,20 @@ function KitPlate({ p, framed = false }: { p: Poster; framed?: boolean }) {
       </span>
     ));
 
+  if (p.kind === "lost" && p.image) {
+    // Drop com foto (marca com `postPhoto`): a foto inteira é o cartaz, com a etiqueta e a manchete por cima.
+    return (
+      <div className={`${pst} ${s.dPhoto}`} style={{ "--hl": fit(26, 130, p.headline) } as CSSProperties}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- foto do post (Drop com foto) */}
+        <img className={s.full} src={p.image.src} alt={p.image.alt} />
+        {cap(s.t1, <span className="tag">{p.cap}</span>)}
+        {cap(s.t2, lines(p.credits))}
+        <div className={s.hl} aria-hidden="true">
+          {lines(p.headline)}
+        </div>
+      </div>
+    );
+  }
   if (p.kind === "lost") {
     return (
       <div className={`${pst} ${s.dA}`} style={{ "--hl": fit(26, 130, p.headline) } as CSSProperties}>

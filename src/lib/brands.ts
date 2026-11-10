@@ -47,6 +47,8 @@ export type KitPosters = {
   storeHeadline: (productName: string) => string[];
   /** Capa oficial do lançamento (campo A, em `public/`); sem capa, a marca na luva. */
   cover?: string;
+  /** O cartaz de um Drop que tem foto usa a foto do post no lugar da capa (só Ludmilla por enquanto). */
+  postPhoto?: boolean;
   /**
    * Moldura de carta de tarô (Anitta): moldura no acento, numeral romano no topo, plaqueta creme com o título embaixo
    * e o nome do cantor na lateral. `[[trecho]]` na plaqueta pinta o trecho no vermelho da marca.
@@ -417,6 +419,7 @@ const ludmilla: ArtistBrand = {
       return ["Óculos", words[words.length - 1] ?? "da Lud"];
     },
     cover: "/media/ludmilla/capa-bi-festinha.svg",
+    postPhoto: true,
   },
 };
 
