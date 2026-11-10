@@ -452,7 +452,7 @@ function KitPlate({ p, framed = false }: { p: Poster; framed?: boolean }) {
           /* eslint-disable-next-line @next/next/no-img-element -- arte oficial estática (public/media) */
           <img className={s.photo} src={kit.photo} alt="" />
         ) : (
-          <div className={s.q} aria-hidden="true" style={kit.glyphSize ? { fontSize: `${kit.glyphSize}cqw` } : undefined}>
+          <div className={s.q} aria-hidden="true" style={kit.glyphSize ? { fontSize: `${kit.glyphSize}cqw`, ...(kit.glyphFit && { bottom: `${-0.15 * kit.glyphSize}cqw` }) } : undefined}>
             {kit.glyph}
           </div>
         )}

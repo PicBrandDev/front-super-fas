@@ -33,6 +33,8 @@ export type KitPosters = {
   /** Glifo gigante do campo B (o "?" do Departamento, o "IV" da Anitta) e o tamanho dele em cqw (padrão 100). */
   glyph: string;
   glyphSize?: number;
+  /** O glifo cabe inteiro no cartaz: o Início também usa `glyphSize` e o corte de baixo acompanha o tamanho (Ludmilla: "LUD"). */
+  glyphFit?: boolean;
   /** Arte oficial sem pessoa no lugar do glifo do campo B (o lustre do Veigh, em `public/`). */
   photo?: string;
   /** Linha do topo do campo B (o "João 16:33" do Veigh); sem ela, o nome do cantor. */
@@ -408,7 +410,8 @@ const ludmilla: ArtistBrand = {
   },
   posters: {
     glyph: "Lud",
-    glyphSize: 70,
+    glyphSize: 42,
+    glyphFit: true,
     kicker: "Numanice",
     micro: "Pagode de domingo",
     legal: "Ludmilla · Numanice · Ao vivo",

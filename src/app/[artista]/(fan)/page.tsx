@@ -106,7 +106,11 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
           <span className="absolute left-[4.5cqw] top-[4.5cqw] font-grotesk font-bold uppercase leading-[1.25] tracking-[0.06em]" style={{ fontSize: "max(11px, 2.9cqw)" }}>
             {artist.name}
           </span>
-          <div aria-hidden="true" className="poster absolute bottom-[-15cqw] right-[-3cqw] text-[100cqw] leading-[0.8] tracking-[-0.05em]">
+          <div
+            aria-hidden="true"
+            className="poster absolute bottom-[-15cqw] right-[-3cqw] text-[100cqw] leading-[0.8] tracking-[-0.05em]"
+            style={brand.posters.glyphFit && brand.posters.glyphSize ? { fontSize: `${brand.posters.glyphSize}cqw`, bottom: `${-0.15 * brand.posters.glyphSize}cqw` } : undefined}
+          >
             {brand.posters.glyph}
           </div>
           <div aria-hidden="true" className="poster absolute left-[4.5cqw] top-[13cqw] whitespace-nowrap text-[17cqw] leading-[0.88]">
