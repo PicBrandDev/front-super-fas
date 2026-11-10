@@ -388,3 +388,8 @@ a.ticket:focus-visible .compactBar {
 :global([data-brand="veigh"]) .ticket[data-field="amber"] .face {
   --on-field: var(--fc-on-amber);
 }
+
+:global([data-brand="ludmilla"]) .ticket:not([data-field]) .face,
+:global([data-brand="ludmilla"]) .ticket[data-field="amber"] .face {
+  --on-field: var(--fc-on-amber);
+}

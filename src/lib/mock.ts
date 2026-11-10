@@ -3,7 +3,8 @@
  * Tudo que está entre colchetes ([PREÇO], [Local do evento]...) é para
  * ser preenchido com dados reais.
  */
-import { anittaTheme, departamentoTheme, veighTheme, vintageTheme } from "./themes";
+import { anittaTheme, departamentoTheme, ludmillaTheme, veighTheme, vintageTheme } from "./themes";
+import { ludClubs, ludEvents, ludPosts, ludPrizes, ludProducts, ludPublicFan, ludTracks, ludViewer } from "./mock-ludmilla";
 import type {
   FanClub,
   AdSlot,
@@ -17,6 +18,7 @@ import type {
   Post,
   Prize,
   Product,
+  PublicFan,
   ShowEvent,
   Sponsor,
   Track,
@@ -80,6 +82,20 @@ export const artists: Artist[] = [
     members: "[n]",
     adSlotsSummary: "2 de 6 ocupadas",
     brandColor: "#56070C",
+  },
+  {
+    id: "ld",
+    slug: "ludmilla",
+    name: "Ludmilla",
+    initial: "L",
+    fanClubName: "Família da Lud",
+    instagram: "@ludmilla",
+    status: "active",
+    theme: ludmillaTheme,
+    memberPriceCents: 1690,
+    members: "48,2 mil",
+    adSlotsSummary: "4 de 6 ocupadas",
+    brandColor: "#3A0F4A",
   },
 ];
 
@@ -271,3 +287,28 @@ export const members: Member[] = [
   { id: "m9", name: "Thiago Rocha", handle: "@thirocha", status: "pending", since: "04/09/2026", payment: "Pix", points: 90, city: "Niterói" },
   { id: "m10", name: "Beatriz Lemos", handle: "@bialemos", status: "active", since: "22/04/2026", payment: "Cartão", points: 1120, city: "Porto Alegre" },
 ];
+
+/** Conteúdo de exemplo próprio de um ambiente (o resto continua vindo dos dados do Vintage acima). */
+export type ArtistDemo = Partial<{
+  viewer: Viewer;
+  posts: Post[];
+  events: ShowEvent[];
+  products: Product[];
+  tracks: Track[];
+  prizes: Prize[];
+  fanClubs: FanClub[];
+  publicFan: (id: string) => PublicFan | null;
+}>;
+
+export const byArtist: Record<string, ArtistDemo> = {
+  ludmilla: {
+    viewer: ludViewer,
+    posts: ludPosts,
+    events: ludEvents,
+    products: ludProducts,
+    tracks: ludTracks,
+    prizes: ludPrizes,
+    fanClubs: ludClubs,
+    publicFan: ludPublicFan,
+  },
+};

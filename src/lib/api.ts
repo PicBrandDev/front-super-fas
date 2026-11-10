@@ -203,6 +203,9 @@ function errorMessage(data: unknown, status: number): string {
 // ---------- Ambientes de artista ----------
 
 /** GET /artists */
+/** Conteúdo de exemplo próprio do ambiente (ex.: Ludmilla, `mock-ludmilla.ts`); sem ele, os dados do Vintage. */
+const ex = (slug?: string) => (slug ? mock.byArtist[slug] : undefined) ?? {};
+
 const withTheme = (a: Artist): Artist => ({ ...a, theme: normalizeTheme(a.theme, brandFor(a.slug).theme) });
 
 export const listArtists = () => get<Artist[]>("/artists", () => mock.artists).then((as) => as.map(withTheme));
@@ -215,7 +218,7 @@ export const getArtist = (slug: string) =>
 
 /** GET /me?artist={slug} (usuário logado, com pontos e giros naquele fã clube) */
 export const getViewer = (slug?: string) =>
-  get<Viewer>(`/me${slug ? `?artist=${slug}` : ""}`, () => mock.viewer);
+  get<Viewer>(`/me${slug ? `?artist=${slug}` : ""}`, () => ex(slug).viewer ?? mock.viewer);
 
 /** GET /me/fandoms */
 export const getOtherFandoms = (slug?: string) =>
@@ -225,18 +228,19 @@ export const getOtherFandoms = (slug?: string) =>
 
 /** GET /artists/{slug}/posts?kind=drop|galera|instagram */
 export const getPosts = (slug: string, kind?: PostKind) =>
-  get<Post[]>(`/artists/${slug}/posts${kind ? `?kind=${kind}` : ""}`, () =>
-    kind ? mock.posts.filter((p) => p.kind === kind) : mock.posts,
-  );
+  get<Post[]>(`/artists/${slug}/posts${kind ? `?kind=${kind}` : ""}`, () => {
+    const all = ex(slug).posts ?? mock.posts;
+    return kind ? all.filter((p) => p.kind === kind) : all;
+  });
 
 // ---------- Agenda e eventos ----------
 
 /** GET /artists/{slug}/events */
-export const getEvents = (slug: string) => get<ShowEvent[]>(`/artists/${slug}/events`, () => mock.events);
+export const getEvents = (slug: string) => get<ShowEvent[]>(`/artists/${slug}/events`, () => ex(slug).events ?? mock.events);
 
 /** GET /artists/{slug}/events/{id} */
 export const getEvent = (slug: string, id: string) =>
-  get<ShowEvent | null>(`/artists/${slug}/events/${id}`, () => mock.events.find((e) => e.id === id) ?? null, {
+  get<ShowEvent | null>(`/artists/${slug}/events/${id}`, () => (ex(slug).events ?? mock.events).find((e) => e.id === id) ?? null, {
     notFound: null,
   });
 
@@ -259,13 +263,13 @@ export const getGifts = (slug: string, eventId: string) =>
 // ---------- PicKup, Loja, Drops Hits ----------
 
 /** GET /artists/{slug}/pickup/prizes */
-export const getPrizes = (slug: string) => get<Prize[]>(`/artists/${slug}/pickup/prizes`, () => mock.prizes);
+export const getPrizes = (slug: string) => get<Prize[]>(`/artists/${slug}/pickup/prizes`, () => ex(slug).prizes ?? mock.prizes);
 
 /** GET /artists/{slug}/products */
-export const getProducts = (slug: string) => get<Product[]>(`/artists/${slug}/products`, () => mock.products);
+export const getProducts = (slug: string) => get<Product[]>(`/artists/${slug}/products`, () => ex(slug).products ?? mock.products);
 
 /** GET /artists/{slug}/tracks */
-export const getTracks = (slug: string) => get<Track[]>(`/artists/${slug}/tracks`, () => mock.tracks);
+export const getTracks = (slug: string) => get<Track[]>(`/artists/${slug}/tracks`, () => ex(slug).tracks ?? mock.tracks);
 
 // ---------- Mídia e membros ----------
 
@@ -333,7 +337,7 @@ export const getMySponsor = () =>
 // ---------- Fã clubes do cantor ----------
 
 /** GET /artists/{slug}/clubs */
-export const getClubs = (slug: string) => get<FanClub[]>(`/artists/${slug}/clubs`, () => mock.fanClubs);
+export const getClubs = (slug: string) => get<FanClub[]>(`/artists/${slug}/clubs`, () => ex(slug).fanClubs ?? mock.fanClubs);
 
 /** GET /artists/{slug}/manage/feed: publicações de uma aba, com curtidas, comentários e visualizações. */
 export const getFeed = (slug: string, kind: "drop" | "galera") =>
@@ -533,7 +537,7 @@ export const getMyRewards = (slug: string) => get<Reward[]>(`/artists/${slug}/me
 /** GET /artists/{slug}/clubs-overview: todos os fã clubes do ambiente, com o dono e os números. */
 export const getClubsOverview = (slug: string) =>
   get<ClubOverview[]>(`/artists/${slug}/clubs-overview`, () =>
-    mock.fanClubs.map((c) => ({
+    (ex(slug).fanClubs ?? mock.fanClubs).map((c) => ({
       id: c.id,
       slug: c.slug,
       name: c.name,
@@ -557,17 +561,21 @@ export const getClubAnalytics = (slug: string, club: string) =>
 
 /** GET /artists/{slug}/clubs/{club} */
 export const getClub = (slug: string, club: string) =>
-  get<FanClub | null>(`/artists/${slug}/clubs/${club}`, () => mock.fanClubs.find((c) => c.slug === club) ?? null, {
+  get<FanClub | null>(`/artists/${slug}/clubs/${club}`, () => (ex(slug).fanClubs ?? mock.fanClubs).find((c) => c.slug === club) ?? null, {
     notFound: null,
   });
 
 /** GET /artists/{slug}/clubs/{club}/posts */
 export const getClubPosts = (slug: string, club: string) =>
-  get<Post[]>(`/artists/${slug}/clubs/${club}/posts`, () => mock.posts.filter((p) => p.kind !== "drop"));
+  get<Post[]>(`/artists/${slug}/clubs/${club}/posts`, () => {
+    const own = ex(slug).posts;
+    // No exemplo da Ludmilla, o mural do clube mostra os posts da galera daquele clube.
+    return own ? own.filter((p) => p.kind !== "drop" && p.club?.slug === club) : mock.posts.filter((p) => p.kind !== "drop");
+  });
 
 /** GET /artists/{slug}/clubs/{club}/pickup/prizes */
 export const getClubPrizes = (slug: string, club: string) =>
-  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickup/prizes`, () => mock.prizes);
+  get<Prize[]>(`/artists/${slug}/clubs/${club}/pickup/prizes`, () => ex(slug).prizes ?? mock.prizes);
 
 /** GET /artists/{slug}/clubs/{club}/ad-slots */
 export const getClubAdSlots = (slug: string, club: string) =>
@@ -728,7 +736,7 @@ export const getMessages = (slug: string, id: number) =>
 
 /** GET /artists/{slug}/fans/{id}: perfil público do fã. null se não existe. */
 export async function getPublicFan(slug: string, id: string): Promise<PublicFan | null> {
-  const r = await get<Raw | null>(`/artists/${slug}/fans/${encodeURIComponent(id)}`, () => chatMock.publicFan(id) as unknown as Raw | null, {
+  const r = await get<Raw | null>(`/artists/${slug}/fans/${encodeURIComponent(id)}`, () => (ex(slug).publicFan?.(id) ?? chatMock.publicFan(id)) as unknown as Raw | null, {
     notFound: null,
   });
   if (!r) return null;

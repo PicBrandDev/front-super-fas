@@ -40,6 +40,8 @@ const LOOKS: Record<BrandKey, Look> = {
   anitta: { bg: "#0A1A31", warm: "#0A1A31", accent: "#EAC62E", fade: "10,26,49", display: "Georgia, serif", upper: true, fontVar: "--font-averia" },
   // Veigh: vinho chapado, hashtag em ouro-rose, tag de spray em minúsculas.
   veigh: { bg: "#56070C", warm: "#56070C", accent: "#D7AE98", fade: "14,11,11", display: '"Arial Black", sans-serif', upper: false, fontVar: "--font-sedgwick" },
+  // Ludmilla: roxo do sunset chapado, hashtag no neon rosa, Archivo em caixa alta.
+  ludmilla: { bg: "#3A0F4A", warm: "#3A0F4A", accent: "#FC94FC", fade: "58,15,74", display: SANS, upper: true },
 };
 
 async function loadImage(src: string): Promise<HTMLImageElement | null> {

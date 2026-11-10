@@ -100,8 +100,9 @@ export default async function HomePage({ params }: { params: Promise<{ artista: 
           <h2 className="sr-only">{brand.mottoText}</h2>
         </>
       ) : brand.posters ? (
-        /* Cartaz de abertura no padrão do kit (campo B; Departamento: papel branco, tinta azul, "?" gigante cortado, sem foto). */
-        <div className="@container relative aspect-[4/5] overflow-hidden border-t border-line bg-paper text-amber">
+        /* Cartaz de abertura no padrão do kit (campo B; Departamento: papel branco, tinta azul, "?" gigante cortado, sem foto).
+           A pele pode trocar o campo e a tinta por `--home-hero-bg` e `--home-hero-ink` (Ludmilla: roxo claro e neon). */
+        <div className="@container relative aspect-[4/5] overflow-hidden border-t border-line bg-[var(--home-hero-bg,var(--fc-paper))] text-[color:var(--home-hero-ink,var(--fc-amber))]">
           <span className="absolute left-[4.5cqw] top-[4.5cqw] font-grotesk font-bold uppercase leading-[1.25] tracking-[0.06em]" style={{ fontSize: "max(11px, 2.9cqw)" }}>
             {artist.name}
           </span>
