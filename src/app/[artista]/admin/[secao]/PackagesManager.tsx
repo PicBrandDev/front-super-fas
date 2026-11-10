@@ -6,6 +6,7 @@ import { deleteContent, saveContent } from "@/app/actions/admin";
 import { AdminEmpty, AdminNotice, Badge, btnPrimary, btnSecondary, inputClass } from "@/components/admin/ui";
 import { Icon } from "@/components/icons";
 import { EXPERIENCES, experienceLabel, type ExperienceKey } from "@/lib/experiences";
+import { brandFor } from "@/lib/brands";
 import { formatBRL } from "@/lib/format";
 import type { AgencyAdmin, PackageAdmin } from "@/lib/types";
 
@@ -67,6 +68,7 @@ export function PackagesManager({
   agencies: AgencyAdmin[];
   packages: PackageAdmin[];
 }) {
+  const the = brandFor(slug).the;
   const router = useRouter();
   const [editing, setEditing] = useState<{ id: string | null; draft: Draft } | null>(null);
   const [confirmDel, setConfirmDel] = useState<string | null>(null);
@@ -87,7 +89,7 @@ export function PackagesManager({
     const addons: { key: ExperienceKey; priceCents: number; soldOut: boolean }[] = [];
     for (const a of d.addons.filter((x) => x.on)) {
       const cents = parsePrice(a.price);
-      if (cents === null) return setError(`Informe o preço de “${experienceLabel(a.key)}” em reais.`);
+      if (cents === null) return setError(`Informe o preço de “${experienceLabel(a.key, the)}” em reais.`);
       addons.push({ key: a.key, priceCents: cents, soldOut: a.soldOut });
     }
     if (addons.length === 0) return setError("Marque pelo menos uma experiência para vender neste pacote.");
@@ -199,8 +201,8 @@ export function PackagesManager({
                   <label className="flex min-h-11 items-start gap-2 text-[13px]">
                     <input type="checkbox" className="mt-0.5" checked={a.on} onChange={(e) => setAddon({ on: e.target.checked })} />
                     <span className="flex flex-col">
-                      <strong>{x.label}</strong>
-                      <span className="text-adm-muted">{x.hint}</span>
+                      <strong>{experienceLabel(x.key, the)}</strong>
+                      <span className="text-adm-muted">{x.hint.replace("o Vintage", the)}</span>
                     </span>
                   </label>
                   <div className="flex flex-col gap-1">
@@ -280,7 +282,7 @@ export function PackagesManager({
                       {addons.map((x) => (
                         <li key={x.key} className={`flex flex-col gap-1 rounded-lg border border-adm-line-soft bg-adm-bg px-4 py-3 ${x.soldOut ? "opacity-60" : ""}`}>
                           <span className="flex items-center justify-between gap-2">
-                            <span className="text-sm font-semibold">{experienceLabel(x.key)}</span>
+                            <span className="text-sm font-semibold">{experienceLabel(x.key, the)}</span>
                             {x.soldOut && <Badge tone="warn">Esgotada</Badge>}
                           </span>
                           <strong className={`font-display text-2xl font-black leading-7 ${x.soldOut ? "line-through" : ""}`}>{formatBRL(x.priceCents)}</strong>

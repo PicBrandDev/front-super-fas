@@ -10,7 +10,8 @@ export const EXPERIENCES: { key: ExperienceKey; label: string; hint: string }[] 
   { key: "transfer", label: "Transfer ida e volta", hint: "Ônibus em grupo até o show e de volta, com saída e horário combinados" },
 ];
 
-export const experienceLabel = (key: string) => EXPERIENCES.find((e) => e.key === key)?.label ?? key;
+export const experienceLabel = (key: string, the = "o Vintage") =>
+  (EXPERIENCES.find((e) => e.key === key)?.label ?? key).replace("o Vintage", the);
 
 /** Dica da experiência com o nome curto do artista do ambiente ("foto com o Departamento no show"). */
 export const experienceHint = (key: string, the = "o Vintage") =>
