@@ -199,8 +199,8 @@ export function buildPosters({
 
   // PicKup e Loja (os dois últimos) abrem o Mural; os Drops, a data e a foto do artista vêm depois.
   const [pickup, store] = out.splice(-2);
-  // Marca com `postPhoto` (Ludmilla): o Drop que tem foto abre o Mural, antes do PicKup e da Loja.
-  const comFoto = kit?.postPhoto ? out.filter((p) => p.postId && p.image) : [];
+  // Marca com `postPhoto` (Ludmilla): o Drop mais novo que tem foto abre o Mural, antes do PicKup e da Loja.
+  const comFoto = kit?.postPhoto ? out.filter((p) => p.postId && p.image).slice(0, 1) : [];
   const resto = out.filter((p) => !comFoto.includes(p));
   return [...comFoto, pickup, store, ...resto];
 }
