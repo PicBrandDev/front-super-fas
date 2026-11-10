@@ -1,10 +1,12 @@
 import type { MastTone } from "@/components/fan/Masthead";
-import { ANITTA_STAR, ANITTA_SUN, DEPARTAMENTO_STAR, MONO_D, MONO_D_VIEWBOX, VEIGH_GLOBE, type FilledMark } from "@/components/fan/mark-shape";
+import { ANITTA_STAR, ANITTA_SUN, DEPARTAMENTO_STAR, LUDMILLA_SUN, MONO_D, MONO_D_VIEWBOX, VEIGH_GLOBE, type FilledMark } from "@/components/fan/mark-shape";
 import {
   anittaFeatureTheme,
   anittaTheme,
   departamentoBlueTheme,
   departamentoTheme,
+  ludmillaFeatureTheme,
+  ludmillaTheme,
   veighFeatureTheme,
   veighTheme,
   vintageTheme,
@@ -17,7 +19,7 @@ import {
  * mesmas para todos; aqui só muda a aparência e a voz. Artista sem pele própria usa
  * a do Vintage Culture (o primeiro artista e o padrão da plataforma).
  */
-export type BrandKey = "vintage" | "departamento" | "anitta" | "veigh";
+export type BrandKey = "vintage" | "departamento" | "anitta" | "veigh" | "ludmilla";
 
 /** Os cinco moldes dos cartazes do Mural (A lançamento, B assinatura, C data, D PicKup, E loja). */
 export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
@@ -354,10 +356,74 @@ const veigh: ArtistBrand = {
   },
 };
 
-const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta, veigh };
+/**
+ * LUDMILLA (era Numanice): Ludmila-fanzone-refs (05-tokens, VOICE.md) e o Artifact "Fanzone Ludmilla" (packs/ludmilla).
+ * Uma noite de Numanice: roxo do sunset na base, neon rosa, sol amarelo; Mural, Família (Comunidade) e Loja no papel das
+ * capas, cabeçalhos em papel com tinta roxa e o PicKup no amarelo. Voz carioca de igual para igual ("família", "numa nice",
+ * "Deu bom", "Hoje não."), sem emoji e sem "diva". Ornamento: o sol de raios (TODO oficial).
+ * Sem foto da artista (política da pasta de identidade): o Início e o Mural usam cartazes de tipo e as capas desenhadas.
+ */
+const ludmilla: ArtistBrand = {
+  key: "ludmilla",
+  theme: ludmillaTheme,
+  toneTheme: ludmillaFeatureTheme,
+  toneRoutes: ["/mural", "/comunidade", "/loja"],
+  adminTheme: null,
+  themeColor: "#3A0F4A",
+  phone: true,
+  short: "Lud",
+  the: "a Lud",
+  of: "da Lud",
+  mark: LUDMILLA_SUN,
+  // TODO oficial: sem assinatura em vetor (GAPS G-01), o menu do admin leva o sol amarelo no quadrado roxo.
+  adminMark: { shape: LUDMILLA_SUN, bg: "#3A0F4A", fg: "#F8D808" },
+  adminMastTone: "mast",
+  // Todo cabeçalho em papel com tinta roxa (decisão "menos roxo"); o PicKup fica no sol amarelo.
+  mastTones: { night: "mast", sky: "mast", amber: "mast", "lagoon-deep": "mast", "poster-grey": "mast" },
+  wheel: "star",
+  wheelSeal: { text: "TÁ TUDO NUMA NICE · FANZONE DA LUD · ", center: LUDMILLA_SUN },
+  // Disco roxo-claro, sulcos no roxo da base, rótulo amarelo com o sol roxo (pack > roles.disc*).
+  vinyl: { disc: "#681898", groove: "#3A0F4A", grooveOpacity: 1, label: "#F8D808", labelInk: "#3A0F4A" },
+  store: { name: "Loja da Lud", word: "loja da lud", mastTone: "mast", pickupPlace: "lojinha da Lud" },
+  // [P] fora da pasta de identidade: a hashtag e os nomes do ranking seguem o padrão dos outros cantores (GAPS).
+  superFan: "Fã Super da Lud",
+  hyperFans: "HyperFans da Lud",
+  hashtag: "EuSouUmSuperFaDaLud",
+  motto: ["Numa", "nice"],
+  // Fala real da Ludmilla (VOICE.md; Billboard Brasil, 26/07/2025).
+  mottoText: "\"O Numanice começou como um sonho e virou um movimento.\"",
+  pickup: {
+    screen: "bg-sun text-ink",
+    mastTone: "sun",
+    lead: "Gira a roleta e deixa o brinde vir. Tudo numa nice.",
+    sub: "text-ink/75",
+    list: "divide-ink/25 border-ink/25 text-ink",
+    listDate: "text-ink/70",
+    outline: "border-ink text-ink",
+    keyIdle: "Girar a roleta",
+    keyBusy: "Girando",
+    pointer: "o sol",
+  },
+  posters: {
+    glyph: "Lud",
+    glyphSize: 70,
+    kicker: "Numanice",
+    micro: "Pagode de domingo",
+    legal: "Ludmilla · Numanice · Ao vivo",
+    pick: { headline: ["PicKup"], tag: "Aberto", micro: "Tudo numa nice" },
+    // "Quadrado Caramelo" → ÓCULOS / CARAMELO (a coleção Chilli Beans × Ludmilla é toda de óculos).
+    storeHeadline: (name) => {
+      const words = name.trim().split(/\s+/).filter(Boolean);
+      return ["Óculos", words[words.length - 1] ?? "da Lud"];
+    },
+    cover: "/media/ludmilla/capa-bi-festinha.svg",
+  },
+};
+
+const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta, veigh, ludmilla };
 
 /** Slug do ambiente (como o admin master criou) → pele. Slug fora daqui usa a pele do Vintage. */
-const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta", veigh: "veigh" };
+const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta", veigh: "veigh", ludmilla: "ludmilla" };
 
 export const brandKeyFor = (slug: string): BrandKey => BY_SLUG[slug] ?? "vintage";
 export const brandFor = (slug: string): ArtistBrand => BRANDS[brandKeyFor(slug)];

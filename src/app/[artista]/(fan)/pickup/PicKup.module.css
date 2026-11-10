@@ -226,3 +226,26 @@
   text-transform: lowercase;
   letter-spacing: 0;
 }
+
+/* LUDMILLA: no campo amarelo, texto e tecla na tinta roxa; a tecla é o neon com texto roxo. */
+:global([data-brand="ludmilla"]) .lead :global(.mono),
+:global([data-brand="ludmilla"]) .err,
+:global([data-brand="ludmilla"]) .note {
+  color: var(--fc-ink);
+  opacity: 1;
+}
+:global([data-brand="ludmilla"]) .startkey {
+  background: var(--fc-ink);
+  color: var(--fc-sun);
+  border: 1px solid var(--fc-ink);
+  border-radius: 2px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+:global([data-brand="ludmilla"]) .startkey:hover,
+:global([data-brand="ludmilla"]) .startkey[aria-busy="true"] {
+  background: var(--fc-amber);
+  color: var(--fc-ink);
+  border-color: var(--fc-amber);
+  transform: none;
+}

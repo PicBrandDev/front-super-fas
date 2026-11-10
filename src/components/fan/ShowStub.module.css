@@ -101,3 +101,12 @@
   font: 400 23px/25px var(--fc-font-display);
   text-transform: lowercase;
 }
+
+/* LUDMILLA: lâmina do próximo show no papel com tinta roxa. */
+:global([data-brand="ludmilla"]) .slab:not(.past) {
+  background: var(--fc-mist);
+  color: var(--fc-mast-ink, var(--fc-ink));
+}
+:global([data-brand="ludmilla"]) .slab:not(.past) :global(.mono) {
+  color: var(--fc-mast-ink, var(--fc-ink));
+}

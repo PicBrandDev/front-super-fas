@@ -220,6 +220,59 @@ export const veighFeatureTheme: ArtistTheme = {
   colorScheme: "light",
 };
 
+/*
+ * LUDMILLA (era Numanice): Ludmila-fanzone-refs (05-tokens) e o pacote do Fanzone Artist Kit (packs/ludmilla).
+ * Base no roxo do sunset com tinta creme e acento neon rosa; Mural, Comunidade (Família) e Loja no papel das capas
+ * do Numanice (decisão "menos roxo", 2026-11-09); cabeçalhos em papel com tinta roxa e fio neon. Archivo em tudo.
+ */
+const LUD_SANS = "var(--font-archivo), 'Helvetica Neue', Arial, sans-serif";
+export const ludmillaTheme: ArtistTheme = {
+  bg: "#3A0F4A", // roxo sunset
+  surface: "#482057",
+  surfaceRaised: "#563163",
+  line: "#654472",
+  lineStrong: "#9C87A4",
+  text: "#FFF4E6", // creme
+  textMuted: "#D9BFE0",
+  amber: "#FC94FC", // neon rosa: botão com texto roxo
+  amberText: "#FC94FC",
+  onAmber: "#3A0F4A",
+  sun: "#F8D808", // sol amarelo (PicKup)
+  signalRed: "#FF8A5C", // laranja do sunset clareado (o #FC4C04 não passa como texto no roxo)
+  lagoon: "#681898", // roxo claro
+  lagoonDeep: "#2A0A36",
+  chrome: "#D9BFE0",
+  greyPoster: "#0B0B0D",
+  mist: "#F8E8D8", // papel
+  ink: "#3A0F4A",
+  paper: "#FFF4E6",
+  fontDisplay: LUD_SANS,
+  fontGrotesk: LUD_SANS,
+  fontMono: LUD_SANS,
+  mast: "#F8E8D8", // cabeçalho em papel (roles.mastBaseBg)
+  mastInk: "#3A0F4A",
+  mastRule: ["#FC94FC", "#3A0F4A"], // fio neon sobre o roxo, no lugar do calçadão
+};
+
+/** Tema `feature` (papel creme das capas do Numanice, tinta roxa, claro): Mural, Comunidade e Loja. */
+export const ludmillaFeatureTheme: ArtistTheme = {
+  ...ludmillaTheme,
+  bg: "#F8E8D8",
+  surface: "#FFF4E6",
+  surfaceRaised: "#EFDCC8",
+  line: "#E0C9B2",
+  lineStrong: "#7E6889",
+  text: "#3A0F4A",
+  textMuted: "#5F3F6B",
+  amber: "#681898",
+  amberText: "#681898",
+  onAmber: "#FFF4E6",
+  sun: "#681898",
+  signalRed: "#D81828",
+  chrome: "#5F3F6B",
+  colorScheme: "light",
+};
+
 /** Tema padrão para ambientes recém-criados (antes do design próprio): neutro, escuro. */
 export const blankTheme: ArtistTheme = {
   bg: "#121214",

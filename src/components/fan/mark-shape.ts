@@ -72,6 +72,15 @@ export const VEIGH_GLOBE: FilledMark = {
   viewBox: "-50 -52 100 100",
 };
 
+/**
+ * LUDMILLA: o sol de raios do Numanice (desenho nosso a partir das capas; TODO oficial, GAPS G-01).
+ * Disco cheio com 12 raios; ornamento-base (ponteiro da roleta, selo, menu do admin).
+ */
+export const LUDMILLA_SUN: FilledMark = {
+  d: "M19 0A19 19 0 1 1 -19 0A19 19 0 1 1 19 0ZM-4.23 -24.64L0.00 -47.00L4.23 -24.64ZM9.12 -23.28L19.00 -32.91L15.60 -19.54ZM19.22 -15.98L40.70 -23.50L23.45 -8.66ZM24.72 -3.74L38.00 0.00L24.72 3.74ZM23.45 8.66L40.70 23.50L19.22 15.98ZM15.60 19.54L19.00 32.91L9.12 23.28ZM4.23 24.64L0.00 47.00L-4.23 24.64ZM-9.12 23.28L-19.00 32.91L-15.60 19.54ZM-19.22 15.98L-40.70 23.50L-23.45 8.66ZM-24.72 3.74L-38.00 0.00L-24.72 -3.74ZM-23.45 -8.66L-40.70 -23.50L-19.22 -15.98ZM-15.60 -19.54L-19.00 -32.91L-9.12 -23.28Z",
+  viewBox: "-50 -50 100 100",
+};
+
 /** Caixa (x, y, largura) do viewBox de uma marca, para encaixá-la num <svg> aninhado de altura conhecida. */
 export function markBox(viewBox: string) {
   const [x, y, w, h] = viewBox.split(/\s+/).map(Number);

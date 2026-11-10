@@ -5,6 +5,7 @@
  * cada artista (em public/media/<slug>/) e escolhe a foto certa para cada
  * lugar. Quando a API passar a mandar `image`, ela tem prioridade.
  */
+import { ludProductImages } from "./mock-ludmilla";
 import type { MediaImage, Post, Product } from "./types";
 
 export type { MediaImage };
@@ -64,7 +65,30 @@ export const media: Record<string, ArtistMedia> = {
   departamento: dpMedia(),
   anitta: anittaMedia(),
   veigh: veighMedia(),
+  ludmilla: ludmillaMedia(),
 };
+
+/**
+ * Ludmilla: fotos oficiais de produto da coleção Chilli Beans × Ludmilla (packs/ludmilla/img, só óculos, sem pessoas).
+ * Sem foto da artista (política da pasta de identidade): o Início e o Mural usam cartazes de tipo e as capas desenhadas.
+ * TODO oficial: confirmar a licença das fotos de produto com a Chilli Beans.
+ */
+function ludmillaMedia(): ArtistMedia {
+  const all = Object.values(ludProductImages);
+  return {
+    hero: null,
+    press: [],
+    products: {
+      ...ludProductImages,
+      caramelo: ludProductImages["oc-cl-4926"],
+      cat: ludProductImages["oc-cl-3825"],
+      quadrado: ludProductImages["oc-cl-4945"],
+      redondo: ludProductImages["oc-mt-4159"],
+      oculos: ludProductImages["oc-cl-4926"],
+    },
+    productFallback: all,
+  };
+}
 
 /**
  * Veigh: fotos oficiais de produto da EVOM Merch (veigh-fanzone-refs/06-store, as 9 peças, todas sem pessoas), achatadas

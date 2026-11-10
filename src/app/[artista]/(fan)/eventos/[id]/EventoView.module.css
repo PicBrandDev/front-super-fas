@@ -249,3 +249,12 @@
   text-transform: lowercase;
   letter-spacing: 0;
 }
+
+/* LUDMILLA: topo do evento no papel com tinta roxa. */
+:global([data-brand="ludmilla"]) .ehero {
+  background: var(--fc-mist);
+  color: var(--fc-mast-ink, var(--fc-ink));
+}
+:global([data-brand="ludmilla"]) .ehero :global(.mono) {
+  color: var(--fc-mast-ink, var(--fc-ink));
+}

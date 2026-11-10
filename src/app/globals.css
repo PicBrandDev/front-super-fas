@@ -1062,6 +1062,116 @@ body {
   }
 }
 
+/*
+ * LUDMILLA (data-brand no wrapper do FanShell; pele em src/lib/brands.ts; valores do pacote packs/ludmilla do kit).
+ * Uma noite de Numanice: Archivo 900 em caixa alta nos títulos, cantos de 2px (0 nos cartões), sem sombra.
+ * Base roxo sunset com neon rosa; Mural, Família e Loja no papel. As variáveis `--field-*` pintam os cartazes.
+ */
+.fan[data-brand="ludmilla"] {
+  --radius-hair: 2px;
+  --radius-field: 2px;
+  --radius-device: 0px;
+  --track-display: -0.02em;
+  --kit-display: var(--fc-font-display);
+  --kit-display-weight: 900;
+  --display-case: uppercase;
+  /* campos A–E (pack.json > tokens.fields) */
+  --field-a: #0b0b0d;
+  --field-a-ink: #fff4e6;
+  --field-b: #681898;
+  --field-b-ink: #fff4e6;
+  --field-b-accent: #fc94fc;
+  --field-c: #fc4c04;
+  --field-c-ink: #3a0f4a;
+  --field-c-accent: #f8d808;
+  --field-d: #f8d808;
+  --field-d-ink: #3a0f4a;
+  --field-e: #f8e8d8;
+  --field-e-ink: #3a0f4a;
+  /* cartaz de abertura do Início no campo B (roxo claro com o neon), como no Artifact */
+  --home-hero-bg: #681898;
+  --home-hero-ink: #fc94fc;
+  /* roda: segmento do prêmio no neon com tinta roxa */
+  --wheel-on: #fc94fc;
+  --wheel-on-ink: #3a0f4a;
+}
+/* No PicKup (campo amarelo) e no papel a roda risca na tinta roxa; no PicKup o miolo do selo é o próprio amarelo. */
+.fan[data-brand="ludmilla"] [data-tone="feature"],
+.fan[data-brand="ludmilla"] .bg-sun {
+  --wheel-ink: #3a0f4a;
+}
+.fan[data-brand="ludmilla"] .bg-sun {
+  --wheel-field: #f8d808;
+}
+@layer components {
+  .fan[data-brand="ludmilla"] .deck,
+  .fan[data-brand="ludmilla"] .key,
+  .fan[data-brand="ludmilla"] .toast,
+  .fan[data-brand="ludmilla"] .sheet {
+    border-radius: 0;
+  }
+  .fan[data-brand="ludmilla"] .btn {
+    font-weight: 800;
+  }
+  .fan[data-brand="ludmilla"] .btn-primary {
+    border-color: var(--fc-amber);
+  }
+  .fan[data-brand="ludmilla"] .btn-primary:hover {
+    background: var(--fc-bg);
+    color: var(--fc-amber-text);
+    border-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="ludmilla"] .btn-primary:active {
+    transform: none;
+  }
+  .fan[data-brand="ludmilla"] .mono {
+    font: 600 11px/14px var(--fc-font-mono);
+    letter-spacing: 0.08em;
+  }
+  .fan[data-brand="ludmilla"] .poster,
+  .fan[data-brand="ludmilla"] .serif,
+  .fan[data-brand="ludmilla"] .font-display {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+  .fan[data-brand="ludmilla"] .tag {
+    font: 700 11px/12px var(--fc-font-mono);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="ludmilla"] .tag-key {
+    border-color: #f8d808;
+    background: #f8d808;
+    color: #3a0f4a;
+  }
+  .fan[data-brand="ludmilla"] .avatar {
+    font: 800 10px/1 var(--fc-font-mono);
+  }
+  .fan[data-brand="ludmilla"] .tab[aria-selected="true"],
+  .fan[data-brand="ludmilla"] .tab[aria-current="page"] {
+    border-bottom-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="ludmilla"] .mast-word {
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  .fan[data-brand="ludmilla"] .key[aria-current="page"] {
+    color: var(--fc-fg);
+  }
+  .fan[data-brand="ludmilla"] .key[aria-current="page"]::after {
+    background: var(--fc-amber-text);
+  }
+  .fan[data-brand="ludmilla"] .scrim {
+    background: color-mix(in srgb, #0b0b0d 72%, transparent);
+  }
+  .fan[data-brand="ludmilla"] .sheet h2 {
+    font: 900 36px/0.95 var(--fc-font-display);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--fc-fg);
+  }
+}
+
 @keyframes fan-up {
   from {
     transform: translateY(24px);
@@ -1341,6 +1451,46 @@ body {
 }
 .adm-noite[data-brand="veigh"] [data-badge] {
   border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/*
+ * ADMIN DA LUDMILLA (`data-brand="ludmilla"` no wrapper do ClubAdminShell; pele em src/lib/brands.ts).
+ * Menu lateral no roxo sunset com tinta creme, dados no roxo da base, topo em papel com tinta roxa (Masthead tom "mast"),
+ * Archivo 900 em caixa alta nos títulos. Acento: botão neon rosa com texto roxo; como texto (links), o próprio neon.
+ */
+.adm-noite[data-brand="ludmilla"] {
+  --radius-md: 2px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --color-adm-side: #2a0a36;
+  --color-adm-side-line: #4a2458;
+  --color-adm-side-muted: #d9bfe0;
+  --color-adm-side-text: #fff4e6;
+  /* acento do painel (os utilitários adm-blue leem estas variáveis) */
+  --pf-brand: #fc94fc;
+  --pf-brand-dark: #ec54c4;
+  --pf-brand-soft: color-mix(in srgb, #fc94fc 22%, #3a0f4a);
+  --pf-brand-tint: color-mix(in srgb, #fc94fc 10%, #3a0f4a);
+}
+.adm-noite[data-brand="ludmilla"] h1,
+.adm-noite[data-brand="ludmilla"] :is(h2, h3),
+.adm-noite[data-brand="ludmilla"] .font-display {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+.adm-noite[data-brand="ludmilla"] :is(.text-adm-blue, .text-adm-blue-dark) {
+  color: var(--fc-amber-text);
+}
+.adm-noite[data-brand="ludmilla"] .bg-adm-blue {
+  color: #3a0f4a;
+}
+.adm-noite[data-brand="ludmilla"] [data-badge] {
+  border-radius: 2px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 11px;
