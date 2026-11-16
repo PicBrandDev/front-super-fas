@@ -24,8 +24,8 @@ const byId = (id: string) => joaoGomesFans.find((f) => f.id === id)!;
 
 export const joaoGomesClubs: FanClub[] = [
   { id: "joaoGomesc1", slug: "oficial", name: "Fã-clube oficial João Gomes", description: "Fã-clube do João no Brasil inteiro.", city: "", isMaster: true, status: "active", members: 48210, avatar: null, owner: null, joined: true, myRole: null },
-  { id: "joaoGomesc2", slug: "forrozeiros-pe", name: "Forrozeiros PE", description: "Fã-clube do João · Recife. Descrição de exemplo.", city: "Recife", isMaster: false, status: "active", members: 6320, avatar: null, owner: null, joined: true, myRole: null },
-  { id: "joaoGomesc3", slug: "forrozeiros-ba", name: "Forrozeiros BA", description: "Fã-clube do João · Salvador. Descrição de exemplo.", city: "Salvador", isMaster: false, status: "active", members: 4875, avatar: null, owner: { name: "Caio R.", handle: "@caio.jg" }, joined: false, myRole: null },
+  { id: "joaoGomesc2", slug: "forrozeiros-pe", name: "PE Forrozeiros", description: "Fã-clube do João · Recife. Descrição de exemplo.", city: "Recife", isMaster: false, status: "active", members: 6320, avatar: null, owner: null, joined: true, myRole: null },
+  { id: "joaoGomesc3", slug: "forrozeiros-ba", name: "BA Forrozeiros", description: "Fã-clube do João · Salvador. Descrição de exemplo.", city: "Salvador", isMaster: false, status: "active", members: 4875, avatar: null, owner: { name: "Caio R.", handle: "@caio.jg" }, joined: false, myRole: null },
   { id: "joaoGomesc4", slug: "forrozeiros-sp", name: "SP Forrozeiros", description: "Fã-clube do João · São Paulo. Descrição de exemplo.", city: "São Paulo", isMaster: false, status: "active", members: 2140, avatar: null, owner: { name: "Bia L.", handle: "@bia.jg" }, joined: false, myRole: null },
 ];
 
