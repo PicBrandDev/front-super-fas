@@ -75,11 +75,15 @@ export default async function PickupAdminPage({ params }: { params: Promise<{ ar
               <div className="grid items-center gap-6 rounded-xl border border-adm-line bg-white p-5 md:grid-cols-[minmax(0,340px)_1fr]">
                 <div
                   className="fan adm-roleta mx-auto w-full max-w-[380px] rounded-xl p-3"
+                  // João Gomes: a roleta do app (tema de destaque da tela PicKup, com a pele dele), igual ao que o fã vê.
+                  data-brand={brandFor(artist.slug).key === "joaoGomes" ? "joaoGomes" : undefined}
                   style={
-                    brandFor(artist.slug).wheel === "star"
-                      ? // A roda do Departamento, em azul sobre o branco do painel (no app ela é branca sobre o campo escuro).
-                        ({ "--fc-paper": "#0000FF", "--fc-bg": "#FFFFFF", "--wheel-field": "#FFFFFF", "--fc-on-amber": "#FFFFFF" } as React.CSSProperties)
-                      : { ...themeStyle(brandFor(artist.slug).theme), background: brandFor(artist.slug).theme.bg }
+                    brandFor(artist.slug).key === "joaoGomes"
+                      ? { ...themeStyle(brandFor(artist.slug).toneTheme ?? brandFor(artist.slug).theme), background: (brandFor(artist.slug).toneTheme ?? brandFor(artist.slug).theme).bg }
+                      : brandFor(artist.slug).wheel === "star"
+                        ? // A roda do Departamento, em azul sobre o branco do painel (no app ela é branca sobre o campo escuro).
+                          ({ "--fc-paper": "#0000FF", "--fc-bg": "#FFFFFF", "--wheel-field": "#FFFFFF", "--fc-on-amber": "#FFFFFF" } as React.CSSProperties)
+                        : { ...themeStyle(brandFor(artist.slug).theme), background: brandFor(artist.slug).theme.bg }
                   }
                 >
                   {/* A mesma roleta (toca-discos ou roda com estrela) que o fã vê no app; o admin pode girar para testar. */}

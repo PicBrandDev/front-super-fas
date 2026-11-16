@@ -94,9 +94,12 @@ export function buildPosters({
   const out: Poster[] = [];
   const molds: PosterKind[] = ["lost", "culture"];
   const ex = demo ? " · Exemplo" : "";
+  // Marca com `postPhoto`: os Drops mais novos que têm foto (1, ou o número configurado) viram cartaz de foto inteira e abrem o Mural.
+  const photoLimit = kit?.postPhoto === true ? 1 : kit?.postPhoto || 0;
+  const photoDrops = new Set(drops.filter((p) => p.image).slice(0, photoLimit).map((p) => p.id));
 
   drops.forEach((p, i) => {
-    const kind = molds[i % molds.length];
+    const kind = photoDrops.has(p.id) ? "lost" : molds[i % molds.length]; // a foto inteira só existe no molde `lost`
     out.push({
       id: `drop-${p.id}`,
       postId: p.id,
@@ -199,8 +202,8 @@ export function buildPosters({
 
   // PicKup e Loja (os dois últimos) abrem o Mural; os Drops, a data e a foto do artista vêm depois.
   const [pickup, store] = out.splice(-2);
-  // Marca com `postPhoto` (Ludmilla): o Drop mais novo que tem foto abre o Mural, antes do PicKup e da Loja.
-  const comFoto = kit?.postPhoto ? out.filter((p) => p.postId && p.image).slice(0, 1) : [];
+  // Marca com `postPhoto` (Ludmilla, João Gomes): os Drops mais novos com foto abrem o Mural, antes do PicKup e da Loja.
+  const comFoto = out.filter((p) => p.postId && photoDrops.has(p.postId));
   const resto = out.filter((p) => !comFoto.includes(p));
   return [...comFoto, pickup, store, ...resto];
 }

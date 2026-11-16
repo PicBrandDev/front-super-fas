@@ -4,12 +4,12 @@
 export const TERMS_GATED = ["vintage-culture", "departamento"];
 
 /** Troque a versão ao mudar o texto: quem aceitou a anterior aceita de novo. */
-export const TERMS_VERSION = "2026-11-06";
+export const TERMS_VERSION = "2026-11-16";
 
 export const termsKey = (slug: string) => `terms-ok:${slug}:${TERMS_VERSION}`;
 
 export const TERMS_INTRO =
-  "Este ambiente é uma demonstração privada da PicBrand. Leia o termo abaixo e informe seu CPF para continuar.";
+  "Este ambiente é uma demonstração privada da PicBrand. Leia o termo abaixo e informe seu nome e CPF para continuar.";
 
 export const TERMS_SECTIONS: { title: string; body: string[] }[] = [
   {
@@ -45,19 +45,25 @@ export const TERMS_SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "5. Seus dados (LGPD)",
     body: [
-      "Pedimos seu CPF para identificar quem acessou esta demonstração e comprovar que o termo foi aceito. Guardamos o CPF, o ambiente acessado, a data e hora e o endereço de IP do aceite.",
-      "Usamos esses dados só para registrar o aceite deste termo e para proteger a propriedade intelectual da PicBrand, com base na Lei Geral de Proteção de Dados (Lei 13.709/2018). Não vendemos nem compartilhamos o CPF para outros fins. Para pedir informações ou a exclusão, fale com a PicBrand.",
+      "Pedimos seu nome e seu CPF para identificar quem acessou esta demonstração e comprovar que o termo foi aceito. Guardamos o nome, o CPF, o ambiente acessado, a data e hora e o endereço de IP do aceite.",
+      "Usamos esses dados só para registrar o aceite deste termo e para proteger a propriedade intelectual da PicBrand, com base na Lei Geral de Proteção de Dados (Lei 13.709/2018). Não vendemos nem compartilhamos o nome nem o CPF para outros fins. Para pedir informações ou a exclusão, fale com a PicBrand.",
     ],
   },
   {
     title: "6. Aceite",
     body: [
-      "Ao informar seu CPF e marcar a caixa de aceite, você declara que leu e concorda com este termo. O aceite eletrônico vale como assinatura. O uso indevido pode gerar responsabilização civil e criminal, nos termos da lei.",
+      "Ao informar seu nome e seu CPF e marcar a caixa de aceite, você declara que leu e concorda com este termo. O aceite eletrônico vale como assinatura. O uso indevido pode gerar responsabilização civil e criminal, nos termos da lei.",
     ],
   },
 ];
 
 export const onlyDigits = (s: string) => s.replace(/\D/g, "");
+
+/** Pelo menos duas palavras (nome e sobrenome), cada uma com 2 letras ou mais. */
+export function nomeValido(s: string): boolean {
+  const partes = s.trim().split(/\s+/).filter((p) => p.length >= 2);
+  return partes.length >= 2 && s.trim().length <= 120;
+}
 
 /** 000.000.000-00 enquanto a pessoa digita. */
 export function maskCpf(s: string): string {

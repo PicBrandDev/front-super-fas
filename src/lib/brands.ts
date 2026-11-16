@@ -51,8 +51,11 @@ export type KitPosters = {
   storeHeadline: (productName: string) => string[];
   /** Capa oficial do lançamento (campo A, em `public/`); sem capa, a marca na luva. */
   cover?: string;
-  /** O cartaz de um Drop que tem foto usa a foto do post no lugar da capa (só Ludmilla por enquanto). */
-  postPhoto?: boolean;
+  /**
+   * O cartaz de um Drop que tem foto usa a foto do post no lugar da capa e abre o Mural. `true` = só o Drop mais novo com foto
+   * (Ludmilla); um número = quantos Drops com foto abrem o Mural, do mais novo para o mais antigo (João Gomes).
+   */
+  postPhoto?: boolean | number;
   /**
    * Moldura de carta de tarô (Anitta): moldura no acento, numeral romano no topo, plaqueta creme com o título embaixo
    * e o nome do cantor na lateral. `[[trecho]]` na plaqueta pinta o trecho no vermelho da marca.
@@ -486,6 +489,8 @@ const joaoGomes: ArtistBrand = {
       const [first, second] = name.trim().split(/\s+/).filter(Boolean);
       return [first ?? "Caneca", (second ?? "esmaltada").toLowerCase()];
     },
+    // Os 2 Drops mais novos com foto (a capa do Dominguinho e o cartaz "Abrace um Denguinho") abrem o Mural, com a foto inteira.
+    postPhoto: 2,
   },
 };
 

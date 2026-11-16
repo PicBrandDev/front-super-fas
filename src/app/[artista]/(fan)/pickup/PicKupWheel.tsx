@@ -11,7 +11,6 @@ import { PickupLayers } from "@/components/fan/PickupLayers";
 import { Masthead } from "@/components/fan/Masthead";
 import { Sheet } from "@/components/fan/Sheet";
 import { Turntable, TT, norm, recordAngleFor } from "@/components/fan/Turntable";
-import { useToast } from "@/components/fan/Toast";
 import type { InAppAd } from "@/lib/ads";
 import type { Prize, Reward, SpinCredit } from "@/lib/types";
 import s from "./PicKup.module.css";
@@ -59,7 +58,6 @@ export function PicKupWheel({
   const { base, slug } = useArtist();
   const brand = useBrand();
   const skin = brand.pickup;
-  const { show: toast } = useToast();
   const n = prizes.length;
   const labels = prizes.map((p) => p.label);
   const featured = featuredIndex(prizes);
@@ -90,7 +88,6 @@ export function PicKupWheel({
   const [claimOpen, setClaimOpen] = useState(false);
   const router = useRouter();
   // Qual foi o resultado que abriu o anúncio, e se o fã pediu "Ver meus brindes" (só vai depois de fechar o anúncio).
-  const claimWasPrize = useRef(false);
   const goBrindes = useRef(false);
 
   const mastBox = useRef<HTMLDivElement>(null);
@@ -240,20 +237,18 @@ export function PicKupWheel({
   const closeResult = useCallback(() => {
     // O anúncio em modal entra depois de qualquer resultado do giro (brinde ou "não foi dessa vez").
     if (result && claimAd) {
-      claimWasPrize.current = !isLose(result);
       setClaimOpen(true);
     }
     setResult(null);
   }, [result, claimAd]);
   const closeClaim = useCallback(() => {
     setClaimOpen(false);
-    if (claimWasPrize.current) toast("Guardado em Meus brindes");
     // "Ver meus brindes": só depois de fechar o anúncio é que vai para a tela de brindes.
     if (goBrindes.current) {
       goBrindes.current = false;
       router.push(`${base}/pickup/brindes`);
     }
-  }, [toast, router, base]);
+  }, [router, base]);
 
   const keyLabel = spinning ? skin.keyBusy : spins <= 0 ? "Sem giros" : spun ? "Girar de novo" : skin.keyIdle;
   const lose = !!result && isLose(result);
