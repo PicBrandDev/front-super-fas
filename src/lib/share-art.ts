@@ -42,6 +42,8 @@ const LOOKS: Record<BrandKey, Look> = {
   veigh: { bg: "#56070C", warm: "#56070C", accent: "#D7AE98", fade: "14,11,11", display: '"Arial Black", sans-serif', upper: false, fontVar: "--font-sedgwick" },
   // Ludmilla: roxo do sunset chapado, hashtag no neon rosa, Archivo em caixa alta.
   ludmilla: { bg: "#3A0F4A", warm: "#3A0F4A", accent: "#FC94FC", fade: "58,15,74", display: SANS, upper: true },
+  // João Gomes: vermelho Lapa chapado (a noite do PicKup), hashtag no creme, Anton em caixa alta.
+  joaoGomes: { bg: "#802A1D", warm: "#802A1D", accent: "#F7F4D7", fade: "128,42,29", display: "Impact, \"Arial Narrow\", sans-serif", upper: true, fontVar: "--font-anton" },
 };
 
 async function loadImage(src: string): Promise<HTMLImageElement | null> {

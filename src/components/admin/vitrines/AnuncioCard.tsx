@@ -37,6 +37,7 @@ function artistLook(name?: string | null) {
   if (n.includes("anitta")) return { bg: "#0A1A31", fg: "#FAF8EC", accent: "#DD2325", onAccent: "#FFFFFF", radius: "9999px" };
   if (n.includes("veigh")) return { bg: "#0E0B0B", fg: "#F3EEE7", accent: "#8E1A22", onAccent: "#F3EEE7", radius: "0px" };
   if (n.includes("ludmilla")) return { bg: "#3A0F4A", fg: "#FFF4E6", accent: "#FC94FC", onAccent: "#3A0F4A", radius: "2px" };
+  if (n.includes("joão gomes")) return { bg: "#F7F4D7", fg: "#181512", accent: "#802A1D", onAccent: "#F7F4D7", radius: "0px" };
   return { bg: "#1b1f2a", fg: "#FFFFFF", accent: "#8FB0FF", onAccent: "#1b1f2a", radius: "9999px" };
 }
 

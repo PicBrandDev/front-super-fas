@@ -6,6 +6,7 @@
  * lugar. Quando a API passar a mandar `image`, ela tem prioridade.
  */
 import { ludProductImages } from "./mock-ludmilla";
+import { joaoGomesProductImages } from "./mock-joao-gomes";
 import type { MediaImage, Post, Product } from "./types";
 
 export type { MediaImage };
@@ -66,7 +67,33 @@ export const media: Record<string, ArtistMedia> = {
   anitta: anittaMedia(),
   veigh: veighMedia(),
   ludmilla: ludmillaMedia(),
+  "joao-gomes": joaoGomesMedia(),
 };
+
+/**
+ * João Gomes: fotos de produto do pacote (packs/joao-gomes/img), sem pessoas; gerado por gerar-pele.mjs.
+ * Sem foto do artista (regra 4 do cofre): o Início e o Mural usam cartazes de tipo e as capas desenhadas.
+ * TODO oficial: confirmar a licença das fotos de produto.
+ */
+function joaoGomesMedia(): ArtistMedia {
+  const all = Object.values(joaoGomesProductImages);
+  return {
+    hero: null,
+    press: [],
+    products: {
+      ...joaoGomesProductImages,
+      // palavras do nome (API)
+      caneca: joaoGomesProductImages["caneca-dominguinho"],
+      dominguinho: joaoGomesProductImages["caneca-dominguinho"],
+      bolsa: joaoGomesProductImages["bolsa-dois-sois"],
+      sois: joaoGomesProductImages["bolsa-dois-sois"],
+      chaveiro: joaoGomesProductImages["chaveiro-croche"],
+      croche: joaoGomesProductImages["chaveiro-croche"],
+      pin: joaoGomesProductImages["pin-dois-sois"],
+    },
+    productFallback: all,
+  };
+}
 
 /**
  * Ludmilla: fotos oficiais de produto da coleção Chilli Beans × Ludmilla (packs/ludmilla/img, só óculos, sem pessoas).

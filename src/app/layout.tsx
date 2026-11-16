@@ -45,6 +45,35 @@ const courierPrime = localFont({
   preload: false,
   fallback: ["Courier New", "monospace"],
 });
+// João Gomes: cartaz de tipo de madeira (Anton) + rótulo de letreiro (Zilla Slab) + metadados (Space Mono).
+const anton = localFont({
+  src: [{ path: "../fonts/anton-latin-400-normal.woff2", weight: "400", style: "normal" }],
+  variable: "--font-anton",
+  display: "swap",
+  preload: false,
+  fallback: ["Impact", "Arial Narrow", "sans-serif"],
+});
+const zillaSlab = localFont({
+  src: [
+    { path: "../fonts/zilla-slab-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/zilla-slab-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/zilla-slab-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-zilla-slab",
+  display: "swap",
+  preload: false,
+  fallback: ["Rockwell", "Georgia", "serif"],
+});
+const spaceMono = localFont({
+  src: [
+    { path: "../fonts/space-mono-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/space-mono-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-space-mono",
+  display: "swap",
+  preload: false,
+  fallback: ["Courier New", "monospace"],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -68,7 +97,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="pt-BR"
-      className={`${archivo.variable} ${averia.variable} ${sedgwick.variable} ${courierPrime.variable}`}
+      className={`${archivo.variable} ${averia.variable} ${sedgwick.variable} ${courierPrime.variable} ${anton.variable} ${zillaSlab.variable} ${spaceMono.variable}`}
       style={brandStyle}
     >
       <body className="antialiased">{children}</body>

@@ -1172,6 +1172,122 @@ body {
   }
 }
 
+/*
+ * JOÃO GOMES (data-brand no wrapper do FanShell; pele em src/lib/brands.ts; valores do pacote packs/joao-gomes do kit).
+ * Gerado por gerar-pele.mjs: Anton 400 em caixa alta nos títulos, cantos 0px/2px/2px, sem sombra.
+ * As variáveis `--field-*` pintam os cartazes. Confira no Artifact e ajuste a forma.
+ */
+.fan[data-brand="joaoGomes"] {
+  --radius-hair: 0px;
+  --radius-field: 2px;
+  --radius-device: 2px;
+  --track-display: 0.01em;
+  --kit-display: var(--fc-font-display);
+  --kit-display-weight: 400;
+  --display-case: uppercase;
+  /* campos A–E (pack.json > tokens.fields) */
+  --field-a: #eed1b4;
+  --field-a-ink: #802a1d;
+  --field-b: #f4e4c6;
+  --field-b-ink: #181512;
+  --field-b-accent: #c84a2e;
+  --field-c: #d8792e;
+  --field-c-ink: #181512;
+  --field-c-accent: #5c1e14;
+  --field-d: #9b9582;
+  --field-d-ink: #181512;
+  --field-e: #f4e4c6;
+  --field-e-ink: #802a1d;
+  /* cartaz de abertura do Início no campo B, como no Artifact */
+  --home-hero-bg: #f4e4c6;
+  --home-hero-ink: #181512;
+  --home-hero-glyph: #c84a2e;
+  /* Anton é larga em caixa alta: "FAZER HISTÓRIA!" cabe em 13cqw (no padrão, 17cqw) */
+  --home-motto-size: 13cqw;
+  /* roda: segmento do prêmio no acento */
+  --wheel-on: #802a1d;
+  --wheel-on-ink: #f7f4d7;
+  /* grão de impressão dos cartazes (pack.json > effects.grain) */
+  --poster-grain: url(/media/joao-gomes/grao.svg);
+  --poster-grain-opacity: 0.3;
+}
+@layer components {
+  .fan[data-brand="joaoGomes"] .btn,
+  .fan[data-brand="joaoGomes"] .tag,
+  .fan[data-brand="joaoGomes"] .deck,
+  .fan[data-brand="joaoGomes"] .key,
+  .fan[data-brand="joaoGomes"] .toast,
+  .fan[data-brand="joaoGomes"] .sheet,
+  .fan[data-brand="joaoGomes"] .field {
+    border-radius: 2px;
+  }
+  .fan[data-brand="joaoGomes"] .btn {
+    font-weight: 700;
+  }
+  .fan[data-brand="joaoGomes"] .btn-primary {
+    border-color: var(--fc-amber);
+  }
+  .fan[data-brand="joaoGomes"] .btn-primary:hover {
+    background: var(--fc-bg);
+    color: var(--fc-amber-text);
+    border-color: var(--fc-amber-text);
+  }
+  .fan[data-brand="joaoGomes"] .btn-primary:active {
+    transform: none;
+  }
+  .fan[data-brand="joaoGomes"] .mono {
+    font: 700 11px/14px var(--fc-font-mono);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="joaoGomes"] .poster,
+  .fan[data-brand="joaoGomes"] .serif,
+  .fan[data-brand="joaoGomes"] .font-display {
+    font-family: var(--fc-font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+  .fan[data-brand="joaoGomes"] .tag {
+    font: 700 11px/12px var(--fc-font-mono);
+    letter-spacing: 0.06em;
+  }
+  .fan[data-brand="joaoGomes"] .tag-key {
+    border-color: #802a1d;
+    background: #802a1d;
+    color: #f7f4d7;
+  }
+  .fan[data-brand="joaoGomes"] .avatar {
+    font: 700 10px/1 var(--fc-font-mono);
+  }
+  .fan[data-brand="joaoGomes"] .tab[aria-selected="true"],
+  .fan[data-brand="joaoGomes"] .tab[aria-current="page"] {
+    border-bottom-color: var(--fc-amber-text);
+  }
+  /* Anton é alta: o cabeçalho fica entre 112 e 136px e sobe um pouco para não cortar o topo (pack.json > extraCss). */
+  .fan[data-brand="joaoGomes"] .mast-word {
+    font-family: var(--fc-font-display);
+    font-weight: 400;
+    font-size: clamp(112px, var(--mast-size, 112px), 136px);
+    letter-spacing: 0.02em;
+    translate: 0 -0.09em;
+  }
+  .fan[data-brand="joaoGomes"] .key[aria-current="page"] {
+    color: var(--fc-fg);
+  }
+  .fan[data-brand="joaoGomes"] .key[aria-current="page"]::after {
+    background: var(--fc-amber-text);
+  }
+  .fan[data-brand="joaoGomes"] .scrim {
+    background: color-mix(in srgb, #181512 72%, transparent);
+  }
+  .fan[data-brand="joaoGomes"] .sheet h2 {
+    font: 400 36px/0.95 var(--fc-font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--fc-fg);
+  }
+}
+
 @keyframes fan-up {
   from {
     transform: translateY(24px);
@@ -1491,6 +1607,52 @@ body {
 }
 .adm-noite[data-brand="ludmilla"] [data-badge] {
   border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/*
+ * ADMIN DO JOÃO GOMES (`data-brand="joaoGomes"` no wrapper do ClubAdminShell; pele em src/lib/brands.ts).
+ * Gerado por gerar-pele.mjs: menu lateral no tom feature, acento do pacote (tokens.base.accent).
+ */
+.adm-noite[data-brand="joaoGomes"] {
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --color-adm-side: #802a1d;
+  --color-adm-side-line: #9c4436;
+  --color-adm-side-muted: #f2d9be;
+  --color-adm-side-text: #f7f4d7;
+  /* acento do painel (os utilitários adm-blue leem estas variáveis) */
+  --pf-brand: #802a1d;
+  --pf-brand-dark: #5c1e14;
+  --pf-brand-soft: color-mix(in srgb, #802a1d 22%, #f7f4d7);
+  --pf-brand-tint: color-mix(in srgb, #802a1d 10%, #f7f4d7);
+}
+/* A fonte da identidade também no painel. */
+.adm-noite[data-brand="joaoGomes"],
+.adm-noite[data-brand="joaoGomes"] :is(.font-adm, .font-adm-mono) {
+  font-family: var(--fc-font-grotesk);
+}
+.adm-noite[data-brand="joaoGomes"] h1,
+.adm-noite[data-brand="joaoGomes"] :is(h2, h3),
+.adm-noite[data-brand="joaoGomes"] .font-display,
+.adm-noite[data-brand="joaoGomes"] .mast-word {
+  font-family: var(--fc-font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.adm-noite[data-brand="joaoGomes"] :is(.text-adm-blue, .text-adm-blue-dark) {
+  color: var(--fc-amber-text);
+}
+.adm-noite[data-brand="joaoGomes"] .bg-adm-blue {
+  color: #f7f4d7;
+}
+.adm-noite[data-brand="joaoGomes"] [data-badge] {
+  border-radius: 0px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 11px;
