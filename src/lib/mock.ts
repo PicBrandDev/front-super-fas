@@ -3,7 +3,8 @@
  * Tudo que está entre colchetes ([PREÇO], [Local do evento]...) é para
  * ser preenchido com dados reais.
  */
-import { anittaTheme, departamentoTheme, ludmillaTheme, veighTheme, vintageTheme } from "./themes";
+import { anittaTheme, departamentoTheme, joaoGomesTheme, ludmillaTheme, veighTheme, vintageTheme } from "./themes";
+import { joaoGomesClubs, joaoGomesEvents, joaoGomesPosts, joaoGomesPrizes, joaoGomesProducts, joaoGomesPublicFan, joaoGomesTracks, joaoGomesViewer } from "./mock-joao-gomes";
 import { ludClubs, ludEvents, ludPosts, ludPrizes, ludProducts, ludPublicFan, ludTracks, ludViewer } from "./mock-ludmilla";
 import type {
   FanClub,
@@ -96,6 +97,20 @@ export const artists: Artist[] = [
     members: "48,2 mil",
     adSlotsSummary: "4 de 6 ocupadas",
     brandColor: "#3A0F4A",
+  },
+  {
+    id: "jo",
+    slug: "joao-gomes",
+    name: "João Gomes",
+    initial: "J",
+    fanClubName: "Forrozeiros",
+    instagram: "@joaogomescantor", // VERIFIED-FACTS da pasta de refs
+    status: "active",
+    theme: joaoGomesTheme,
+    memberPriceCents: 1690,
+    members: "48,2 mil",
+    adSlotsSummary: "4 de 6 ocupadas",
+    brandColor: "#802A1D",
   },
 ];
 
@@ -310,5 +325,15 @@ export const byArtist: Record<string, ArtistDemo> = {
     prizes: ludPrizes,
     fanClubs: ludClubs,
     publicFan: ludPublicFan,
+  },
+  "joao-gomes": {
+    viewer: joaoGomesViewer,
+    posts: joaoGomesPosts,
+    events: joaoGomesEvents,
+    products: joaoGomesProducts,
+    tracks: joaoGomesTracks,
+    prizes: joaoGomesPrizes,
+    fanClubs: joaoGomesClubs,
+    publicFan: joaoGomesPublicFan,
   },
 };

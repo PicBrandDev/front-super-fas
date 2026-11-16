@@ -196,7 +196,8 @@
 }
 :global([data-brand="departamento"]) .startkey,
 :global([data-brand="anitta"]) .startkey,
-:global([data-brand="veigh"]) .startkey {
+:global([data-brand="veigh"]) .startkey,
+:global([data-brand="joaoGomes"]) .startkey {
   background: var(--fc-amber);
   color: var(--fc-on-amber);
   border: 1px solid var(--fc-amber);
@@ -209,7 +210,9 @@
 :global([data-brand="anitta"]) .startkey:hover,
 :global([data-brand="anitta"]) .startkey[aria-busy="true"],
 :global([data-brand="veigh"]) .startkey:hover,
-:global([data-brand="veigh"]) .startkey[aria-busy="true"] {
+:global([data-brand="veigh"]) .startkey[aria-busy="true"],
+:global([data-brand="joaoGomes"]) .startkey:hover,
+:global([data-brand="joaoGomes"]) .startkey[aria-busy="true"] {
   background: var(--fc-bg);
   color: var(--fc-amber-text);
   transform: none;
@@ -225,6 +228,17 @@
   font-weight: 400;
   text-transform: lowercase;
   letter-spacing: 0;
+}
+
+/* JOÃO GOMES: no vermelho Lapa, a nota e os rótulos ficam no creme (a tinta escura some no vermelho); tecla creme com texto vermelho. */
+:global([data-brand="joaoGomes"]) .lead :global(.mono),
+:global([data-brand="joaoGomes"]) .err,
+:global([data-brand="joaoGomes"]) .note {
+  color: var(--fc-fg);
+}
+:global([data-brand="joaoGomes"]) .startkey {
+  border-radius: 2px;
+  font-weight: 700;
 }
 
 /* LUDMILLA: no campo amarelo, texto e tecla na tinta roxa; a tecla é o neon com texto roxo. */

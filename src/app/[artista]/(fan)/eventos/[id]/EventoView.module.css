@@ -258,3 +258,27 @@
 :global([data-brand="ludmilla"]) .ehero :global(.mono) {
   color: var(--fc-mast-ink, var(--fc-ink));
 }
+
+/* JOÃO GOMES: herói do evento no laranja moldura com tinta (como a lâmina de data da Agenda); Anton 400. */
+:global([data-brand="joaoGomes"]) .ehero {
+  background: #d8792e;
+  color: var(--fc-ink);
+}
+:global([data-brand="joaoGomes"]) .ehero :global(.mono) {
+  color: var(--fc-ink);
+}
+:global([data-brand="joaoGomes"]) .ehero .d {
+  font-weight: 400;
+}
+:global([data-brand="joaoGomes"]) .ehero .m {
+  font: 400 40px/36px var(--fc-font-display);
+  letter-spacing: 0.01em;
+}
+:global([data-brand="joaoGomes"]) .etitle h1,
+:global([data-brand="joaoGomes"]) .sect h2,
+:global([data-brand="joaoGomes"]) .lineup .h {
+  font-family: var(--fc-font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}

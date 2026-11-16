@@ -110,3 +110,20 @@
 :global([data-brand="ludmilla"]) .slab:not(.past) :global(.mono) {
   color: var(--fc-mast-ink, var(--fc-ink));
 }
+
+/* JOÃO GOMES: lâmina de data no laranja moldura com tinta (roles.slabBg/slabInk); data e nome em Anton 400, nome em caixa alta. */
+:global([data-brand="joaoGomes"]) .slab:not(.past) {
+  background: #d8792e;
+  color: var(--fc-ink);
+}
+:global([data-brand="joaoGomes"]) .slab:not(.past) :global(.mono) {
+  color: var(--fc-ink);
+}
+:global([data-brand="joaoGomes"]) .slab .d {
+  font-weight: 400;
+}
+:global([data-brand="joaoGomes"]) .name {
+  font: 400 24px/26px var(--fc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}

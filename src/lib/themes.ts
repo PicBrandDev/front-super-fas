@@ -273,6 +273,63 @@ export const ludmillaFeatureTheme: ArtistTheme = {
   colorScheme: "light",
 };
 
+/*
+ * JOÃO GOMES: pacote do Fanzone Artist Kit (packs/joao-gomes), gerado por .claude/skills/subir-pele-cantor/gerar-pele.mjs.
+ * Pele solo do DVD Meu Piseiro Brasileiro: cartaz de forró e vaquejada (creme, tinta, vermelho Lapa, laranja moldura,
+ * Anton + Zilla Slab). Vermelho como fundo só no PicKup. A Turnê Dominguinho (com Jota.pê e Mestrinho) entra como
+ * conteúdo: agenda, cartaz de data e loja da turnê.
+ */
+const JOAO_GOMES_FONT = "var(--font-anton), 'Anton', Impact, 'Arial Narrow', sans-serif";
+const JOAO_GOMES_FONT_LABEL = "var(--font-zilla-slab), 'Zilla Slab', Rockwell, Georgia, serif";
+const JOAO_GOMES_FONT_MONO = "var(--font-space-mono), 'Space Mono', 'Courier New', monospace";
+export const joaoGomesTheme: ArtistTheme = {
+  bg: "#F7F4D7",
+  surface: "#FBF9EA",
+  surfaceRaised: "#EFEACB",
+  line: "#E2DCBC",
+  lineStrong: "#8C8670",
+  text: "#181512",
+  textMuted: "#5A5246",
+  amber: "#802A1D", // acento: fundo do botão (tokens.base.accent)
+  amberText: "#802A1D", // acento como texto/link (accentText)
+  onAmber: "#F7F4D7",
+  sun: "#802A1D", // accentText
+  signalRed: "#A3201A",
+  lagoon: "#802A1D", // tokens.brand
+  lagoonDeep: "#5C1E14", // tokens.brandDeep
+  chrome: "#5A5246",
+  greyPoster: "#181512",
+  mist: "#F7F4D7", // tokens.paper
+  ink: "#181512",
+  paper: "#F7F4D7",
+  fontDisplay: JOAO_GOMES_FONT,
+  fontGrotesk: JOAO_GOMES_FONT_LABEL,
+  fontMono: JOAO_GOMES_FONT_MONO,
+  mast: "#F7F4D7", // roles.mastBaseBg
+  mastInk: "#802A1D", // roles.mastBaseInk
+  mastRule: ["#802A1D", "#D8792E"], // fio duplo vermelho Lapa + laranja moldura (decisão 2026-11-16 mural claro)
+  colorScheme: "light",
+};
+
+/** Tema `feature` (escuro): Pickup. */
+export const joaoGomesFeatureTheme: ArtistTheme = {
+  ...joaoGomesTheme,
+  bg: "#802A1D",
+  surface: "#8E3426",
+  surfaceRaised: "#9A3D2E",
+  line: "#9C4436",
+  lineStrong: "#E3B6A6",
+  text: "#F7F4D7",
+  textMuted: "#F2D9BE",
+  amber: "#F7F4D7",
+  amberText: "#FFC9B8",
+  onAmber: "#802A1D",
+  signalRed: "#FFD9CF",
+  chrome: "#F2D9BE",
+  mast: "#181512", // roles.mastPickupBg: a noite de festa
+  mastInk: "#F7F4D7", // roles.mastPickupInk
+};
+
 /** Tema padrão para ambientes recém-criados (antes do design próprio): neutro, escuro. */
 export const blankTheme: ArtistTheme = {
   bg: "#121214",

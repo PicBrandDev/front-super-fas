@@ -125,3 +125,18 @@
 :global([data-brand="veigh"]) .price {
   color: var(--fc-fg);
 }
+
+/* JOÃO GOMES: foto de produto no creme, canto vivo; nome em Anton 400 caixa alta; preço na tinta (como na Loja do JG do protótipo). */
+:global([data-brand="joaoGomes"]) .img,
+:global([data-brand="joaoGomes"]) .bag b {
+  border-radius: 0;
+}
+:global([data-brand="joaoGomes"]) .prod h3 {
+  font: 400 18px/20px var(--fc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+:global([data-brand="joaoGomes"]) .price {
+  color: var(--fc-fg);
+}

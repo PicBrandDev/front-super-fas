@@ -1,10 +1,12 @@
 import type { MastTone } from "@/components/fan/Masthead";
-import { ANITTA_STAR, ANITTA_SUN, DEPARTAMENTO_STAR, LUDMILLA_SUN, MONO_D, MONO_D_VIEWBOX, VEIGH_GLOBE, type FilledMark } from "@/components/fan/mark-shape";
+import { ANITTA_STAR, ANITTA_SUN, DEPARTAMENTO_STAR, JOAO_GOMES_MARK, LUDMILLA_SUN, MONO_D, MONO_D_VIEWBOX, VEIGH_GLOBE, type FilledMark } from "@/components/fan/mark-shape";
 import {
   anittaFeatureTheme,
   anittaTheme,
   departamentoBlueTheme,
   departamentoTheme,
+  joaoGomesFeatureTheme,
+  joaoGomesTheme,
   ludmillaFeatureTheme,
   ludmillaTheme,
   veighFeatureTheme,
@@ -19,7 +21,7 @@ import {
  * mesmas para todos; aqui só muda a aparência e a voz. Artista sem pele própria usa
  * a do Vintage Culture (o primeiro artista e o padrão da plataforma).
  */
-export type BrandKey = "vintage" | "departamento" | "anitta" | "veigh" | "ludmilla";
+export type BrandKey = "vintage" | "departamento" | "anitta" | "veigh" | "ludmilla" | "joaoGomes";
 
 /** Os cinco moldes dos cartazes do Mural (A lançamento, B assinatura, C data, D PicKup, E loja). */
 export type PosterKind = "lost" | "culture" | "date" | "pick" | "store";
@@ -426,10 +428,71 @@ const ludmilla: ArtistBrand = {
   },
 };
 
-const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta, veigh, ludmilla };
+/**
+ * JOÃO GOMES: pacote do Fanzone Artist Kit (packs/joao-gomes), gerado por gerar-pele.mjs. Revise os TODO.
+ * Pele solo [P] (Meu Piseiro Brasileiro, cores [V-medido] nas capas). Dominguinho só como conteúdo (decisão
+ * 2026-11-16).
+ */
+const joaoGomes: ArtistBrand = {
+  key: "joaoGomes",
+  theme: joaoGomesTheme,
+  toneTheme: joaoGomesFeatureTheme,
+  toneRoutes: ["/pickup"],
+  adminTheme: null,
+  themeColor: "#F7F4D7",
+  phone: true,
+  short: "João",
+  the: "o João",
+  of: "do João",
+  mark: JOAO_GOMES_MARK,
+  // pack > roles.iconBg / iconInk (ícone do painel).
+  adminMark: { shape: JOAO_GOMES_MARK, bg: "#802A1D", fg: "#F7F4D7" },
+  adminMastTone: "mast",
+  // Cabeçalhos no tom "mast" (roles.mastBaseBg).
+  mastTones: { night: "mast", sky: "mast", amber: "mast", sun: "mast", "lagoon-deep": "mast", "poster-grey": "mast" },
+  wheel: "star",
+  wheelSeal: { text: "JOÃO GOMES · PISEIRO BRASILEIRO · JG ·", center: JOAO_GOMES_MARK },
+  // pack > roles.disc*.
+  vinyl: { disc: "#181512", groove: "#3A332C", grooveOpacity: 1, label: "#D8792E", labelInk: "#181512" },
+  store: { name: "Loja do JG", word: "loja do jg", mastTone: "mast", pickupPlace: "lojinha do JG" },
+  superFan: "Fã Super do João",
+  hyperFans: "HyperFans do João",
+  hashtag: "EuSouUmSuperFaDoJoaoGomes",
+  motto: ["Tô indo ali,", "fazer história!"],
+  // Frase com fonte: Tiny Desk Brasil, citada no Correio (07.10.2025) — VERIFIED-FACTS da pasta de refs.
+  mottoText: "\"Tô indo ali, fazer história!\"",
+  pickup: {
+    screen: "text-fg",
+    mastTone: "mast",
+    lead: "Gira a roleta e concorre a brinde da turnê. Simbora!",
+    sub: "text-fg-muted",
+    list: "divide-line border-line text-fg",
+    listDate: "text-fg-muted",
+    outline: "border-fg text-fg",
+    keyIdle: "Girar a roleta",
+    keyBusy: "Girando",
+    pointer: "o sol",
+  },
+  posters: {
+    glyph: "JG",
+    glyphSize: 62,
+    glyphFit: true,
+    kicker: "Tiny Desk Brasil",
+    micro: "João Gomes",
+    legal: "Correio, 07.10.2025",
+    pick: { headline: ["PicKup"], tag: "Aberto", micro: "Gira e concorre" },
+    // Cartaz E: as duas primeiras palavras do produto, como no pacote ("Caneca" / "esmaltada").
+    storeHeadline: (name) => {
+      const [first, second] = name.trim().split(/\s+/).filter(Boolean);
+      return [first ?? "Caneca", (second ?? "esmaltada").toLowerCase()];
+    },
+  },
+};
+
+const BRANDS: Record<BrandKey, ArtistBrand> = { vintage, departamento, anitta, veigh, ludmilla, joaoGomes };
 
 /** Slug do ambiente (como o admin master criou) → pele. Slug fora daqui usa a pele do Vintage. */
-const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta", veigh: "veigh", ludmilla: "ludmilla" };
+const BY_SLUG: Record<string, BrandKey> = { departamento: "departamento", anitta: "anitta", veigh: "veigh", ludmilla: "ludmilla", "joao-gomes": "joaoGomes" };
 
 export const brandKeyFor = (slug: string): BrandKey => BY_SLUG[slug] ?? "vintage";
 export const brandFor = (slug: string): ArtistBrand => BRANDS[brandKeyFor(slug)];
